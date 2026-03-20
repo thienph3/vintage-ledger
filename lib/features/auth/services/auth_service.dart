@@ -16,9 +16,9 @@ class AuthService {
         localizedReason: _reason(),
         persistAcrossBackgrounding: true,
       );
-    } on LocalAuthException catch (e) {
+    } on LocalAuthException catch (_) {
       return false;
-    } catch (e) {
+    } catch (_) {
       return false;
     }
   }
