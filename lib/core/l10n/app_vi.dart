@@ -1,7 +1,9 @@
 const Map<String, String> vi = {
   // Home
   'homeTitle': 'SỔ THU CHI CÁ NHÂN',
-  'totalBalance': 'Tổng số dư:',
+  'totalBalance': 'Tổng số dư',
+  'monthIncome': 'Thu tháng này',
+  'monthExpense': 'Chi tháng này',
   'createWalletFirst': 'Tạo ví trước',
 
   // Wallet

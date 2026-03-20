@@ -1,7 +1,9 @@
 const Map<String, String> en = {
   // Home
   'homeTitle': 'PERSONAL LEDGER',
-  'totalBalance': 'Total balance:',
+  'totalBalance': 'Total balance',
+  'monthIncome': 'Income this month',
+  'monthExpense': 'Expense this month',
   'createWalletFirst': 'Create a wallet first',
 
   // Wallet

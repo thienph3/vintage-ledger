@@ -1,7 +1,4 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
@@ -17,14 +14,13 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
-import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
+import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
-
-import 'package:vintage_ledger/features/wallet/widgets/wallet_section.dart';
 
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_detail_screen.dart';
+import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
 
@@ -39,7 +35,6 @@ class _HomeScreenState extends State<HomeScreen> {
   final WalletService walletService = WalletService();
   final TransactionService transactionService = TransactionService();
   final CategoryService categoryService = CategoryService();
-  late final PageController _pageController;
 
   List<Wallet> wallets = [];
   List<TransactionWithItems> recentTransactions = [];
@@ -51,16 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-
-    _pageController = PageController(viewportFraction: 0.9);
-
     loadData();
-  }
-
-  @override
-  void dispose() {
-    _pageController.dispose();
-    super.dispose();
   }
 
   Future<void> loadData() async {
@@ -85,6 +71,31 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  int get _monthIncome => monthTransactions
+      .where((t) => t.transaction.type == 'income')
+      .fold(0, (sum, t) => sum + t.transaction.amount);
+
+  int get _monthExpense => monthTransactions
+      .where((t) => t.transaction.type == 'expense')
+      .fold(0, (sum, t) => sum + t.transaction.amount);
+
+  Future<void> _addTransaction() async {
+    if (wallets.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(S.of(context, 'createWalletFirst')),
+          backgroundColor: AppColors.divider,
+        ),
+      );
+      return;
+    }
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const TransactionFormScreen()),
+    );
+    if (result == true) loadData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
@@ -96,9 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
           onPressed: () async {
             await Navigator.push(
               context,
-              MaterialPageRoute(
-                builder: (_) => const SettingScreen(),
-              ),
+              MaterialPageRoute(builder: (_) => const SettingScreen()),
             );
             loadData();
           },
@@ -107,137 +116,238 @@ class _HomeScreenState extends State<HomeScreen> {
       body: RefreshIndicator(
         onRefresh: loadData,
         child: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            Row(
-              children: [
-                Text(
-                  S.of(context, 'totalBalance'),
-                  style: AppTextStyles.body,
-                ),
-                const SizedBox(width: AppSpacing.md),
-                AmountText(
-                  amount: totalBalance.abs(),
-                  type: totalBalance >= 0 ? "income" : "expense",
-                ),
-              ],
-            ),
-
-            const SizedBox(height: AppSpacing.xl),
-
-            SizedBox(
-              height: 350,
-              child: ScrollConfiguration(
-                behavior: const MaterialScrollBehavior().copyWith(
-                  dragDevices: {
-                    PointerDeviceKind.touch,
-                    PointerDeviceKind.mouse,
-                  },
-                ),
-                child: PageView(
-                  controller: _pageController,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: LedgerCard(
-                        child: ChartSection(transactions: monthTransactions),
+            _buildBalanceCard(),
+            const SizedBox(height: AppSpacing.lg),
+            _buildWalletRow(),
+            const SizedBox(height: AppSpacing.lg),
+            LedgerCard(child: ChartSection(transactions: monthTransactions)),
+            const SizedBox(height: AppSpacing.lg),
+            LedgerCard(
+              child: TransactionSection(
+                transactions: recentTransactions,
+                categoryMap: categoryMap,
+                onAddTransaction: _addTransaction,
+                onTapTransaction: (txn) async {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => TransactionFormScreen(
+                        walletId: txn.transaction.walletId,
+                        transaction: txn.transaction,
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: LedgerCard(
-                        child: WalletSection(
-                          wallets: wallets,
-                          onAddWallet: () async {
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const WalletFormScreen(),
-                              ),
-                            );
-                            if (result == true) loadData();
-                          },
-                          onTapWallet: (wallet) async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    WalletDetailScreen(wallet: wallet),
-                              ),
-                            );
-                            loadData();
-                          },
-                          onDeleteWallet: (wallet) async {
-                            await walletService.deleteWallet(wallet.id!);
-                            loadData();
-                          },
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 12),
-                      child: LedgerCard(
-                        child: TransactionSection(
-                          transactions: recentTransactions,
-                          categoryMap: categoryMap,
-                          onAddTransaction: () async {
-                            if (wallets.isEmpty) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    S.of(context, 'createWalletFirst'),
-                                  ),
-                                  backgroundColor: AppColors.divider,
-                                ),
-                              );
-                              return;
-                            }
-                            final result = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const TransactionFormScreen(),
-                              ),
-                            );
-                            if (result == true) loadData();
-                          },
-                          onTapTransaction: (transaction) async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => TransactionFormScreen(
-                                  walletId: transaction.transaction.walletId,
-                                  transaction: transaction.transaction,
-                                ),
-                              ),
-                            );
-                            loadData();
-                          },
-                          onDeleteTransaction: (transaction) async {
-                            await transactionService.deleteTransaction(
-                              transaction.transaction.id!,
-                            );
-                            loadData();
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                  loadData();
+                },
+                onDeleteTransaction: (txn) async {
+                  await transactionService.deleteTransaction(
+                    txn.transaction.id!,
+                  );
+                  loadData();
+                },
               ),
             ),
-            const SizedBox(height: 12),
-            Center(
-              child: SmoothPageIndicator(
-                controller: _pageController,
-                count: 3,
-                effect: WormEffect(
-                  dotHeight: 8,
-                  dotWidth: 8,
-                  activeDotColor: AppColors.inkBlue,
+            const SizedBox(height: 80),
+          ],
+        ),
+      ),
+      fab: FloatingActionButton(
+        onPressed: _addTransaction,
+        backgroundColor: AppColors.inkBlue,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  // ========================
+  // BALANCE CARD
+  // ========================
+
+  Widget _buildBalanceCard() {
+    return LedgerCard(
+      child: Column(
+        children: [
+          Text(S.of(context, 'totalBalance'), style: AppTextStyles.caption),
+          const SizedBox(height: AppSpacing.xs),
+          AmountText(
+            amount: totalBalance.abs(),
+            type: totalBalance >= 0 ? 'income' : 'expense',
+            fontSize: 28,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          const Divider(),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(
+                child: _buildMiniStat(
+                  icon: Icons.arrow_downward,
+                  color: AppColors.income,
+                  label: S.of(context, 'monthIncome'),
+                  amount: _monthIncome,
+                  type: 'income',
                 ),
+              ),
+              Container(width: 1, height: 40, color: AppColors.divider),
+              Expanded(
+                child: _buildMiniStat(
+                  icon: Icons.arrow_upward,
+                  color: AppColors.expense,
+                  label: S.of(context, 'monthExpense'),
+                  amount: _monthExpense,
+                  type: 'expense',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniStat({
+    required IconData icon,
+    required Color color,
+    required String label,
+    required int amount,
+    required String type,
+  }) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 4),
+            Text(label, style: AppTextStyles.caption),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        AmountText(amount: amount, type: type),
+      ],
+    );
+  }
+
+  // ========================
+  // WALLET ROW
+  // ========================
+
+  Widget _buildWalletRow() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(S.of(context, 'myWallets'), style: AppTextStyles.title),
+            InkWell(
+              onTap: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const WalletListScreen()),
+                );
+                loadData();
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(S.of(context, 'viewAll'), style: AppTextStyles.link),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_forward, size: 16),
+                ],
               ),
             ),
           ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          height: 90,
+          child: wallets.isEmpty
+              ? _buildAddWalletCard()
+              : ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: wallets.length + 1,
+                  separatorBuilder: (_, __) =>
+                      const SizedBox(width: AppSpacing.sm),
+                  itemBuilder: (context, index) {
+                    if (index == wallets.length) return _buildAddWalletCard();
+                    return _buildWalletCard(wallets[index]);
+                  },
+                ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWalletCard(Wallet wallet) {
+    return GestureDetector(
+      onTap: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => WalletDetailScreen(wallet: wallet),
+          ),
+        );
+        loadData();
+      },
+      child: Container(
+        width: 150,
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.paper,
+          border: Border.all(color: AppColors.divider),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.account_balance_wallet,
+                  size: 16,
+                  color: AppColors.inkBlue,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    wallet.name,
+                    style: AppTextStyles.bodyBold,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            AmountText(
+              amount: wallet.balance.abs(),
+              type: wallet.balance >= 0 ? 'income' : 'expense',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddWalletCard() {
+    return GestureDetector(
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const WalletFormScreen()),
+        );
+        if (result == true) loadData();
+      },
+      child: Container(
+        width: 90,
+        decoration: BoxDecoration(
+          border: Border.all(color: AppColors.divider, width: 1.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: Icon(Icons.add, color: AppColors.inkBlue, size: 28),
         ),
       ),
     );

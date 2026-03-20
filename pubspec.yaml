@@ -45,7 +45,6 @@ dependencies:
   local_auth: ^3.0.1
   flutter_launcher_icons: ^0.14.4
   fl_chart: ^1.2.0
-  smooth_page_indicator: ^2.0.1
   rename: ^3.1.0
 
 dev_dependencies:
