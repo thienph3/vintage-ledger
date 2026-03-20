@@ -3,7 +3,6 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/services/category_service.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
-import 'package:vintage_ledger/common/widgets/ledger_header.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
@@ -64,7 +63,9 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: "",
+      title: isEdit
+          ? S.of(context, 'editCategory')
+          : S.of(context, 'addNewCategory'),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -72,12 +73,6 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              LedgerHeader(
-                title: isEdit
-                    ? S.of(context, 'editCategory')
-                    : S.of(context, 'addNewCategory'),
-                showBackButton: true,
-              ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: nameController,

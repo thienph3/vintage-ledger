@@ -5,11 +5,13 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 class LedgerHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showBackButton;
+  final List<Widget>? actions;
 
   const LedgerHeader({
     super.key,
     required this.title,
     this.showBackButton = false,
+    this.actions,
   });
 
   @override
@@ -21,7 +23,6 @@ class LedgerHeader extends StatelessWidget implements PreferredSizeWidget {
           height: 56,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               if (showBackButton)
                 IconButton(
@@ -34,11 +35,11 @@ class LedgerHeader extends StatelessWidget implements PreferredSizeWidget {
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const Spacer(),
+              if (actions != null) ...actions!,
             ],
           ),
         ),
-
-        // Divider vintage
         const Divider(),
       ],
     );

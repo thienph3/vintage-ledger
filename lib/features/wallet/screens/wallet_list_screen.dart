@@ -5,7 +5,6 @@ import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
-import 'package:vintage_ledger/common/widgets/ledger_header.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -76,8 +75,7 @@ class _WalletListScreenState extends State<WalletListScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: "",
-
+      title: S.of(context, 'myWalletsTitle'),
       body: RefreshIndicator(
         onRefresh: loadWallets,
         child: wallets.isEmpty
@@ -85,10 +83,6 @@ class _WalletListScreenState extends State<WalletListScreen> {
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  LedgerHeader(
-                    title: S.of(context, 'myWalletsTitle'),
-                    showBackButton: true,
-                  ),
                   ...wallets.map((w) {
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),

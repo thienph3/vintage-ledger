@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:vintage_ledger/common/widgets/ledger_header.dart';
+
 class AppScaffold extends StatelessWidget {
   final String title;
   final Widget body;
   final List<Widget>? actions;
   final FloatingActionButton? fab;
+  final bool showBackButton;
 
   const AppScaffold({
     super.key,
@@ -12,13 +15,14 @@ class AppScaffold extends StatelessWidget {
     required this.body,
     this.actions,
     this.fab,
+    this.showBackButton = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: (title != "")
-          ? AppBar(title: Text(title), actions: actions)
+      appBar: title.isNotEmpty
+          ? LedgerHeader(title: title, showBackButton: showBackButton, actions: actions)
           : null,
       body: SafeArea(child: body),
       floatingActionButton: fab,

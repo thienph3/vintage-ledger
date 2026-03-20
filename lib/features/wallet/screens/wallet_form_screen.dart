@@ -6,7 +6,6 @@ import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
 
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
-import 'package:vintage_ledger/common/widgets/ledger_header.dart';
 
 class WalletFormScreen extends StatefulWidget {
   final Wallet? wallet;
@@ -79,8 +78,9 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: "",
-
+      title: isEdit
+          ? S.of(context, 'editWallet')
+          : S.of(context, 'addNewWallet'),
       body: Padding(
         padding: const EdgeInsets.all(16),
 
@@ -89,12 +89,6 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
 
           child: ListView(
             children: [
-              LedgerHeader(
-                title: isEdit
-                    ? S.of(context, 'editWallet')
-                    : S.of(context, 'addNewWallet'),
-                showBackButton: true,
-              ),
               TextFormField(
                 controller: nameController,
                 decoration: InputDecoration(

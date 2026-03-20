@@ -16,7 +16,6 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 
-import 'package:vintage_ledger/common/widgets/ledger_header.dart';
 import 'package:vintage_ledger/features/category/screens/category_form_screen.dart';
 
 class TransactionFormScreen extends StatefulWidget {
@@ -315,19 +314,15 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: "",
+      title: widget.isEdit
+          ? S.of(context, 'editTransaction')
+          : S.of(context, 'addNewTransaction'),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
-              LedgerHeader(
-                title: widget.isEdit
-                    ? S.of(context, 'editTransaction')
-                    : S.of(context, 'addNewTransaction'),
-                showBackButton: true,
-              ),
 
               /// TYPE
               Container(

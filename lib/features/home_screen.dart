@@ -19,11 +19,9 @@ import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
-import 'package:vintage_ledger/common/widgets/ledger_header.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
-import 'package:vintage_ledger/features/wallet/widgets/wallet_section.dart';
 
-import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
+import 'package:vintage_ledger/features/wallet/widgets/wallet_section.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_detail_screen.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
@@ -81,50 +79,37 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: "",
+      title: S.of(context, 'homeTitle'),
+      showBackButton: false,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.settings),
+          onPressed: () async {
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const SettingScreen(),
+              ),
+            );
+            loadData();
+          },
+        ),
+      ],
       body: RefreshIndicator(
         onRefresh: loadData,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
-            // Header
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: LedgerHeader(
-                        title: S.of(context, 'homeTitle'),
-                        showBackButton: false,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.settings),
-                      onPressed: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SettingScreen(),
-                          ),
-                        );
-                        loadData();
-                      },
-                    ),
-                  ],
+                Text(
+                  S.of(context, 'totalBalance'),
+                  style: AppTextStyles.body,
                 ),
-                Row(
-                  children: [
-                    Text(
-                      S.of(context, 'totalBalance'),
-                      style: AppTextStyles.body,
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    AmountText(
-                      amount: totalBalance.abs(),
-                      type: totalBalance >= 0 ? "income" : "expense",
-                    ),
-                  ],
+                const SizedBox(width: AppSpacing.md),
+                AmountText(
+                  amount: totalBalance.abs(),
+                  type: totalBalance >= 0 ? "income" : "expense",
                 ),
               ],
             ),

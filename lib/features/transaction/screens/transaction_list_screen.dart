@@ -10,7 +10,6 @@ import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
-import 'package:vintage_ledger/common/widgets/ledger_header.dart';
 
 enum TransactionFilter { day, week, month }
 
@@ -127,7 +126,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: "",
+      title: S.of(context, 'transactionLedger'),
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: FutureBuilder<List<dynamic>>(
@@ -154,10 +153,6 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
             return ListView(
               children: [
-                LedgerHeader(
-                  title: S.of(context, 'transactionLedger'),
-                  showBackButton: true,
-                ),
                 _buildFilterButtons(),
                 const SizedBox(height: AppSpacing.md),
 

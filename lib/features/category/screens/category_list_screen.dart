@@ -3,7 +3,6 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/services/category_service.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
-import 'package:vintage_ledger/common/widgets/ledger_header.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
@@ -70,16 +69,12 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: "",
+      title: S.of(context, 'categories'),
       body: RefreshIndicator(
         onRefresh: loadCategories,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            LedgerHeader(
-              title: S.of(context, 'categories'),
-              showBackButton: true,
-            ),
             const SizedBox(height: AppSpacing.sm),
             if (categories.isEmpty)
               Center(child: Text(S.of(context, 'noCategories'))),
