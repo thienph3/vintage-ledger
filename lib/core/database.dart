@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class AppDatabase {
   static final AppDatabase instance = AppDatabase._init();
+
+  /// Set to true to wipe and recreate DB on next launch.
+  static const _resetOnInit = false;
 
   static Database? _database;
 
@@ -19,9 +24,14 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
+    if (_resetOnInit) {
+      final file = File(path);
+      if (file.existsSync()) file.deleteSync();
+    }
+
     return await openDatabase(
       path,
-      version: 6,
+      version: 1,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -39,7 +49,7 @@ CREATE TABLE settings(
 CREATE TABLE wallets(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
-  balance INTEGER,
+  balance INTEGER NOT NULL DEFAULT 0,
   created_at TEXT
 )
 ''');
@@ -48,7 +58,8 @@ CREATE TABLE wallets(
 CREATE TABLE categories(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
-  type TEXT
+  type TEXT,
+  icon INTEGER
 )
 ''');
 
@@ -63,41 +74,18 @@ CREATE TABLE transactions(
   date TEXT
 )
 ''');
+
+    await db.execute('''
+CREATE TABLE transaction_items(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  transaction_id INTEGER NOT NULL,
+  amount INTEGER NOT NULL,
+  category_id INTEGER,
+  note TEXT,
+  FOREIGN KEY(transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
+)
+''');
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      // 1️⃣ Thêm cột balance cho wallets
-      await db.execute(
-        "ALTER TABLE wallets ADD COLUMN balance INTEGER NOT NULL DEFAULT 0",
-      );
-    }
-
-    if (oldVersion < 3) {
-      // 2️⃣ Tạo bảng transaction_items
-      await db.execute('''
-        CREATE TABLE transaction_items (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          transaction_id INTEGER NOT NULL,
-          amount INTEGER NOT NULL,
-          category_id INTEGER,
-          note TEXT,
-          FOREIGN KEY(transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
-        )
-      ''');
-    }
-
-    if (oldVersion < 5) {
-      await db.execute("ALTER TABLE categories ADD COLUMN icon INTEGER");
-    }
-
-    if (oldVersion < 6) {
-      await db.execute('''
-        CREATE TABLE IF NOT EXISTS settings(
-          key TEXT PRIMARY KEY,
-          value TEXT NOT NULL
-        )
-      ''');
-    }
-  }
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {}
 }
