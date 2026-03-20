@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ngocdiepsmoney/widgets/amount_text.dart';
-import 'package:ngocdiepsmoney/widgets/app_scaffold.dart';
+import '../../widgets/amount_text.dart';
+import '../../widgets/app_scaffold.dart';
 
 import '../../services/category_service.dart';
 import '../../services/transaction_service.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ngocdiepsmoney/widgets/amount_text.dart';
+import '../../widgets/amount_text.dart';
 
 class WalletCard extends StatelessWidget {
 

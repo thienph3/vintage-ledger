@@ -1,4 +1,4 @@
-package com.example.ngocdiepsmoney
+package com.example.vintageledger
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
