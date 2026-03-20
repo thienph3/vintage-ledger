@@ -474,8 +474,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                   setState(() => categoryId = v);
                 },
                 validator: (v) {
-                  if (v == null || v == -1)
+                  if (v == null || v == -1) {
                     return S.of(context, 'categoryNameRequired');
+                  }
                   return null;
                 },
               ),

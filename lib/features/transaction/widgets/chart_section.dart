@@ -97,8 +97,9 @@ class ChartSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (transactions.isEmpty)
+    if (transactions.isEmpty) {
       return Center(child: Text(S.of(context, 'noData')));
+    }
 
     final now = DateTime.now();
 

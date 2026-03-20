@@ -22,6 +22,8 @@ import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
 
 import 'package:vintage_ledger/features/wallet/widgets/wallet_section.dart';
+
+import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_detail_screen.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
