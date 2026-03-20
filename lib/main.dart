@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import 'services/setting_service.dart';
-import 'widgets/auto_lock_wrapper.dart';
-import 'screens/home/home_screen.dart';
-import 'theme/app_theme.dart';
+import 'package:vintage_ledger/features/settings/services/setting_service.dart';
+import 'package:vintage_ledger/common/widgets/auto_lock_wrapper.dart';
+import 'package:vintage_ledger/features/home_screen.dart';
+import 'package:vintage_ledger/core/theme/app_theme.dart';
 
 void main() {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {

@@ -9,6 +9,7 @@ A personal expense tracker with a vintage-style UI, built with Flutter.
 - **Custom Categories** — Create categories with optional Material icons
 - **Charts** — Visualize income/expenses with charts (fl_chart)
 - **Biometric Authentication** — Lock app with fingerprint/Face ID/Windows Hello (local_auth)
+- **Multi-language** — Vietnamese / English, switchable in settings
 - **Cross-platform** — Supports Android, iOS, Windows, Linux, macOS, Web
 
 ## Tech Stack
@@ -25,15 +26,22 @@ A personal expense tracker with a vintage-style UI, built with Flutter.
 
 ```
 lib/
-├── models/          # Data models (Wallet, Transaction, Category)
-├── repositories/    # Database CRUD operations
-├── services/        # Business logic layer
-├── screens/         # UI screens (Home, Wallet, Transaction, Category, Auth)
-├── widgets/         # Reusable UI components
-├── theme/           # App theme, colors, typography, spacing
-├── utils/           # Formatters, navigation helpers
-├── database.dart    # SQLite database setup & migrations
-└── main.dart        # App entry point
+├── core/
+│   ├── constants/       # Shared constants (category icons, ...)
+│   ├── l10n/            # Localization (vi, en) & S helper
+│   ├── theme/           # App theme, colors, typography, spacing
+│   └── database.dart    # SQLite database setup & migrations
+├── common/
+│   └── widgets/         # Reusable UI components
+├── features/
+│   ├── auth/            # Biometric lock screen
+│   ├── category/        # Category CRUD (models, repos, services, screens, widgets)
+│   ├── settings/        # Language settings (repos, services, screens)
+│   ├── transaction/     # Transaction CRUD + charts
+│   ├── wallet/          # Wallet CRUD
+│   └── home_screen.dart # Main home screen
+├── utils/               # Formatters (amount, date)
+└── main.dart            # App entry point
 ```
 
 ## Getting Started
