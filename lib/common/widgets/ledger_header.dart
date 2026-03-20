@@ -16,35 +16,26 @@ class LedgerHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              if (showBackButton)
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              Text(
-                title,
-                style: AppTextStyles.title.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Spacer(),
-              if (actions != null) ...actions!,
-            ],
-          ),
-        ),
-        const Divider(),
-      ],
+    return AppBar(
+      automaticallyImplyLeading: false,
+      leading: showBackButton
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context),
+            )
+          : null,
+      title: Text(
+        title,
+        style: AppTextStyles.title.copyWith(fontWeight: FontWeight.bold),
+      ),
+      actions: actions,
+      bottom: const PreferredSize(
+        preferredSize: Size.fromHeight(1.2),
+        child: Divider(),
+      ),
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(56 + 1.2);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 1.2);
 }
