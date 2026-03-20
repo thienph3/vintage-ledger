@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../l10n/s.dart';
 import '../../services/auth_service.dart';
+import '../../services/setting_service.dart';
+import '../../main.dart';
 
 class LockScreen extends StatefulWidget {
   const LockScreen({super.key});
@@ -13,9 +16,18 @@ class LockScreen extends StatefulWidget {
 class _LockScreenState extends State<LockScreen> {
 
   final AuthService _authService = AuthService();
+  final SettingService _settingService = SettingService();
 
   bool _loading = false;
   String? _error;
+
+  Future<void> _toggleLocale() async {
+    final current = Localizations.localeOf(context).languageCode;
+    final next = current == 'vi' ? 'en' : 'vi';
+    await _settingService.setLocale(next);
+    if (!mounted) return;
+    MyApp.setLocale(context, Locale(next));
+  }
 
   Future<void> _unlock() async {
 
@@ -35,7 +47,7 @@ class _LockScreenState extends State<LockScreen> {
     } else {
       setState(() {
         _loading = false;
-        _error = "Xác thực thất bại";
+        _error = S.of(context, 'authFailed');
       });
     }
   }
@@ -46,6 +58,9 @@ class _LockScreenState extends State<LockScreen> {
 
   @override
   Widget build(BuildContext context) {
+
+    final langCode = Localizations.localeOf(context).languageCode;
+    final flag = langCode == 'vi' ? '🇻🇳' : '🇺🇸';
 
     return Scaffold(
 
@@ -61,6 +76,13 @@ class _LockScreenState extends State<LockScreen> {
 
               children: [
 
+                TextButton(
+                  onPressed: _toggleLocale,
+                  child: Text(flag, style: const TextStyle(fontSize: 28)),
+                ),
+
+                const SizedBox(height: 8),
+
                 const Icon(
                   Icons.lock_outline,
                   size: 80,
@@ -68,9 +90,9 @@ class _LockScreenState extends State<LockScreen> {
 
                 const SizedBox(height: 24),
 
-                const Text(
-                  "Ứng dụng đang bị khóa",
-                  style: TextStyle(
+                Text(
+                  S.of(context, 'appLocked'),
+                  style: const TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -78,8 +100,8 @@ class _LockScreenState extends State<LockScreen> {
 
                 const SizedBox(height: 8),
 
-                const Text(
-                  "Xác thực để tiếp tục",
+                Text(
+                  S.of(context, 'authenticateToContinue'),
                   textAlign: TextAlign.center,
                 ),
 
@@ -109,7 +131,7 @@ class _LockScreenState extends State<LockScreen> {
                             height: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text("Mở khóa"),
+                        : Text(S.of(context, 'unlock')),
                   ),
                 ),
 
@@ -117,7 +139,7 @@ class _LockScreenState extends State<LockScreen> {
 
                 TextButton(
                   onPressed: _exitApp,
-                  child: const Text("Thoát ứng dụng"),
+                  child: Text(S.of(context, 'exitApp')),
                 ),
 
               ],

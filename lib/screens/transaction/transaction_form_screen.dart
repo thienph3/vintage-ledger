@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../l10n/s.dart';
 import '../../models/transaction.dart';
 import '../../models/transaction_item.dart';
 import '../../models/category.dart';
@@ -81,7 +82,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   DateTime date = DateTime.now();
 
-  // List items for transaction
   List<TransactionItemWithController> items = [];
 
   @override
@@ -175,7 +175,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       initialDate: date,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
-      locale: const Locale('vi', 'VN'),
+      locale: Localizations.localeOf(context),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -202,7 +202,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       builder: (builderContext, child) {
         return Localizations.override(
           context: builderContext,
-          locale: const Locale('vi', 'VN'),
+          locale: Localizations.localeOf(context),
           child: child!,
         );
       },
@@ -244,14 +244,14 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
     if (txnAmount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Số tiền phải lớn hơn 0"), backgroundColor: AppColors.divider),
+        SnackBar(content: Text(S.of(context, 'amountMustBePositive')), backgroundColor: AppColors.divider),
       );
       return;
     }
 
     if (totalItemAmount > txnAmount) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Tổng các mục chi tiết không được vượt quá số tiền thu chi tổng"), backgroundColor: AppColors.divider),
+        SnackBar(content: Text(S.of(context, 'itemsTotalExceed')), backgroundColor: AppColors.divider),
       );
       return;
     }
@@ -284,7 +284,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       );
     }
 
-    // Lưu items
     for (var itemCtrl in items) {
       final itemAmount = int.tryParse(itemCtrl.amountController.text) ?? 0;
       if (itemAmount <= 0) continue;
@@ -318,7 +317,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
           child: ListView(
             children: [
               LedgerHeader(
-                title: widget.isEdit? "CHỈNH SỬA THU CHI": "THÊM THU CHI MỚI",
+                title: widget.isEdit ? S.of(context, 'editTransaction') : S.of(context, 'addNewTransaction'),
                 showBackButton: true,
               ),
               /// TYPE
@@ -342,7 +341,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                           ),
                           alignment: Alignment.center,
                           child: Text(
-                            "Khoản thu",
+                            S.of(context, 'income'),
                             style: AppTextStyles.body.copyWith(
                               color: type == 1 ? Colors.white : AppColors.inkBlue,
                             ),
@@ -362,7 +361,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                           ),
                           alignment: Alignment.center,
                           child: Text(
-                            "Khoản chi",
+                            S.of(context, 'expense'),
                             style: AppTextStyles.body.copyWith(
                               color: type == -1 ? Colors.white : AppColors.inkBlue,
                             ),
@@ -385,7 +384,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 DropdownButtonFormField<int>(
                   initialValue: selectedWalletId,
                   decoration: InputDecoration(
-                    labelText: "Ví thu chi",
+                    labelText: S.of(context, 'selectWallet'),
                     floatingLabelBehavior: FloatingLabelBehavior.always,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -401,7 +400,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                   }).toList(),
                   onChanged: (v) => setState(() => selectedWalletId = v),
                   validator: (v) {
-                    if (v == null) return "Vui lòng chọn ví";
+                    if (v == null) return S.of(context, 'selectWalletRequired');
                     return null;
                   },
                 ),
@@ -412,7 +411,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               DropdownButtonFormField<int>(
                 initialValue: categoryId,
                 decoration: InputDecoration(
-                  labelText: "Danh mục",
+                  labelText: S.of(context, 'category'),
                   floatingLabelBehavior: FloatingLabelBehavior.always,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -425,9 +424,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     value: -1,
                     child: Row(
                       children: [
-                        Icon(Icons.add, size: 18),
+                        const Icon(Icons.add, size: 18),
                         const SizedBox(width: 8),
-                        Text("Thêm danh mục", style: AppTextStyles.body),
+                        Text(S.of(context, 'addCategory'), style: AppTextStyles.body),
                       ],
                     ),
                   ),
@@ -456,7 +455,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                   setState(() => categoryId = v);
                 },
                 validator: (v) {
-                  if (v == null || v == -1) return "Chọn danh mục";
+                  if (v == null || v == -1) return S.of(context, 'categoryNameRequired');
                   return null;
                 },
               ),
@@ -468,7 +467,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 readOnly: true,
                 controller: dateController,
                 decoration: InputDecoration(
-                  labelText: "Ngày",
+                  labelText: S.of(context, 'date'),
                   floatingLabelBehavior: FloatingLabelBehavior.always,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -484,7 +483,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
               /// TRANSACTION ITEMS
               if (widget.isEdit || true) ...[
-                Text("Chi tiết giao dịch", style: AppTextStyles.title),
+                Text(S.of(context, 'transactionDetails'), style: AppTextStyles.title),
                 const SizedBox(height: 8),
                 ...items.asMap().entries.map((entry) {
                   final index = entry.key;
@@ -496,8 +495,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         child: TextFormField(
                           controller: itemCtrl.noteController,
                           decoration: InputDecoration(
-                            hintText: "Tên mục chi tiết (tùy chọn)",
-                            labelText: "Tên mục chi tiết",
+                            hintText: S.of(context, 'itemNameHint'),
+                            labelText: S.of(context, 'itemName'),
                             floatingLabelBehavior: FloatingLabelBehavior.always,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -533,7 +532,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     });
                   },
                   icon: const Icon(Icons.add),
-                  label: const Text("Thêm mục chi tiết"),
+                  label: Text(S.of(context, 'addItem')),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -541,8 +540,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 controller: noteController,
                 maxLines: 2,
                 decoration: InputDecoration(
-                  labelText: "Ghi chú",
-                  hintText: "Nhập ghi chú cho thu chi (tùy chọn)",
+                  labelText: S.of(context, 'note'),
+                  hintText: S.of(context, 'noteHint'),
                   floatingLabelBehavior: FloatingLabelBehavior.always,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -556,7 +555,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: save,
-                child: Text(widget.isEdit ? "Cập nhật" : "Lưu"),
+                child: Text(widget.isEdit ? S.of(context, 'update') : S.of(context, 'save')),
               ),
             ],
           ),

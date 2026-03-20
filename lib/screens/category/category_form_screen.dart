@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/s.dart';
 import '../../models/category.dart';
 import '../../services/category_service.dart';
 import '../../widgets/app_scaffold.dart';
@@ -20,9 +21,8 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
   bool isEdit = false;
-  int? selectedIconIndex; // lưu **index** của icon trong iconOptions
+  int? selectedIconIndex;
 
-  // Danh sách icon mẫu
   final List<IconData> iconOptions = [
     Icons.fastfood,
     Icons.directions_car,
@@ -47,7 +47,6 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
       isEdit = true;
       nameController.text = widget.category!.name;
 
-      // Chuyển từ codePoint sang index nếu cần
       if (widget.category!.icon != null) {
         final cp = widget.category!.icon!;
         final idx = iconOptions.indexWhere((icon) => icon.codePoint == cp);
@@ -60,9 +59,6 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     final name = nameController.text.trim();
 
-    // Lấy codePoint từ index trước khi lưu
-    // final iconCodePoint =
-    //     selectedIconIndex != null ? iconOptions[selectedIconIndex!].codePoint : null;
     final iconCodePoint = selectedIconIndex;
     if (isEdit) {
       await categoryService.updateCategory(
@@ -93,28 +89,28 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               LedgerHeader(
-                title: isEdit ? "CHỈNH SỬA DANH MỤC" : "THÊM DANH MỤC MỚI",
+                title: isEdit ? S.of(context, 'editCategory') : S.of(context, 'addNewCategory'),
                 showBackButton: true,
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: "Tên danh mục",
+                decoration: InputDecoration(
+                  labelText: S.of(context, 'categoryName'),
                   floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return "Vui lòng nhập tên danh mục";
+                    return S.of(context, 'categoryNameRequired');
                   }
                   return null;
                 },
               ),
               const SizedBox(height: 16),
-              const Text(
-                "Chọn biểu tượng",
-                style: TextStyle(fontWeight: FontWeight.bold),
+              Text(
+                S.of(context, 'selectIcon'),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               SizedBox(
@@ -167,9 +163,9 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
                       borderRadius: BorderRadius.circular(24),
                     ),
                   ),
-                  child: const Text(
-                    "Lưu",
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Text(
+                    S.of(context, 'save'),
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

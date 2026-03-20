@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/s.dart';
 import '../../models/wallet.dart';
 import '../../services/wallet_service.dart';
 import '../../widgets/app_scaffold.dart';
@@ -46,11 +47,11 @@ class _WalletListScreenState extends State<WalletListScreen> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Xóa ví"),
-        content: const Text("Bạn có chắc muốn xóa ví này?"),
+        title: Text(S.of(context, 'deleteWallet')),
+        content: Text(S.of(context, 'deleteWalletConfirm')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Hủy")),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Xóa")),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(S.of(context, 'cancel'))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(S.of(context, 'delete'))),
         ],
       ),
     );
@@ -74,13 +75,13 @@ class _WalletListScreenState extends State<WalletListScreen> {
       body: RefreshIndicator(
         onRefresh: loadWallets,
         child: wallets.isEmpty
-            ? const EmptyState(message: "Không có ví nào")
+            ? EmptyState(message: S.of(context, 'noWalletsFound'))
             : ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  const LedgerHeader(
-                    title: "VÍ CỦA TÔI",
-                    showBackButton: true, // false nếu là home-screen
+                  LedgerHeader(
+                    title: S.of(context, 'myWalletsTitle'),
+                    showBackButton: true,
                   ),
                   ...wallets.map((w) {
                     return Padding(
@@ -126,15 +127,14 @@ class _WalletListScreenState extends State<WalletListScreen> {
 
                   const SizedBox(height: AppSpacing.md),
 
-                  // Nút thêm ví full-width
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
                       onPressed: () => openForm(),
                       icon: const Icon(Icons.add, size: 16),
-                      label: const Text(
-                        "Thêm ví",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                      label: Text(
+                        S.of(context, 'addWallet'),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
                       ),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),

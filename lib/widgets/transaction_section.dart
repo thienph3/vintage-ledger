@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/s.dart';
 import '../screens/category/category_list_screen.dart';
 import '../widgets/empty_state.dart';
 import '../widgets/amount_text.dart';
@@ -15,7 +16,7 @@ import '../../models/category.dart';
 class TransactionSection extends StatelessWidget {
   final int? walletId;
   final List<TransactionWithItems> transactions;
-  final Map<int, Category> categoryMap; // Map categoryId -> Category
+  final Map<int, Category> categoryMap;
 
   final Future<void> Function() onAddTransaction;
   final Future<void> Function(TransactionWithItems transaction) onTapTransaction;
@@ -53,11 +54,10 @@ class TransactionSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        /// Title + Xem tất cả
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Thu chi gần đây", style: AppTextStyles.title),
+            Text(S.of(context, 'recentTransactions'), style: AppTextStyles.title),
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -67,19 +67,19 @@ class TransactionSection extends StatelessWidget {
                   ),
                 );
               },
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    "Xem tất cả",
-                    style: TextStyle(
+                    S.of(context, 'viewAll'),
+                    style: const TextStyle(
                       color: AppColors.inkBlack,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(width: 4),
-                  Icon(Icons.arrow_forward, size: 16, color: AppColors.inkBlack),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_forward, size: 16, color: AppColors.inkBlack),
                 ],
               ),
             ),
@@ -87,10 +87,9 @@ class TransactionSection extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
 
-        /// Header cột
         Row(
           children: [
-            SizedBox(width: 120, child: Text("Ngày", style: AppTextStyles.body)),
+            SizedBox(width: 120, child: Text(S.of(context, 'date'), style: AppTextStyles.body)),
             Expanded(
               child: InkWell(
                 onTap: () {
@@ -101,24 +100,24 @@ class TransactionSection extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Row(
+                child: Row(
                   children: [
                     Text(
-                      "Danh mục",
-                      style: TextStyle(
+                      S.of(context, 'category'),
+                      style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: AppColors.inkBlack,
                       ),
                     ),
-                    SizedBox(width: 4),
-                    Icon(Icons.arrow_outward, size: 16),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.arrow_outward, size: 16),
                   ],
                 ),
               ),
             ),
             SizedBox(
               child: Text(
-                "Số tiền",
+                S.of(context, 'amount'),
                 textAlign: TextAlign.right,
                 style: AppTextStyles.body,
               ),
@@ -127,9 +126,8 @@ class TransactionSection extends StatelessWidget {
         ),
         Divider(color: AppColors.divider, thickness: 1.2),
 
-        /// Nội dung giao dịch
         if (transactions.isEmpty)
-          const EmptyState(message: "Không có thu chi nào"),
+          EmptyState(message: S.of(context, 'noTransactions')),
         if (transactions.isNotEmpty)
           ...transactions.map((transaction) {
             final category = categoryMap[transaction.transaction.categoryId];
@@ -139,16 +137,16 @@ class TransactionSection extends StatelessWidget {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: const Text("Xóa thu chi"),
-                    content: const Text("Bạn có chắc muốn xóa thu chi này?"),
+                    title: Text(S.of(context, 'deleteTransaction')),
+                    content: Text(S.of(context, 'deleteTransactionConfirm')),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text("Hủy"),
+                        child: Text(S.of(context, 'cancel')),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text("Xóa"),
+                        child: Text(S.of(context, 'delete')),
                       ),
                     ],
                   ),
@@ -173,7 +171,6 @@ class TransactionSection extends StatelessWidget {
                         children: [
                           if (category?.icon != null) ...[
                             Icon(
-                            // Dùng map để lấy IconData constant, nếu index hợp lệ
                             (category?.icon != null && iconMap.containsKey(category!.icon))
                                 ? iconMap[category.icon]!
                                 : Icons.category,
@@ -183,7 +180,7 @@ class TransactionSection extends StatelessWidget {
                             const SizedBox(width: 6),
                           ],
                           Text(
-                            category?.name ?? "Khác",
+                            category?.name ?? S.of(context, 'other'),
                             style: AppTextStyles.body,
                           ),
                         ],
@@ -201,16 +198,15 @@ class TransactionSection extends StatelessWidget {
             );
           }),
 
-        /// Nút Thêm ở dưới
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: onAddTransaction,
             icon: const Icon(Icons.add, size: 16),
-            label: const Text(
-              "Thêm thu chi",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+            label: Text(
+              S.of(context, 'addTransaction'),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
             ),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),

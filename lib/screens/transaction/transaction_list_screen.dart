@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/s.dart';
 import '../../widgets/amount_text.dart';
 import '../../widgets/app_scaffold.dart';
 
@@ -50,7 +51,6 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     });
   }
 
-  /// Gom nhóm transactions theo ngày
   Map<String, List<TransactionWithItems>> _groupByDate(List<TransactionWithItems> transactions) {
     final map = <String, List<TransactionWithItems>>{};
     for (var t in transactions) {
@@ -60,7 +60,6 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     return map;
   }
 
-  /// Lọc transactions theo filter
   List<TransactionWithItems> _applyFilter(List<TransactionWithItems> transactions) {
     final now = DateTime.now();
     switch (_currentFilter) {
@@ -85,23 +84,16 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   Widget _buildFilterButtons() {
+    final labels = {
+      TransactionFilter.day: S.of(context, 'today'),
+      TransactionFilter.week: S.of(context, 'thisWeek'),
+      TransactionFilter.month: S.of(context, 'thisMonth'),
+    };
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: TransactionFilter.values.map((filter) {
         final isSelected = filter == _currentFilter;
-        String label;
-        switch (filter) {
-          case TransactionFilter.day:
-            label = "Hôm nay";
-            break;
-          case TransactionFilter.week:
-            label = "Tuần này";
-            break;
-          case TransactionFilter.month:
-            label = "Tháng này";
-            break;
-        }
-
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4),
           child: ElevatedButton(
@@ -119,7 +111,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
-            child: Text(label, style: TextStyle(color: isSelected ? Colors.white : AppColors.inkBlack)),
+            child: Text(labels[filter]!, style: TextStyle(color: isSelected ? Colors.white : AppColors.inkBlack)),
           ),
         );
       }).toList(),
@@ -139,7 +131,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              return Center(child: Text('Lỗi: ${snapshot.error}'));
+              return Center(child: Text('${S.of(context, 'error')}: ${snapshot.error}'));
             }
 
             var transactions = snapshot.data![0] as List<TransactionWithItems>;
@@ -149,25 +141,22 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             final grouped = _groupByDate(transactions);
 
             if (transactions.isEmpty) {
-              return const Center(child: Text("Không có thu chi nào"));
+              return Center(child: Text(S.of(context, 'noTransactions')));
             }
 
             return ListView(
               children: [
-                const LedgerHeader(
-                  title: "SỔ THU CHI",
+                LedgerHeader(
+                  title: S.of(context, 'transactionLedger'),
                   showBackButton: true,
                 ),
-                /// Filter Buttons
                 _buildFilterButtons(),
                 const SizedBox(height: AppSpacing.md),
 
-                /// Transaction Ledger
                 ...grouped.entries.map((entry) {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header ngày
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                         child: Text(
@@ -175,10 +164,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                           style: AppTextStyles.title.copyWith(fontSize: 16),
                         ),
                       ),
-                      // Danh sách giao dịch
                       ...entry.value.map((t) {
                         return LedgerCard(
-                          // margin: const EdgeInsets.symmetric(vertical: 4),
                           child: Row(
                             children: [
                               SizedBox(
@@ -186,7 +173,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                                 child: Text(DateFormatter.time(t.transaction.date), style: AppTextStyles.body),
                               ),
                               Expanded(
-                                child: Text(categoryMap[t.transaction.categoryId] ?? "Khác", style: AppTextStyles.body),
+                                child: Text(categoryMap[t.transaction.categoryId] ?? S.of(context, 'other'), style: AppTextStyles.body),
                               ),
                               SizedBox(
                                 width: 80,

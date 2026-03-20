@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/s.dart';
 import '../../models/category.dart';
 import '../../services/category_service.dart';
 import '../../widgets/app_scaffold.dart';
@@ -21,7 +22,6 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
   final CategoryService categoryService = CategoryService();
   List<Category> categories = [];
 
-  /// Map các index sang IconData constant
   final Map<int, IconData> iconMap = {
     0: Icons.fastfood,
     1: Icons.directions_car,
@@ -59,11 +59,11 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text("Xóa danh mục"),
-        content: const Text("Bạn có chắc chắn muốn xóa danh mục này không?"),
+        title: Text(S.of(context, 'deleteCategory')),
+        content: Text(S.of(context, 'deleteCategoryConfirm')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Hủy")),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Xóa")),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(S.of(context, 'cancel'))),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(S.of(context, 'delete'))),
         ],
       ),
     );
@@ -86,13 +86,13 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            const LedgerHeader(
-              title: "DANH MỤC",
+            LedgerHeader(
+              title: S.of(context, 'categories'),
               showBackButton: true,
             ),
             const SizedBox(height: AppSpacing.sm),
             if (categories.isEmpty)
-              const Center(child: Text("Chưa có danh mục nào")),
+              Center(child: Text(S.of(context, 'noCategories'))),
             ...categories.map((c) => Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: SwipeListItem(
@@ -117,7 +117,6 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                       child: Row(
                         children: [
                           Icon(
-                            // Dùng map để lấy IconData constant, nếu index hợp lệ
                             (c.icon != null && iconMap.containsKey(c.icon))
                                 ? iconMap[c.icon]!
                                 : Icons.category,
@@ -142,9 +141,9 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
               child: ElevatedButton.icon(
                 onPressed: () => openForm(),
                 icon: const Icon(Icons.add, size: 16),
-                label: const Text(
-                  "Thêm danh mục",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                label: Text(
+                  S.of(context, 'addCategory'),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),

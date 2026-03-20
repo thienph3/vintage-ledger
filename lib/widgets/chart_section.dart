@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 
+import '../l10n/s.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 
@@ -15,7 +16,6 @@ class ChartSection extends StatelessWidget {
     required this.transactions,
   });
 
-  /// Lấy dữ liệu thu chi theo ngày
   Map<DateTime, Map<String, int>> groupByDayByType(List<TransactionWithItems> tx) {
     Map<DateTime, Map<String, int>> data = {};
     for (var t in tx) {
@@ -72,7 +72,7 @@ class ChartSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (transactions.isEmpty) return const Center(child: Text("Không có dữ liệu"));
+    if (transactions.isEmpty) return Center(child: Text(S.of(context, 'noData')));
 
     final now = DateTime.now();
 
@@ -98,15 +98,14 @@ class ChartSection extends StatelessWidget {
             length: 2,
             child: Column(
               children: [
-                const TabBar(
+                TabBar(
                   labelColor: AppColors.inkBlue,
                   unselectedLabelColor: Colors.grey,
-                  tabs: [Tab(text: "Xu hướng"), Tab(text: "Thu chi trong tháng")],
+                  tabs: [Tab(text: S.of(context, 'trend')), Tab(text: S.of(context, 'monthlyIncomeExpense'))],
                 ),
                 Expanded(
                   child: TabBarView(
                     children: [
-                      // LineChart xu hướng
                       Padding(
                         padding: const EdgeInsets.all(12),
                         child: LineChart(
@@ -115,7 +114,6 @@ class ChartSection extends StatelessWidget {
                             lineBarsData: [
                               LineChartBarData(
                                 spots: incomeSpots,
-                                // isCurved: true,
                                 barWidth: 3,
                                 dotData: FlDotData(show: true),
                                 color: AppColors.income,
@@ -134,7 +132,6 @@ class ChartSection extends StatelessWidget {
                               ),
                               LineChartBarData(
                                 spots: expenseSpots,
-                                // isCurved: true,
                                 barWidth: 3,
                                 dotData: FlDotData(show: true),
                                 color: AppColors.expense,
@@ -208,7 +205,6 @@ class ChartSection extends StatelessWidget {
                           ),
                         ),
                       ),
-                      // BarChart thu chi tháng
                       Padding(
                         padding: const EdgeInsets.all(12),
                         child: BarChart(

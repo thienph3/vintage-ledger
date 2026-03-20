@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/s.dart';
 import '../../models/wallet.dart';
 import '../../services/wallet_service.dart';
 
@@ -36,16 +37,11 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
     super.initState();
 
     if (widget.wallet != null) {
-
       isEdit = true;
-
       nameController.text = widget.wallet!.name;
       balanceController.text = widget.wallet!.balance.toString();
-
     } else {
-
       balanceController.text = "0";
-
     }
   }
 
@@ -59,7 +55,6 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
     final balance = int.tryParse(balanceController.text) ?? 0;
 
     if (isEdit) {
-
       final updated = Wallet(
         id: widget.wallet!.id,
         name: name,
@@ -68,9 +63,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
       );
 
       await walletService.updateWallet(updated.id!, updated.name, updated.balance);
-
     } else {
-
       final created = Wallet(
         name: name,
         balance: balance,
@@ -78,7 +71,6 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
       );
 
       await walletService.createWallet(created.name, created.balance);
-
     }
 
     if (!mounted) return;
@@ -105,20 +97,19 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
 
             children: [
               LedgerHeader(
-                title: isEdit ? "SỬA VÍ" : "THÊM VÍ MỚI",
-                showBackButton: true, // false nếu là home-screen
+                title: isEdit ? S.of(context, 'editWallet') : S.of(context, 'addNewWallet'),
+                showBackButton: true,
               ),
-              /// NAME
               TextFormField(
                 controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: "Tên ví",
+                decoration: InputDecoration(
+                  labelText: S.of(context, 'walletName'),
                   floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(),
+                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return "Vui lòng nhập tên ví";
+                    return S.of(context, 'walletNameRequired');
                   }
                   return null;
                 },
@@ -126,19 +117,17 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
 
               const SizedBox(height: 16),
 
-              /// BALANCE
               AmountInputField(
                 controller: balanceController,
               ),
               const SizedBox(height: 24),
 
-              /// SAVE BUTTON
               SizedBox(
                 width: double.infinity,
 
                 child: ElevatedButton(
                   onPressed: save,
-                  child: const Text("Lưu"),
+                  child: Text(S.of(context, 'save')),
                 ),
               ),
 

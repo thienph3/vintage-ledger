@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import 'services/setting_service.dart';
 import 'widgets/auto_lock_wrapper.dart';
 import 'screens/home/home_screen.dart';
 import 'theme/app_theme.dart';
@@ -17,8 +18,35 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  static void setLocale(BuildContext context, Locale locale) {
+    final state = context.findAncestorStateOfType<_MyAppState>();
+    state?._setLocale(locale);
+  }
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  Locale _locale = const Locale('vi', 'VN');
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLocale();
+  }
+
+  Future<void> _loadLocale() async {
+    final code = await SettingService().getLocale();
+    setState(() => _locale = Locale(code));
+  }
+
+  void _setLocale(Locale locale) {
+    setState(() => _locale = locale);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +55,11 @@ class MyApp extends StatelessWidget {
 
       theme: AppTheme.light,
 
-      locale: const Locale('vi', 'VN'),
+      locale: _locale,
 
       supportedLocales: const [
-        Locale('vi', 'VN'),
-        Locale('en', 'US'),
+        Locale('vi'),
+        Locale('en'),
       ],
 
       localizationsDelegates: const [

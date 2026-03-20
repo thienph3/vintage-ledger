@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/s.dart';
 import '../models/category.dart';
 
 import '../widgets/empty_state.dart';
@@ -29,26 +30,25 @@ class CategorySection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
 
-        /// HEADER
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
 
             Text(
-              "Danh mục",
+              S.of(context, 'category'),
               style: AppTextStyles.title,
             ),
 
             InkWell(
               onTap: onAddCategory,
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.add, size: 16),
-                  SizedBox(width: 4),
+                  const Icon(Icons.add, size: 16),
+                  const SizedBox(width: 4),
                   Text(
-                    "Thêm",
-                    style: TextStyle(
+                    S.of(context, 'addCategory'),
+                    style: const TextStyle(
                       color: AppColors.inkBlack,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -62,22 +62,19 @@ class CategorySection extends StatelessWidget {
 
         const SizedBox(height: AppSpacing.sm),
 
-        /// TABLE HEADER
-        const Row(
+        Row(
           children: [
             Expanded(
-              child: Text("Tên danh mục"),
+              child: Text(S.of(context, 'categoryNameColumn')),
             ),
           ],
         ),
 
         Divider(color: AppColors.divider, thickness: 1.2),
 
-        /// EMPTY
         if (categories.isEmpty)
-          const EmptyState(message: "Không có danh mục nào"),
+          EmptyState(message: S.of(context, 'noCategoriesFound')),
 
-        /// LIST
         if (categories.isNotEmpty)
           ...categories.map((category) {
 
@@ -90,20 +87,20 @@ class CategorySection extends StatelessWidget {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: const Text("Xóa danh mục"),
-                    content: const Text(
-                      "Bạn có chắc muốn xóa danh mục này?",
+                    title: Text(S.of(context, 'deleteCategory')),
+                    content: Text(
+                      S.of(context, 'deleteCategoryConfirm'),
                     ),
                     actions: [
 
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text("Hủy"),
+                        child: Text(S.of(context, 'cancel')),
                       ),
 
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text("Xóa"),
+                        child: Text(S.of(context, 'delete')),
                       ),
 
                     ],

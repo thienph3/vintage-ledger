@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 
+import '../../l10n/s.dart';
 import '../../models/category.dart';
 import '../../services/wallet_service.dart';
 import '../../services/transaction_service.dart';
@@ -25,6 +26,7 @@ import '../../widgets/wallet_section.dart';
 import '../wallet/wallet_form_screen.dart';
 import '../wallet/wallet_detail_screen.dart';
 import '../transaction/transaction_form_screen.dart';
+import '../settings/setting_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -50,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
 
     _pageController = PageController(
-      viewportFraction: 0.9, // để card nhỏ lại nhìn thấy card bên cạnh
+      viewportFraction: 0.9,
     );
 
     loadData();
@@ -90,14 +92,30 @@ class _HomeScreenState extends State<HomeScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const LedgerHeader(
-                  title: "SỔ THU CHI CÁ NHÂN",
-                  showBackButton: false, // false nếu là home-screen
+                Row(
+                  children: [
+                    Expanded(
+                      child: LedgerHeader(
+                        title: S.of(context, 'homeTitle'),
+                        showBackButton: false,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.settings),
+                      onPressed: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const SettingScreen()),
+                        );
+                        loadData();
+                      },
+                    ),
+                  ],
                 ),
                 Row(
                   children: [
                     Text(
-                      "Tổng số dư:",
+                      S.of(context, 'totalBalance'),
                       style: AppTextStyles.body,
                     ),
                     const SizedBox(width: AppSpacing.md),
@@ -113,7 +131,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: AppSpacing.xl),
 
             SizedBox(
-              height: 350, // chỉnh tùy UI bạn
+              height: 350,
               child: ScrollConfiguration(
                 behavior: const MaterialScrollBehavior().copyWith(
                   dragDevices: {
@@ -167,7 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           onAddTransaction: () async {
                             if (wallets.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Tạo ví trước"), backgroundColor: AppColors.divider),
+                                SnackBar(content: Text(S.of(context, 'createWalletFirst')), backgroundColor: AppColors.divider),
                               );
                               return;
                             }

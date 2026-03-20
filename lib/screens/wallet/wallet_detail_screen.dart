@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../l10n/s.dart';
 import '../../models/wallet.dart';
 import '../../models/category.dart';
 import '../../services/category_service.dart';
@@ -13,7 +14,7 @@ import '../../widgets/amount_text.dart';
 import '../../widgets/app_scaffold.dart';
 import '../../widgets/ledger_card.dart';
 import '../../widgets/transaction_section.dart';
-import '../../widgets/chart_section.dart'; // giả sử bạn đã có chart-section
+import '../../widgets/chart_section.dart';
 
 import '../transaction/transaction_form_screen.dart';
 
@@ -74,11 +75,10 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            /// BALANCE CARD
             LedgerCard(
               child: Row(
                 children: [
-                  Text("Số dư:", style: AppTextStyles.body),
+                  Text("${S.of(context, 'balance')}:", style: AppTextStyles.body),
                   const SizedBox(width: AppSpacing.md),
                   AmountText(
                     amount: balance.abs(),
@@ -89,7 +89,6 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            /// CHART SECTION (tóm tắt thu chi)
             LedgerCard(
               child: ChartSection(
                 transactions: transactions,
@@ -97,7 +96,6 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            /// TRANSACTION SECTION
             LedgerCard(
               child: TransactionSection(
                 walletId: widget.wallet.id!,

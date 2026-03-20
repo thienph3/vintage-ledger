@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/s.dart';
 import '../models/wallet.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -25,11 +26,10 @@ class WalletSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        /// Title + Xem tất cả
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("Ví của tôi", style: AppTextStyles.title),
+            Text(S.of(context, 'myWallets'), style: AppTextStyles.title),
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -39,19 +39,19 @@ class WalletSection extends StatelessWidget {
                   ),
                 );
               },
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    "Xem tất cả",
-                    style: TextStyle(
+                    S.of(context, 'viewAll'),
+                    style: const TextStyle(
                       color: AppColors.inkBlack,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(width: 4),
-                  Icon(Icons.arrow_forward, size: 16, color: AppColors.inkBlack),
+                  const SizedBox(width: 4),
+                  const Icon(Icons.arrow_forward, size: 16, color: AppColors.inkBlack),
                 ],
               ),
             ),
@@ -59,19 +59,18 @@ class WalletSection extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
 
-        /// Header cột
-        const Row(
+        Row(
           children: [
             Expanded(
               child: Text(
-                "Ví",
-                style: TextStyle(fontWeight: FontWeight.bold),
+                S.of(context, 'wallet'),
+                style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ),
             SizedBox(
               width: 100,
               child: Text(
-                "Số dư",
+                S.of(context, 'balance'),
                 textAlign: TextAlign.right,
               ),
             ),
@@ -79,9 +78,8 @@ class WalletSection extends StatelessWidget {
         ),
         Divider(color: AppColors.divider, thickness: 1.2),
 
-        /// Danh sách ví
         if (wallets.isEmpty)
-          const Text("Chưa có ví nào"),
+          Text(S.of(context, 'noWallets')),
         if (wallets.isNotEmpty)
           ...wallets.map((wallet) {
             return InkWell(
@@ -90,16 +88,16 @@ class WalletSection extends StatelessWidget {
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (_) => AlertDialog(
-                    title: const Text("Xóa ví"),
-                    content: const Text("Bạn có chắc muốn xóa ví này?"),
+                    title: Text(S.of(context, 'deleteWallet')),
+                    content: Text(S.of(context, 'deleteWalletConfirm')),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text("Hủy"),
+                        child: Text(S.of(context, 'cancel')),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text("Xóa"),
+                        child: Text(S.of(context, 'delete')),
                       ),
                     ],
                   ),
@@ -125,16 +123,15 @@ class WalletSection extends StatelessWidget {
             );
           }),
 
-        /// Nút thêm ví full-width ở dưới
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: onAddWallet,
             icon: const Icon(Icons.add, size: 16),
-            label: const Text(
-              "Thêm ví",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+            label: Text(
+              S.of(context, 'addWallet'),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
             ),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),

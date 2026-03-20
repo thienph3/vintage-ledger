@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../l10n/s.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../services/transaction_service.dart';
@@ -77,7 +78,7 @@ class ChartSectionV2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (transactions.isEmpty) {
-      return const Center(child: Text("Không có dữ liệu"));
+      return Center(child: Text(S.of(context, 'noData')));
     }
 
     final now = DateTime.now();
@@ -108,8 +109,8 @@ class ChartSectionV2 extends StatelessWidget {
               labelColor: AppColors.inkBlue,
               unselectedLabelColor: Colors.brown,
               tabs: [
-                Tab(text: "Xu hướng"),
-                Tab(text: "Thu chi trong tháng"),
+                Tab(text: S.of(context, 'trend')),
+                Tab(text: S.of(context, 'monthlyIncomeExpense')),
               ],
             ),
             const SizedBox(height: AppSpacing.sm),

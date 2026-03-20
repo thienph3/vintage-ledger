@@ -23,13 +23,20 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
   }
 
   Future _createDB(Database db, int version) async {
+
+    await db.execute('''
+CREATE TABLE settings(
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+)
+''');
 
     await db.execute('''
 CREATE TABLE wallets(
@@ -85,10 +92,18 @@ CREATE TABLE transactions(
     }
 
     if (oldVersion < 5) {
-      // 1️⃣ Thêm cột icon cho categories
       await db.execute(
         "ALTER TABLE categories ADD COLUMN icon INTEGER"
       );
+    }
+
+    if (oldVersion < 6) {
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS settings(
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        )
+      ''');
     }
   }
 }
