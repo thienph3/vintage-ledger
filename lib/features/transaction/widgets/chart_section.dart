@@ -101,14 +101,7 @@ class ChartSection extends StatelessWidget {
       return Center(child: Text(S.of(context, 'noData')));
     }
 
-    final now = DateTime.now();
-
-    final monthlyDataByType = groupByDayByType(
-      transactions.where((t) {
-        final date = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
-        return date.year == now.year && date.month == now.month;
-      }).toList(),
-    );
+    final monthlyDataByType = groupByDayByType(transactions);
 
     final accumulatedData = accumulateByType(monthlyDataByType);
     final incomeSpots = mapToSpotsByType(accumulatedData, "income");

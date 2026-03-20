@@ -62,30 +62,27 @@ class TransactionService {
     return await _repo.create(transaction);
   }
 
-  /// READ ALL TRANSACTIONS (load items)
-  Future<List<TransactionWithItems>> getTransactionsWithItems() async {
-    final transactions = await _repo.getAll();
-    final result = <TransactionWithItems>[];
-
-    for (var t in transactions) {
-      final items = await _itemRepo.getByTransaction(t.id!);
-      result.add(TransactionWithItems(transaction: t, items: items));
-    }
-
-    return result;
+  /// READ RECENT (with optional wallet filter)
+  Future<List<TransactionWithItems>> getRecentWithItems(
+    int limit, {
+    int? walletId,
+  }) async {
+    final transactions = await _repo.getRecent(limit, walletId: walletId);
+    return _attachItems(transactions);
   }
 
-  /// READ BY WALLET (load items)
-  Future<List<TransactionWithItems>> getByWalletWithItems(int walletId) async {
-    final transactions = await _repo.getByWallet(walletId);
-    final result = <TransactionWithItems>[];
-
-    for (var t in transactions) {
-      final items = await _itemRepo.getByTransaction(t.id!);
-      result.add(TransactionWithItems(transaction: t, items: items));
-    }
-
-    return result;
+  /// READ BY DATE RANGE (with optional wallet filter)
+  Future<List<TransactionWithItems>> getByDateRangeWithItems(
+    int startDate,
+    int endDate, {
+    int? walletId,
+  }) async {
+    final transactions = await _repo.getByDateRange(
+      startDate,
+      endDate,
+      walletId: walletId,
+    );
+    return _attachItems(transactions);
   }
 
   /// READ SINGLE TRANSACTION (with items)
@@ -138,7 +135,6 @@ class TransactionService {
     final transaction = await _repo.getById(id);
     if (transaction == null) throw Exception("Transaction not found");
 
-    // Update wallet
     final wallet = await _walletRepo.getById(transaction.walletId);
     if (wallet != null) {
       int newBalance = wallet.balance;
@@ -157,13 +153,17 @@ class TransactionService {
       );
     }
 
-    // Delete items first
     final items = await _itemRepo.getByTransaction(id);
     for (var item in items) {
       await _itemRepo.delete(item.id!);
     }
 
     return await _repo.delete(id);
+  }
+
+  /// DELETE ALL TRANSACTIONS FOR A WALLET
+  Future<void> deleteAllByWallet(int walletId) async {
+    await _repo.deleteAllByWallet(walletId);
   }
 
   // ========================
@@ -186,5 +186,20 @@ class TransactionService {
     int transactionId,
   ) async {
     return await _itemRepo.getByTransaction(transactionId);
+  }
+
+  // ========================
+  // PRIVATE HELPERS
+  // ========================
+
+  Future<List<TransactionWithItems>> _attachItems(
+    List<TransactionModel> transactions,
+  ) async {
+    final result = <TransactionWithItems>[];
+    for (var t in transactions) {
+      final items = await _itemRepo.getByTransaction(t.id!);
+      result.add(TransactionWithItems(transaction: t, items: items));
+    }
+    return result;
   }
 }

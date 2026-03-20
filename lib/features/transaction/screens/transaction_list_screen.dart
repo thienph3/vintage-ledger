@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
+
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/ledger_card.dart';
+import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 
 import 'package:vintage_ledger/features/category/services/category_service.dart';
 import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
+import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/common/widgets/ledger_card.dart';
+import 'package:vintage_ledger/core/constants/category_icons.dart';
 
-enum TransactionFilter { day, week, month }
+enum GroupMode { day, week, month }
 
 class TransactionListScreen extends StatefulWidget {
   final int? walletId;
@@ -23,187 +27,401 @@ class TransactionListScreen extends StatefulWidget {
 }
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
-  final TransactionService transactionService = TransactionService();
-  final CategoryService categoryService = CategoryService();
+  final TransactionService _txnService = TransactionService();
+  final CategoryService _catService = CategoryService();
+  final ScrollController _scrollController = ScrollController();
 
-  late Future<List<TransactionWithItems>> _futureTransactions;
-  late Future<Map<int, String>> _futureCategoryMap;
-  TransactionFilter _currentFilter = TransactionFilter.week;
+  final List<TransactionWithItems> _transactions = [];
+  Map<int, String> _categoryNameMap = {};
+  Map<int, int?> _categoryIconMap = {};
+  GroupMode _groupMode = GroupMode.day;
+
+  /// The month cursor: next _loadMonth will load this month's data.
+  late DateTime _cursor;
+  bool _loading = false;
+  bool _loadingMore = false;
+  bool _categoriesLoaded = false;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    final now = DateTime.now();
+    _cursor = DateTime(now.year, now.month, 1);
+    _scrollController.addListener(_onScroll);
+    _initialLoad();
   }
 
-  void _loadData() {
-    _futureTransactions = widget.walletId != null
-        ? transactionService.getByWalletWithItems(widget.walletId!)
-        : transactionService.getTransactionsWithItems();
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-    _futureCategoryMap = categoryService.getCategories().then((categories) {
-      final map = <int, String>{};
-      for (var cat in categories) {
-        if (cat.id != null) map[cat.id!] = cat.name;
-      }
-      return map;
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 200 &&
+        !_loadingMore) {
+      _loadMore();
+    }
+  }
+
+  Future<void> _initialLoad() async {
+    setState(() => _loading = true);
+    await _loadCategories();
+    await _loadMonth();
+    setState(() => _loading = false);
+  }
+
+  Future<void> _loadCategories() async {
+    if (_categoriesLoaded) return;
+    final cats = await _catService.getCategories();
+    _categoryNameMap = {for (var c in cats) if (c.id != null) c.id!: c.name};
+    _categoryIconMap = {for (var c in cats) if (c.id != null) c.id!: c.icon};
+    _categoriesLoaded = true;
+  }
+
+  /// Load one month of data at [_cursor], then move cursor back one month.
+  Future<void> _loadMonth() async {
+    final start = _cursor;
+    final end = DateTime(start.year, start.month + 1, 0, 23, 59, 59, 999);
+
+    final txns = await _txnService.getByDateRangeWithItems(
+      start.millisecondsSinceEpoch,
+      end.millisecondsSinceEpoch,
+      walletId: widget.walletId,
+    );
+
+    setState(() {
+      _transactions.addAll(txns);
+      // Move cursor to previous month
+      _cursor = DateTime(start.year, start.month - 1, 1);
     });
   }
 
-  Map<String, List<TransactionWithItems>> _groupByDate(
-    List<TransactionWithItems> transactions,
-  ) {
-    final map = <String, List<TransactionWithItems>>{};
-    for (var t in transactions) {
-      final date = DateFormatter.date(t.transaction.date);
-      map.putIfAbsent(date, () => []).add(t);
-    }
-    return map;
+  Future<void> _loadMore() async {
+    setState(() => _loadingMore = true);
+    await _loadMonth();
+    setState(() => _loadingMore = false);
   }
 
-  List<TransactionWithItems> _applyFilter(
-    List<TransactionWithItems> transactions,
-  ) {
+  Future<void> _refresh() async {
     final now = DateTime.now();
-    switch (_currentFilter) {
-      case TransactionFilter.day:
-        return transactions.where((t) {
-          final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
-          return dt.year == now.year &&
-              dt.month == now.month &&
-              dt.day == now.day;
-        }).toList();
-      case TransactionFilter.week:
-        final weekStart = now.subtract(Duration(days: now.weekday - 1));
-        final weekEnd = weekStart.add(const Duration(days: 6));
-        return transactions.where((t) {
-          final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
-          return !dt.isBefore(weekStart) && !dt.isAfter(weekEnd);
-        }).toList();
-      case TransactionFilter.month:
-        return transactions.where((t) {
-          final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
-          return dt.year == now.year && dt.month == now.month;
-        }).toList();
+    _cursor = DateTime(now.year, now.month, 1);
+    _transactions.clear();
+    _categoriesLoaded = false;
+    await _initialLoad();
+  }
+
+  void _changeGroupMode(GroupMode mode) {
+    setState(() => _groupMode = mode);
+  }
+
+  // ========================
+  // GROUPING LOGIC
+  // ========================
+
+  /// Returns a key for grouping based on the current mode.
+  String _groupKey(TransactionWithItems t) {
+    final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
+    switch (_groupMode) {
+      case GroupMode.day:
+        return DateFormatter.fullDate(t.transaction.date);
+      case GroupMode.week:
+        // ISO week: Monday-based
+        final monday = dt.subtract(Duration(days: dt.weekday - 1));
+        final sunday = monday.add(const Duration(days: 6));
+        return '${DateFormatter.fullDate(monday.millisecondsSinceEpoch)}'
+            ' - ${DateFormatter.fullDate(sunday.millisecondsSinceEpoch)}';
+      case GroupMode.month:
+        return DateFormatter.monthYear(DateTime(dt.year, dt.month));
     }
   }
 
-  Widget _buildFilterButtons() {
+  List<_Group> _buildGroups() {
+    final map = <String, List<TransactionWithItems>>{};
+    final order = <String>[];
+    for (var t in _transactions) {
+      final key = _groupKey(t);
+      if (!map.containsKey(key)) {
+        map[key] = [];
+        order.add(key);
+      }
+      map[key]!.add(t);
+    }
+    return order.map((key) => _Group(key, map[key]!)).toList();
+  }
+
+  int get _totalIncome => _transactions
+      .where((t) => t.transaction.type == 'income')
+      .fold(0, (sum, t) => sum + t.transaction.amount);
+
+  int get _totalExpense => _transactions
+      .where((t) => t.transaction.type == 'expense')
+      .fold(0, (sum, t) => sum + t.transaction.amount);
+
+  // ========================
+  // ACTIONS
+  // ========================
+
+  Future<void> _openForm({TransactionWithItems? txn}) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TransactionFormScreen(
+          walletId: txn?.transaction.walletId ?? widget.walletId,
+          transaction: txn?.transaction,
+        ),
+      ),
+    );
+    if (result == true) _refresh();
+  }
+
+  Future<bool?> _confirmDelete() {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(S.of(ctx, 'deleteTransaction')),
+        content: Text(S.of(ctx, 'deleteTransactionConfirm')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(S.of(ctx, 'cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(S.of(ctx, 'delete')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteTransaction(int id) async {
+    await _txnService.deleteTransaction(id);
+    _refresh();
+  }
+
+  // ========================
+  // BUILD
+  // ========================
+
+  @override
+  Widget build(BuildContext context) {
+    return AppScaffold(
+      title: S.of(context, 'transactionLedger'),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.sm,
+            ),
+            child: _buildGroupModeRow(),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            child: _buildSummaryCard(),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Expanded(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : _transactions.isEmpty
+                    ? Center(child: Text(S.of(context, 'noTransactions')))
+                    : RefreshIndicator(
+                        onRefresh: _refresh,
+                        child: _buildList(),
+                      ),
+          ),
+        ],
+      ),
+      fab: FloatingActionButton(
+        onPressed: () => _openForm(),
+        backgroundColor: AppColors.inkBlue,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildGroupModeRow() {
     final labels = {
-      TransactionFilter.day: S.of(context, 'today'),
-      TransactionFilter.week: S.of(context, 'thisWeek'),
-      TransactionFilter.month: S.of(context, 'thisMonth'),
+      GroupMode.day: S.of(context, 'byDay'),
+      GroupMode.week: S.of(context, 'byWeek'),
+      GroupMode.month: S.of(context, 'byMonth'),
     };
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: TransactionFilter.values.map((filter) {
-        final isSelected = filter == _currentFilter;
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: ElevatedButton(
-            onPressed: () {
-              setState(() {
-                _currentFilter = filter;
-              });
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: isSelected ? AppColors.inkBlue : AppColors.paper,
-              foregroundColor: isSelected ? Colors.white : AppColors.inkBlack,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-                side: BorderSide(color: AppColors.divider),
+      children: GroupMode.values.map((m) {
+        final selected = m == _groupMode;
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: ElevatedButton(
+              onPressed: () => _changeGroupMode(m),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: selected ? AppColors.inkBlue : AppColors.paper,
+                foregroundColor: selected ? Colors.white : AppColors.inkBlack,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  side: BorderSide(color: AppColors.divider),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 8),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(labels[m]!),
             ),
-            child: Text(labels[filter]!),
           ),
         );
       }).toList(),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return AppScaffold(
-      title: S.of(context, 'transactionLedger'),
-      body: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: FutureBuilder<List<dynamic>>(
-          future: Future.wait([_futureTransactions, _futureCategoryMap]),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(
-                child: Text('${S.of(context, 'error')}: ${snapshot.error}'),
-              );
-            }
-
-            var transactions = snapshot.data![0] as List<TransactionWithItems>;
-            final categoryMap = snapshot.data![1] as Map<int, String>;
-
-            transactions = _applyFilter(transactions);
-            final grouped = _groupByDate(transactions);
-
-            if (transactions.isEmpty) {
-              return Center(child: Text(S.of(context, 'noTransactions')));
-            }
-
-            return ListView(
+  Widget _buildSummaryCard() {
+    return LedgerCard(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
               children: [
-                _buildFilterButtons(),
-                const SizedBox(height: AppSpacing.md),
-
-                ...grouped.entries.map((entry) {
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.sm,
-                        ),
-                        child: Text(entry.key, style: AppTextStyles.titleSmall),
-                      ),
-                      ...entry.value.map((t) {
-                        return LedgerCard(
-                          child: Row(
-                            children: [
-                              SizedBox(
-                                width: 120,
-                                child: Text(
-                                  DateFormatter.time(t.transaction.date),
-                                  style: AppTextStyles.body,
-                                ),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  categoryMap[t.transaction.categoryId] ??
-                                      S.of(context, 'other'),
-                                  style: AppTextStyles.body,
-                                ),
-                              ),
-                              SizedBox(
-                                width: 80,
-                                child: AmountText(
-                                  amount: t.transaction.amount,
-                                  type: t.transaction.type,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                      const SizedBox(height: AppSpacing.sm),
-                    ],
-                  );
-                }),
+                Text(S.of(context, 'totalIncome'), style: AppTextStyles.caption),
+                const SizedBox(height: AppSpacing.xs),
+                AmountText(amount: _totalIncome, type: 'income'),
               ],
-            );
-          },
+            ),
+          ),
+          Container(width: 1, height: 40, color: AppColors.divider),
+          Expanded(
+            child: Column(
+              children: [
+                Text(S.of(context, 'totalExpense'), style: AppTextStyles.caption),
+                const SizedBox(height: AppSpacing.xs),
+                AmountText(amount: _totalExpense, type: 'expense'),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildList() {
+    final groups = _buildGroups();
+
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      // +1 for the loading indicator at the bottom
+      itemCount: groups.length + 1,
+      itemBuilder: (context, index) {
+        if (index == groups.length) {
+          return _loadingMore
+              ? const Padding(
+                  padding: EdgeInsets.all(AppSpacing.md),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : const SizedBox(height: 80);
+        }
+
+        final group = groups[index];
+        return _buildGroupSection(group);
+      },
+    );
+  }
+
+  Widget _buildGroupSection(_Group group) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: AppSpacing.sm),
+        // Group header
+        Row(
+          children: [
+            Expanded(
+              child: Text(group.label, style: AppTextStyles.titleSmall),
+            ),
+            if (group.income > 0)
+              AmountText(amount: group.income, type: 'income'),
+            if (group.income > 0 && group.expense > 0)
+              const SizedBox(width: AppSpacing.sm),
+            if (group.expense > 0)
+              AmountText(amount: group.expense, type: 'expense'),
+          ],
+        ),
+        const Divider(),
+        ...group.items.map((t) => _buildTransactionTile(t)),
+      ],
+    );
+  }
+
+  Widget _buildTransactionTile(TransactionWithItems txn) {
+    final catName = _categoryNameMap[txn.transaction.categoryId] ??
+        S.of(context, 'other');
+    final catIcon = _categoryIconMap[txn.transaction.categoryId];
+
+    return SwipeListItem(
+      itemKey: Key(txn.transaction.id.toString()),
+      onTap: () => _openForm(txn: txn),
+      confirmDelete: _confirmDelete,
+      onDelete: () => _deleteTransaction(txn.transaction.id!),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Icon(
+              (catIcon != null && kCategoryIconMap.containsKey(catIcon))
+                  ? kCategoryIconMap[catIcon]!
+                  : Icons.category,
+              size: 22,
+              color: AppColors.inkBlue,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(catName, style: AppTextStyles.bodyBold),
+                  if (txn.transaction.note != null &&
+                      txn.transaction.note!.isNotEmpty)
+                    Text(
+                      txn.transaction.note!,
+                      style: AppTextStyles.caption,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                AmountText(
+                  amount: txn.transaction.amount,
+                  type: txn.transaction.type,
+                ),
+                Text(
+                  DateFormatter.short(txn.transaction.date),
+                  style: AppTextStyles.caption,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
   }
+}
+
+/// Helper class to hold a group of transactions with pre-computed totals.
+class _Group {
+  final String label;
+  final List<TransactionWithItems> items;
+
+  _Group(this.label, this.items);
+
+  int get income => items
+      .where((t) => t.transaction.type == 'income')
+      .fold(0, (sum, t) => sum + t.transaction.amount);
+
+  int get expense => items
+      .where((t) => t.transaction.type == 'expense')
+      .fold(0, (sum, t) => sum + t.transaction.amount);
 }

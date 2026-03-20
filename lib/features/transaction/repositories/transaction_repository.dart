@@ -14,15 +14,6 @@ class TransactionRepository {
     );
   }
 
-  /// READ ALL
-  Future<List<TransactionModel>> getAll() async {
-    final db = await AppDatabase.instance.database;
-
-    final result = await db.query('transactions', orderBy: 'date DESC');
-
-    return result.map((e) => TransactionModel.fromMap(e)).toList();
-  }
-
   /// READ BY ID
   Future<TransactionModel?> getById(int id) async {
     final db = await AppDatabase.instance.database;
@@ -41,18 +32,54 @@ class TransactionRepository {
     return null;
   }
 
-  /// READ BY WALLET
-  Future<List<TransactionModel>> getByWallet(int walletId) async {
+  /// READ RECENT (with optional wallet filter)
+  Future<List<TransactionModel>> getRecent(int limit, {int? walletId}) async {
     final db = await AppDatabase.instance.database;
 
-    final result = await db.query(
+    return (await db.query(
       'transactions',
-      where: 'wallet_id = ?',
-      whereArgs: [walletId],
+      where: walletId != null ? 'wallet_id = ?' : null,
+      whereArgs: walletId != null ? [walletId] : null,
       orderBy: 'date DESC',
+      limit: limit,
+    )).map((e) => TransactionModel.fromMap(e)).toList();
+  }
+
+  /// READ BY DATE RANGE (with optional wallet filter)
+  Future<List<TransactionModel>> getByDateRange(
+    int startDate,
+    int endDate, {
+    int? walletId,
+  }) async {
+    final db = await AppDatabase.instance.database;
+
+    final where = walletId != null
+        ? 'date >= ? AND date <= ? AND wallet_id = ?'
+        : 'date >= ? AND date <= ?';
+    final whereArgs = walletId != null
+        ? [startDate, endDate, walletId]
+        : [startDate, endDate];
+
+    return (await db.query(
+      'transactions',
+      where: where,
+      whereArgs: whereArgs,
+      orderBy: 'date DESC',
+    )).map((e) => TransactionModel.fromMap(e)).toList();
+  }
+
+  /// DELETE ALL TRANSACTIONS FOR A WALLET
+  Future<void> deleteAllByWallet(int walletId) async {
+    final db = await AppDatabase.instance.database;
+
+    // Delete items first
+    await db.rawDelete(
+      'DELETE FROM transaction_items WHERE transaction_id IN '
+      '(SELECT id FROM transactions WHERE wallet_id = ?)',
+      [walletId],
     );
 
-    return result.map((e) => TransactionModel.fromMap(e)).toList();
+    await db.delete('transactions', where: 'wallet_id = ?', whereArgs: [walletId]);
   }
 
   /// UPDATE

@@ -42,7 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late final PageController _pageController;
 
   List<Wallet> wallets = [];
-  List<TransactionWithItems> transactions = [];
+  List<TransactionWithItems> recentTransactions = [];
+  List<TransactionWithItems> monthTransactions = [];
   Map<int, Category> categoryMap = {};
 
   int totalBalance = 0;
@@ -63,18 +64,24 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> loadData() async {
-    final w = await walletService.getWallets();
-    final t = await transactionService.getTransactionsWithItems();
-    final c = await categoryService.getCategories();
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month, 1);
+    final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
-    final balance = w.fold<int>(0, (sum, wallet) => sum + wallet.balance);
+    final w = await walletService.getWallets();
+    final recent = await transactionService.getRecentWithItems(5);
+    final month = await transactionService.getByDateRangeWithItems(
+      monthStart.millisecondsSinceEpoch,
+      monthEnd.millisecondsSinceEpoch,
+    );
+    final c = await categoryService.getCategories();
 
     setState(() {
       wallets = w;
-      transactions = t
-        ..sort((a, b) => b.transaction.date.compareTo(a.transaction.date));
+      recentTransactions = recent;
+      monthTransactions = month;
       categoryMap = {for (var c in c) c.id!: c};
-      totalBalance = balance;
+      totalBalance = w.fold<int>(0, (sum, wallet) => sum + wallet.balance);
     });
   }
 
@@ -133,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Padding(
                       padding: const EdgeInsets.only(right: 12),
                       child: LedgerCard(
-                        child: ChartSection(transactions: transactions),
+                        child: ChartSection(transactions: monthTransactions),
                       ),
                     ),
                     Padding(
@@ -171,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       padding: const EdgeInsets.only(right: 12),
                       child: LedgerCard(
                         child: TransactionSection(
-                          transactions: transactions,
+                          transactions: recentTransactions,
                           categoryMap: categoryMap,
                           onAddTransaction: () async {
                             if (wallets.isEmpty) {

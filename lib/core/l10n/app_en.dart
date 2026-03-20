@@ -53,9 +53,13 @@ const Map<String, String> en = {
   'addCategory': 'Add category',
 
   // Transaction filter
-  'today': 'Today',
-  'thisWeek': 'This week',
-  'thisMonth': 'This month',
+  'byDay': 'Day',
+  'byWeek': 'Week',
+  'byMonth': 'Month',
+  'totalIncome': 'Total income',
+  'totalExpense': 'Total expense',
+  'weekLabel': 'Week {0}',
+  'loadingMore': 'Loading more...',
 
   // Category
   'categories': 'CATEGORIES',

@@ -52,9 +52,13 @@ const Map<String, String> vi = {
   'addCategory': 'Thêm danh mục',
 
   // Transaction filter
-  'today': 'Hôm nay',
-  'thisWeek': 'Tuần này',
-  'thisMonth': 'Tháng này',
+  'byDay': 'Ngày',
+  'byWeek': 'Tuần',
+  'byMonth': 'Tháng',
+  'totalIncome': 'Tổng thu',
+  'totalExpense': 'Tổng chi',
+  'weekLabel': 'Tuần {0}',
+  'loadingMore': 'Đang tải thêm...',
 
   // Category
   'categories': 'DANH MỤC',

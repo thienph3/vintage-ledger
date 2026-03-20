@@ -32,7 +32,8 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
   final WalletService walletService = WalletService();
   final CategoryService categoryService = CategoryService();
 
-  List<TransactionWithItems> transactions = [];
+  List<TransactionWithItems> recentTransactions = [];
+  List<TransactionWithItems> monthTransactions = [];
   Map<int, Category> categoryMap = {};
   int balance = 0;
 
@@ -43,12 +44,26 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
   }
 
   Future<void> loadData() async {
-    final t = await transactionService.getByWalletWithItems(widget.wallet.id!);
-    final w = await walletService.getWallet(widget.wallet.id!);
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month, 1);
+    final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+    final walletId = widget.wallet.id!;
+
+    final recent = await transactionService.getRecentWithItems(
+      5,
+      walletId: walletId,
+    );
+    final month = await transactionService.getByDateRangeWithItems(
+      monthStart.millisecondsSinceEpoch,
+      monthEnd.millisecondsSinceEpoch,
+      walletId: walletId,
+    );
+    final w = await walletService.getWallet(walletId);
     final c = await categoryService.getCategories();
 
     setState(() {
-      transactions = t;
+      recentTransactions = recent;
+      monthTransactions = month;
       balance = w!.balance;
       categoryMap = {for (var cat in c) cat.id!: cat};
     });
@@ -92,13 +107,13 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            LedgerCard(child: ChartSection(transactions: transactions)),
+            LedgerCard(child: ChartSection(transactions: monthTransactions)),
             const SizedBox(height: AppSpacing.md),
 
             LedgerCard(
               child: TransactionSection(
                 walletId: widget.wallet.id!,
-                transactions: transactions,
+                transactions: recentTransactions,
                 categoryMap: categoryMap,
                 onAddTransaction: openForm,
                 onTapTransaction: (txn) async {

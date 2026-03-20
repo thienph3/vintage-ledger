@@ -51,13 +51,7 @@ class WalletService {
   /// DELETE WALLET
   /// Xóa hết transaction liên quan trước khi xóa wallet
   Future<int> deleteWallet(int id) async {
-    // Xóa tất cả giao dịch liên quan
-    final transactions = await _transactionService.getByWalletWithItems(id);
-    for (var t in transactions) {
-      await _transactionService.deleteTransaction(t.transaction.id!);
-    }
-
-    // Sau đó xóa ví
+    await _transactionService.deleteAllByWallet(id);
     return await _repo.delete(id);
   }
 }
