@@ -1,2 +1,7 @@
 Analyzing vintage-ledger...                                     
-No issues found! (ran in 3.2s)
+
+  error - The name 'WalletFormScreen' isn't a class - lib\features\home_screen.dart:146:55 - creation_with_non_type
+   info - Statements in an if should be enclosed in a block - lib\features\transaction\screens\transaction_form_screen.dart:478:21 - curly_braces_in_flow_control_structures
+   info - Statements in an if should be enclosed in a block - lib\features\transaction\widgets\chart_section.dart:101:7 - curly_braces_in_flow_control_structures
+warning - Unused import: 'package:vintage_ledger/core/theme/app_colors.dart' - lib\features\wallet\widgets\wallet_section.dart:4:8 - unused_import
+
