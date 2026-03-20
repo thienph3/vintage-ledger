@@ -17,10 +17,43 @@ class AppTextStyles {
     fontSize: 18,
   );
 
-  // Public styles
+  // Titles
   static TextStyle title = _titleBase.copyWith(color: AppColors.inkPurple);
+  static TextStyle titleSmall = _titleBase.copyWith(color: AppColors.inkPurple, fontSize: 16);
 
+  // Body
   static TextStyle body = _bodyBase.copyWith(color: AppColors.inkBlue);
+  static TextStyle bodyBold = _bodyBase.copyWith(color: AppColors.inkBlue, fontWeight: FontWeight.bold);
+  static TextStyle bodySmall = _bodyBase.copyWith(color: AppColors.inkBlue, fontSize: 14);
 
+  // Amount
   static TextStyle amount = _amountBase.copyWith(color: AppColors.inkBlue);
+
+  // Headline (lock screen, large titles)
+  static TextStyle headline = _titleBase.copyWith(color: AppColors.inkBlack, fontSize: 20, fontWeight: FontWeight.bold);
+
+  // Link / action text
+  static TextStyle link = _bodyBase.copyWith(color: AppColors.inkBlack, fontSize: 14, fontWeight: FontWeight.bold);
+
+  // Caption (chart axis labels, small info)
+  static TextStyle caption = const TextStyle(fontSize: 10, color: AppColors.inkBlack);
+
+  // Hint / empty state
+  static TextStyle hint = _bodyBase.copyWith(color: Colors.grey, fontSize: 16);
+
+  // Error
+  static TextStyle error = _bodyBase.copyWith(color: AppColors.expense);
+
+  // Button label
+  static TextStyle buttonLabel = _titleBase.copyWith(fontSize: 18, fontWeight: FontWeight.bold);
+
+  // Keypad
+  static TextStyle keypad = const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.inkBlack);
+
+  // Emoji / flag
+  static const TextStyle emoji = TextStyle(fontSize: 24);
+  static const TextStyle emojiLarge = TextStyle(fontSize: 28);
+
+  // Column header
+  static TextStyle columnHeader = _bodyBase.copyWith(color: AppColors.inkBlack, fontWeight: FontWeight.bold);
 }

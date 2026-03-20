@@ -5,7 +5,6 @@ import 'package:vintage_ledger/features/category/models/category.dart';
 
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 
-import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 
@@ -40,14 +39,7 @@ class CategorySection extends StatelessWidget {
                 children: [
                   const Icon(Icons.add, size: 16),
                   const SizedBox(width: 4),
-                  Text(
-                    S.of(context, 'addCategory'),
-                    style: const TextStyle(
-                      color: AppColors.inkBlack,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text(S.of(context, 'addCategory'), style: AppTextStyles.link),
                 ],
               ),
             ),
@@ -62,7 +54,7 @@ class CategorySection extends StatelessWidget {
           ],
         ),
 
-        Divider(color: AppColors.divider, thickness: 1.2),
+        const Divider(),
 
         if (categories.isEmpty)
           EmptyState(message: S.of(context, 'noCategoriesFound')),

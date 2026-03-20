@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/theme/app_colors.dart';
+import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class AmountText extends StatelessWidget {
@@ -48,7 +49,7 @@ class AmountText extends StatelessWidget {
 
     return Text(
       "$sign$formatted",
-      style: TextStyle(
+      style: AppTextStyles.amount.copyWith(
         color: color,
         fontWeight: FontWeight.bold,
         fontSize: fontSize ?? 16,

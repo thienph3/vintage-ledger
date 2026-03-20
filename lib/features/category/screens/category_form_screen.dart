@@ -5,6 +5,7 @@ import 'package:vintage_ledger/features/category/services/category_service.dart'
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_header.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
+import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
 
 class CategoryFormScreen extends StatefulWidget {
@@ -93,10 +94,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              Text(
-                S.of(context, 'selectIcon'),
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+              Text(S.of(context, 'selectIcon'), style: AppTextStyles.bodyBold),
               const SizedBox(height: 8),
               SizedBox(
                 height: 120,
@@ -144,16 +142,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: save,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
-                  ),
-                  child: Text(
-                    S.of(context, 'save'),
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                  child: Text(S.of(context, 'save')),
                 ),
               ),
             ],

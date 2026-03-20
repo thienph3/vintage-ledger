@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 
 class AmountKeypad extends StatelessWidget {
   final Function(String) onInput;
@@ -20,7 +21,7 @@ class AmountKeypad extends StatelessWidget {
           alignment: Alignment.center,
           child: Text(
             value,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            style: AppTextStyles.keypad,
           ),
         ),
       ),

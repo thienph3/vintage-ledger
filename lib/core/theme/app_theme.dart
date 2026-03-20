@@ -11,14 +11,20 @@ class AppTheme {
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.inkBlue,
       brightness: Brightness.light,
+      error: AppColors.expense,
     ),
 
     // TEXT THEME
     textTheme: TextTheme(
-      bodyMedium: AppTextStyles.body,
-      bodyLarge: AppTextStyles.body.copyWith(fontSize: 20),
+      headlineSmall: AppTextStyles.headline,
       titleLarge: AppTextStyles.title,
       titleMedium: AppTextStyles.title.copyWith(fontSize: 20),
+      titleSmall: AppTextStyles.titleSmall,
+      bodyLarge: AppTextStyles.body.copyWith(fontSize: 20),
+      bodyMedium: AppTextStyles.body,
+      bodySmall: AppTextStyles.bodySmall,
+      labelLarge: AppTextStyles.buttonLabel,
+      labelSmall: AppTextStyles.caption,
     ),
 
     // APPBAR
@@ -28,6 +34,15 @@ class AppTheme {
       centerTitle: true,
       titleTextStyle: AppTextStyles.title.copyWith(fontSize: 22),
       iconTheme: const IconThemeData(color: AppColors.inkBlue),
+    ),
+
+    // ICON
+    iconTheme: const IconThemeData(color: AppColors.inkBlue),
+
+    // DIVIDER
+    dividerTheme: const DividerThemeData(
+      color: AppColors.divider,
+      thickness: 1.2,
     ),
 
     // INPUT
@@ -46,25 +61,23 @@ class AppTheme {
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: AppColors.inkBlue, width: 2),
       ),
-      hintStyle: AppTextStyles.body.copyWith(color: Colors.grey),
+      floatingLabelBehavior: FloatingLabelBehavior.always,
+      hintStyle: AppTextStyles.hint,
       labelStyle: AppTextStyles.body.copyWith(color: AppColors.inkPurple),
     ),
 
-    // BUTTONS
+    // ELEVATED BUTTON
     elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.resolveWith(
-          (states) => AppColors.inkBlue,
-        ),
-        foregroundColor: WidgetStateProperty.resolveWith(
-          (states) => Colors.white,
-        ),
-        textStyle: WidgetStateProperty.resolveWith(
-          (states) => AppTextStyles.title.copyWith(fontSize: 18),
-        ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.inkBlue,
+        foregroundColor: Colors.white,
+        textStyle: AppTextStyles.buttonLabel,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       ),
     ),
 
+    // TEXT BUTTON
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: AppColors.inkPurple,
@@ -72,12 +85,30 @@ class AppTheme {
       ),
     ),
 
+    // OUTLINED BUTTON
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: AppColors.inkBlue,
         side: const BorderSide(color: AppColors.inkBlue),
         textStyle: AppTextStyles.body,
       ),
+    ),
+
+    // TAB BAR
+    tabBarTheme: TabBarThemeData(
+      labelColor: AppColors.inkBlue,
+      unselectedLabelColor: Colors.grey,
+      labelStyle: AppTextStyles.body,
+      unselectedLabelStyle: AppTextStyles.body,
+      indicatorColor: AppColors.inkBlue,
+    ),
+
+    // LIST TILE
+    listTileTheme: ListTileThemeData(
+      titleTextStyle: AppTextStyles.body,
+      subtitleTextStyle: AppTextStyles.bodySmall,
+      iconColor: AppColors.inkBlue,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     ),
 
     // DIALOG
@@ -93,6 +124,15 @@ class AppTheme {
       backgroundColor: AppColors.inkBlue,
       contentTextStyle: AppTextStyles.body.copyWith(color: Colors.white),
       behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    ),
+
+    // BOTTOM SHEET
+    bottomSheetTheme: const BottomSheetThemeData(
+      backgroundColor: AppColors.paper,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
     ),
 
     // CHECKBOX
@@ -102,9 +142,7 @@ class AppTheme {
 
     // SWITCH
     switchTheme: SwitchThemeData(
-      thumbColor: WidgetStateProperty.resolveWith(
-        (states) => AppColors.inkBlue,
-      ),
+      thumbColor: WidgetStateProperty.resolveWith((states) => AppColors.inkBlue),
       trackColor: WidgetStateProperty.resolveWith(
         (states) => AppColors.inkBlue.withValues(alpha: 0.4),
       ),
@@ -115,17 +153,19 @@ class AppTheme {
       color: AppColors.inkBlue,
     ),
 
+    // RADIO
     radioTheme: RadioThemeData(
       fillColor: WidgetStateProperty.resolveWith((states) => AppColors.inkBlue),
     ),
 
+    // DROPDOWN
     dropdownMenuTheme: DropdownMenuThemeData(
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.paper,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.divider),
+          borderSide: const BorderSide(color: AppColors.divider),
         ),
       ),
       menuStyle: MenuStyle(

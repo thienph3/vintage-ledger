@@ -59,20 +59,9 @@ class TransactionSection extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    S.of(context, 'viewAll'),
-                    style: const TextStyle(
-                      color: AppColors.inkBlack,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text(S.of(context, 'viewAll'), style: AppTextStyles.link),
                   const SizedBox(width: 4),
-                  const Icon(
-                    Icons.arrow_forward,
-                    size: 16,
-                    color: AppColors.inkBlack,
-                  ),
+                  const Icon(Icons.arrow_forward, size: 16),
                 ],
               ),
             ),
@@ -100,10 +89,7 @@ class TransactionSection extends StatelessWidget {
                   children: [
                     Text(
                       S.of(context, 'category'),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.inkBlack,
-                      ),
+                      style: AppTextStyles.columnHeader,
                     ),
                     const SizedBox(width: 4),
                     const Icon(Icons.arrow_outward, size: 16),
@@ -120,7 +106,7 @@ class TransactionSection extends StatelessWidget {
             ),
           ],
         ),
-        Divider(color: AppColors.divider, thickness: 1.2),
+        const Divider(),
 
         if (transactions.isEmpty)
           EmptyState(message: S.of(context, 'noTransactions')),
@@ -203,21 +189,7 @@ class TransactionSection extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: onAddTransaction,
             icon: const Icon(Icons.add, size: 16),
-            label: Text(
-              S.of(context, 'addTransaction'),
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              backgroundColor: AppColors.inkBlue,
-              foregroundColor: Colors.white,
-            ),
+            label: Text(S.of(context, 'addTransaction')),
           ),
         ),
       ],

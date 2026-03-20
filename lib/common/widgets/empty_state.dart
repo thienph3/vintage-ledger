@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 
 class EmptyState extends StatelessWidget {
   final String message;
@@ -8,10 +9,7 @@ class EmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text(
-        message,
-        style: const TextStyle(fontSize: 16, color: Colors.grey),
-      ),
+      child: Text(message, style: AppTextStyles.hint),
     );
   }
 }

@@ -120,12 +120,7 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                         ),
                         const SizedBox(width: 16),
                         Expanded(
-                          child: Text(
-                            c.name,
-                            style: AppTextStyles.body.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          child: Text(c.name, style: AppTextStyles.bodyBold),
                         ),
                       ],
                     ),
@@ -139,21 +134,7 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
               child: ElevatedButton.icon(
                 onPressed: () => openForm(),
                 icon: const Icon(Icons.add, size: 16),
-                label: Text(
-                  S.of(context, 'addCategory'),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  backgroundColor: AppColors.inkBlue,
-                  foregroundColor: Colors.white,
-                ),
+                label: Text(S.of(context, 'addCategory')),
               ),
             ),
           ],

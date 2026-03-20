@@ -58,8 +58,8 @@ class _SettingScreenState extends State<SettingScreen> {
   Widget _buildLanguageTile(String locale, String label, String flag) {
     final isSelected = _currentLocale == locale;
     return ListTile(
-      leading: Text(flag, style: const TextStyle(fontSize: 24)),
-      title: Text(label, style: AppTextStyles.body),
+      leading: Text(flag, style: AppTextStyles.emoji),
+      title: Text(label),
       trailing: isSelected
           ? const Icon(Icons.check_circle, color: AppColors.inkBlue)
           : null,

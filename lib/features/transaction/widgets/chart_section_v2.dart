@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
+import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
 
 class ChartSectionV2 extends StatelessWidget {
@@ -191,10 +192,7 @@ class ChartSectionV2 extends StatelessWidget {
                               reservedSize: 40,
                               getTitlesWidget: (value, meta) => Text(
                                 value.toInt().toString(),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.brown,
-                                ),
+                                style: AppTextStyles.caption,
                               ),
                             ),
                           ),
@@ -203,10 +201,7 @@ class ChartSectionV2 extends StatelessWidget {
                               showTitles: true,
                               getTitlesWidget: (value, meta) => Text(
                                 formatDate(value),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.brown,
-                                ),
+                                style: AppTextStyles.caption,
                               ),
                             ),
                           ),
@@ -248,10 +243,7 @@ class ChartSectionV2 extends StatelessWidget {
                               reservedSize: 40,
                               getTitlesWidget: (v, meta) => Text(
                                 v.toInt().toString(),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.brown,
-                                ),
+                                style: AppTextStyles.caption,
                               ),
                             ),
                           ),
@@ -260,10 +252,7 @@ class ChartSectionV2 extends StatelessWidget {
                               showTitles: true,
                               getTitlesWidget: (value, meta) => Text(
                                 formatDate(value),
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.brown,
-                                ),
+                                style: AppTextStyles.caption,
                               ),
                             ),
                           ),

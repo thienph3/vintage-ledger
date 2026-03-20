@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
+import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/auth/services/auth_service.dart';
 import 'package:vintage_ledger/features/settings/services/setting_service.dart';
 import 'package:vintage_ledger/main.dart';
@@ -71,7 +72,7 @@ class _LockScreenState extends State<LockScreen> {
               children: [
                 TextButton(
                   onPressed: _toggleLocale,
-                  child: Text(flag, style: const TextStyle(fontSize: 28)),
+                  child: Text(flag, style: AppTextStyles.emojiLarge),
                 ),
 
                 const SizedBox(height: 8),
@@ -82,10 +83,7 @@ class _LockScreenState extends State<LockScreen> {
 
                 Text(
                   S.of(context, 'appLocked'),
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTextStyles.headline,
                 ),
 
                 const SizedBox(height: 8),
@@ -100,10 +98,7 @@ class _LockScreenState extends State<LockScreen> {
                 if (_error != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 16),
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(color: Colors.red),
-                    ),
+                    child: Text(_error!, style: AppTextStyles.error),
                   ),
 
                 SizedBox(

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 
 class LedgerHeader extends StatelessWidget implements PreferredSizeWidget {
@@ -40,7 +39,7 @@ class LedgerHeader extends StatelessWidget implements PreferredSizeWidget {
         ),
 
         // Divider vintage
-        Divider(color: AppColors.divider, thickness: 1.2),
+        const Divider(),
       ],
     );
   }

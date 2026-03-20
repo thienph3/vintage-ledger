@@ -117,12 +117,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
-            child: Text(
-              labels[filter]!,
-              style: TextStyle(
-                color: isSelected ? Colors.white : AppColors.inkBlack,
-              ),
-            ),
+            child: Text(labels[filter]!),
           ),
         );
       }).toList(),
@@ -174,10 +169,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                         padding: const EdgeInsets.symmetric(
                           vertical: AppSpacing.sm,
                         ),
-                        child: Text(
-                          entry.key,
-                          style: AppTextStyles.title.copyWith(fontSize: 16),
-                        ),
+                        child: Text(entry.key, style: AppTextStyles.titleSmall),
                       ),
                       ...entry.value.map((t) {
                         return LedgerCard(
