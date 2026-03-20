@@ -27,10 +27,9 @@ class TransactionItemRepository {
       [item.transactionId],
     );
 
-    final totalItemAmount =
-        totalItemAmountResult.first['total'] != null
-            ? int.parse(totalItemAmountResult.first['total'].toString())
-            : 0;
+    final totalItemAmount = totalItemAmountResult.first['total'] != null
+        ? int.parse(totalItemAmountResult.first['total'].toString())
+        : 0;
 
     if (totalItemAmount + item.amount > transaction.amount) {
       throw Exception('Item amount exceeds parent transaction total');
@@ -47,10 +46,7 @@ class TransactionItemRepository {
   Future<List<TransactionItemModel>> getAll() async {
     final db = await AppDatabase.instance.database;
 
-    final result = await db.query(
-      'transaction_items',
-      orderBy: 'id ASC',
-    );
+    final result = await db.query('transaction_items', orderBy: 'id ASC');
 
     return result.map((e) => TransactionItemModel.fromMap(e)).toList();
   }
@@ -109,10 +105,9 @@ class TransactionItemRepository {
       [item.transactionId, item.id],
     );
 
-    final totalItemAmount =
-        totalItemAmountResult.first['total'] != null
-            ? int.parse(totalItemAmountResult.first['total'].toString())
-            : 0;
+    final totalItemAmount = totalItemAmountResult.first['total'] != null
+        ? int.parse(totalItemAmountResult.first['total'].toString())
+        : 0;
 
     if (totalItemAmount + item.amount > transaction.amount) {
       throw Exception('Item amount exceeds parent transaction total');

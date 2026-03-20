@@ -27,9 +27,7 @@ class AppTheme {
       elevation: 0,
       centerTitle: true,
       titleTextStyle: AppTextStyles.title.copyWith(fontSize: 22),
-      iconTheme: const IconThemeData(
-        color: AppColors.inkBlue,
-      ),
+      iconTheme: const IconThemeData(color: AppColors.inkBlue),
     ),
 
     // INPUT
@@ -85,9 +83,7 @@ class AppTheme {
     // DIALOG
     dialogTheme: DialogThemeData(
       backgroundColor: AppColors.paper,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       titleTextStyle: AppTextStyles.title.copyWith(fontSize: 20),
       contentTextStyle: AppTextStyles.body.copyWith(fontSize: 16),
     ),
@@ -101,9 +97,7 @@ class AppTheme {
 
     // CHECKBOX
     checkboxTheme: CheckboxThemeData(
-      fillColor: WidgetStateProperty.resolveWith(
-        (states) => AppColors.inkBlue,
-      ),
+      fillColor: WidgetStateProperty.resolveWith((states) => AppColors.inkBlue),
     ),
 
     // SWITCH
@@ -122,9 +116,7 @@ class AppTheme {
     ),
 
     radioTheme: RadioThemeData(
-      fillColor: WidgetStateProperty.resolveWith(
-        (states) => AppColors.inkBlue,
-      ),
+      fillColor: WidgetStateProperty.resolveWith((states) => AppColors.inkBlue),
     ),
 
     dropdownMenuTheme: DropdownMenuThemeData(

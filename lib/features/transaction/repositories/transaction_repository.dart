@@ -3,7 +3,6 @@ import 'package:vintage_ledger/core/database.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
 
 class TransactionRepository {
-
   /// CREATE
   Future<int> create(TransactionModel transaction) async {
     final db = await AppDatabase.instance.database;
@@ -19,10 +18,7 @@ class TransactionRepository {
   Future<List<TransactionModel>> getAll() async {
     final db = await AppDatabase.instance.database;
 
-    final result = await db.query(
-      'transactions',
-      orderBy: 'date DESC',
-    );
+    final result = await db.query('transactions', orderBy: 'date DESC');
 
     return result.map((e) => TransactionModel.fromMap(e)).toList();
   }
@@ -75,11 +71,6 @@ class TransactionRepository {
   Future<int> delete(int id) async {
     final db = await AppDatabase.instance.database;
 
-    return await db.delete(
-      'transactions',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('transactions', where: 'id = ?', whereArgs: [id]);
   }
-
 }

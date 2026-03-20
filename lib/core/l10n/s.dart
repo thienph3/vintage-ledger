@@ -10,6 +10,8 @@ class S {
 
   static String of(BuildContext context, String key) {
     final locale = Localizations.localeOf(context).languageCode;
-    return _localizedValues[locale]?[key] ?? _localizedValues['vi']![key] ?? key;
+    return _localizedValues[locale]?[key] ??
+        _localizedValues['vi']![key] ??
+        key;
   }
 }

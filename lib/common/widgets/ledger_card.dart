@@ -4,7 +4,6 @@ import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 
 class LedgerCard extends StatelessWidget {
-
   final Widget child;
 
   const LedgerCard({super.key, required this.child});
@@ -15,9 +14,7 @@ class LedgerCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.paper,
-        border: Border.all(
-          color: AppColors.divider.withValues(alpha: 0.4),
-        ),
+        border: Border.all(color: AppColors.divider.withValues(alpha: 0.4)),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(

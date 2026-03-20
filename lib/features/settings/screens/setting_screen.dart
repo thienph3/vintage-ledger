@@ -44,10 +44,7 @@ class _SettingScreenState extends State<SettingScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          LedgerHeader(
-            title: S.of(context, 'settings'),
-            showBackButton: true,
-          ),
+          LedgerHeader(title: S.of(context, 'settings'), showBackButton: true),
           const SizedBox(height: 16),
           Text(S.of(context, 'language'), style: AppTextStyles.title),
           const SizedBox(height: 8),

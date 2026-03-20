@@ -34,9 +34,7 @@ class WalletSection extends StatelessWidget {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const WalletListScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const WalletListScreen()),
                 );
               },
               child: Row(
@@ -51,7 +49,11 @@ class WalletSection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Icon(Icons.arrow_forward, size: 16, color: AppColors.inkBlack),
+                  const Icon(
+                    Icons.arrow_forward,
+                    size: 16,
+                    color: AppColors.inkBlack,
+                  ),
                 ],
               ),
             ),
@@ -69,17 +71,13 @@ class WalletSection extends StatelessWidget {
             ),
             SizedBox(
               width: 100,
-              child: Text(
-                S.of(context, 'balance'),
-                textAlign: TextAlign.right,
-              ),
+              child: Text(S.of(context, 'balance'), textAlign: TextAlign.right),
             ),
           ],
         ),
         Divider(color: AppColors.divider, thickness: 1.2),
 
-        if (wallets.isEmpty)
-          Text(S.of(context, 'noWallets')),
+        if (wallets.isEmpty) Text(S.of(context, 'noWallets')),
         if (wallets.isNotEmpty)
           ...wallets.map((wallet) {
             return InkWell(
@@ -131,7 +129,10 @@ class WalletSection extends StatelessWidget {
             icon: const Icon(Icons.add, size: 16),
             label: Text(
               S.of(context, 'addWallet'),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.normal,
+              ),
             ),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),

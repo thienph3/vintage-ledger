@@ -14,7 +14,6 @@ class LockScreen extends StatefulWidget {
 }
 
 class _LockScreenState extends State<LockScreen> {
-
   final AuthService _authService = AuthService();
   final SettingService _settingService = SettingService();
 
@@ -30,7 +29,6 @@ class _LockScreenState extends State<LockScreen> {
   }
 
   Future<void> _unlock() async {
-
     if (_loading) return;
 
     setState(() {
@@ -58,16 +56,12 @@ class _LockScreenState extends State<LockScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     final langCode = Localizations.localeOf(context).languageCode;
     final flag = langCode == 'vi' ? '🇻🇳' : '🇺🇸';
 
     return Scaffold(
-
       body: SafeArea(
-
         child: Center(
-
           child: Padding(
             padding: const EdgeInsets.all(32),
 
@@ -75,7 +69,6 @@ class _LockScreenState extends State<LockScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
 
               children: [
-
                 TextButton(
                   onPressed: _toggleLocale,
                   child: Text(flag, style: const TextStyle(fontSize: 28)),
@@ -83,10 +76,7 @@ class _LockScreenState extends State<LockScreen> {
 
                 const SizedBox(height: 8),
 
-                const Icon(
-                  Icons.lock_outline,
-                  size: 80,
-                ),
+                const Icon(Icons.lock_outline, size: 80),
 
                 const SizedBox(height: 24),
 
@@ -120,7 +110,6 @@ class _LockScreenState extends State<LockScreen> {
                   width: double.infinity,
 
                   child: ElevatedButton.icon(
-
                     onPressed: _loading ? null : _unlock,
 
                     icon: const Icon(Icons.fingerprint),
@@ -141,7 +130,6 @@ class _LockScreenState extends State<LockScreen> {
                   onPressed: _exitApp,
                   child: Text(S.of(context, 'exitApp')),
                 ),
-
               ],
             ),
           ),

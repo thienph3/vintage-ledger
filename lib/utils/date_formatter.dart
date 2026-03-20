@@ -1,7 +1,6 @@
 import 'package:intl/intl.dart';
 
 class DateFormatter {
-
   static String short(int timestamp) {
     final dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
     return DateFormat("dd/MM HH:mm").format(dt);
@@ -16,5 +15,4 @@ class DateFormatter {
     final dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
     return DateFormat("HH:mm").format(dt);
   }
-
 }

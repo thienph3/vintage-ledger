@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-
   static const paper = Color(0xFFFAF3E0);
 
   static const inkBlue = Color(0xFF1F3A5F);

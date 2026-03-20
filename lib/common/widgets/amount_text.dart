@@ -4,7 +4,6 @@ import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class AmountText extends StatelessWidget {
-
   final int amount;
   final String type;
   final double? fontSize;
@@ -41,12 +40,9 @@ class AmountText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final color = type == "income" ? AppColors.income : AppColors.expense;
 
-    final color =
-        type == "income" ? AppColors.income : AppColors.expense;
-
-    final sign =
-        type == "income" ? "" : "-";
+    final sign = type == "income" ? "" : "-";
 
     final formatted = AmountFormatter.formatCurrency(amount);
 

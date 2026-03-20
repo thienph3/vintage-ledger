@@ -3,11 +3,7 @@ class Category {
   final String name;
   final int? icon; // mã icon MaterialIcons, nullable nếu muốn dùng mặc định
 
-  Category({
-    this.id,
-    required this.name,
-    this.icon,
-  });
+  Category({this.id, required this.name, this.icon});
 
   Map<String, dynamic> toMap() {
     return {

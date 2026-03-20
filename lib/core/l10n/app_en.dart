@@ -34,7 +34,8 @@ const Map<String, String> en = {
   'income': 'Income',
   'expense': 'Expense',
   'amountMustBePositive': 'Amount must be greater than 0',
-  'itemsTotalExceed': 'Total of detail items must not exceed the transaction amount',
+  'itemsTotalExceed':
+      'Total of detail items must not exceed the transaction amount',
   'transactionDetails': 'Transaction details',
   'itemName': 'Item name',
   'itemNameHint': 'Item name (optional)',
@@ -44,7 +45,8 @@ const Map<String, String> en = {
   'update': 'Update',
   'save': 'Save',
   'deleteTransaction': 'Delete transaction',
-  'deleteTransactionConfirm': 'Are you sure you want to delete this transaction?',
+  'deleteTransactionConfirm':
+      'Are you sure you want to delete this transaction?',
   'transactionLedger': 'TRANSACTION LEDGER',
   'error': 'Error',
   'other': 'Other',

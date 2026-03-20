@@ -18,11 +18,8 @@ class AppScaffold extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: (title != "")
-        ? AppBar(
-            title: Text(title),
-            actions: actions,
-          )
-        : null,
+          ? AppBar(title: Text(title), actions: actions)
+          : null,
       body: SafeArea(child: body),
       floatingActionButton: fab,
     );

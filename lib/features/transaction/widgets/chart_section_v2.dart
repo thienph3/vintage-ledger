@@ -10,11 +10,7 @@ class ChartSectionV2 extends StatelessWidget {
   final int? walletId;
   final List<TransactionWithItems> transactions;
 
-  const ChartSectionV2({
-    super.key,
-    this.walletId,
-    required this.transactions,
-  });
+  const ChartSectionV2({super.key, this.walletId, required this.transactions});
 
   /// Nhóm transactions theo ngày
   Map<DateTime, Map<String, int>> groupByDay(List<TransactionWithItems> tx) {
@@ -40,7 +36,7 @@ class ChartSectionV2 extends StatelessWidget {
           data[d]![type]!.toDouble() +
               rand.nextDouble() * 5 -
               2.5, // ±2.5px jitter
-        )
+        ),
     ];
   }
 
@@ -66,7 +62,7 @@ class ChartSectionV2 extends StatelessWidget {
             ),
           ],
           barsSpace: 4,
-        )
+        ),
     ];
   }
 
@@ -133,7 +129,8 @@ class ChartSectionV2 extends StatelessWidget {
                             dotData: FlDotData(
                               show: true,
                               getDotPainter: (spot, xPerc, bar, index, {size}) {
-                                final jitter = (Random().nextDouble() - 0.5) * 4;
+                                final jitter =
+                                    (Random().nextDouble() - 0.5) * 4;
                                 return FlDotCirclePainter(
                                   radius: 4 + jitter,
                                   color: bar.color ?? Colors.brown,
@@ -155,7 +152,8 @@ class ChartSectionV2 extends StatelessWidget {
                             dotData: FlDotData(
                               show: true,
                               getDotPainter: (spot, xPerc, bar, index, {size}) {
-                                final jitter = (Random().nextDouble() - 0.5) * 4;
+                                final jitter =
+                                    (Random().nextDouble() - 0.5) * 4;
                                 return FlDotCirclePainter(
                                   radius: 4 + jitter,
                                   color: bar.color ?? Colors.brown,
@@ -175,17 +173,17 @@ class ChartSectionV2 extends StatelessWidget {
                           drawVerticalLine: true,
                           drawHorizontalLine: true,
                           getDrawingHorizontalLine: (v) => FlLine(
-                              color: Colors.brown.shade200,
-                              strokeWidth: 0.5,
-                              dashArray: [4, 4]),
+                            color: Colors.brown.shade200,
+                            strokeWidth: 0.5,
+                            dashArray: [4, 4],
+                          ),
                           getDrawingVerticalLine: (v) => FlLine(
-                              color: Colors.brown.shade200,
-                              strokeWidth: 0.5,
-                              dashArray: [4, 4]),
+                            color: Colors.brown.shade200,
+                            strokeWidth: 0.5,
+                            dashArray: [4, 4],
+                          ),
                         ),
-                        borderData: FlBorderData(
-                          show: false,
-                        ),
+                        borderData: FlBorderData(show: false),
                         titlesData: FlTitlesData(
                           leftTitles: AxisTitles(
                             sideTitles: SideTitles(
@@ -194,7 +192,9 @@ class ChartSectionV2 extends StatelessWidget {
                               getTitlesWidget: (value, meta) => Text(
                                 value.toInt().toString(),
                                 style: const TextStyle(
-                                    fontSize: 10, color: Colors.brown),
+                                  fontSize: 10,
+                                  color: Colors.brown,
+                                ),
                               ),
                             ),
                           ),
@@ -204,12 +204,18 @@ class ChartSectionV2 extends StatelessWidget {
                               getTitlesWidget: (value, meta) => Text(
                                 formatDate(value),
                                 style: const TextStyle(
-                                    fontSize: 10, color: Colors.brown),
+                                  fontSize: 10,
+                                  color: Colors.brown,
+                                ),
                               ),
                             ),
                           ),
-                          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          rightTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
                         ),
                       ),
                     ),
@@ -225,24 +231,29 @@ class ChartSectionV2 extends StatelessWidget {
                           drawHorizontalLine: true,
                           drawVerticalLine: true,
                           getDrawingHorizontalLine: (v) => FlLine(
-                              color: Colors.brown.shade200,
-                              strokeWidth: 0.5,
-                              dashArray: [4, 4]),
+                            color: Colors.brown.shade200,
+                            strokeWidth: 0.5,
+                            dashArray: [4, 4],
+                          ),
                           getDrawingVerticalLine: (v) => FlLine(
-                              color: Colors.brown.shade200,
-                              strokeWidth: 0.5,
-                              dashArray: [4, 4]),
+                            color: Colors.brown.shade200,
+                            strokeWidth: 0.5,
+                            dashArray: [4, 4],
+                          ),
                         ),
                         titlesData: FlTitlesData(
                           leftTitles: AxisTitles(
                             sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 40,
-                                getTitlesWidget: (v, meta) => Text(
-                                      v.toInt().toString(),
-                                      style: const TextStyle(
-                                          fontSize: 10, color: Colors.brown),
-                                    )),
+                              showTitles: true,
+                              reservedSize: 40,
+                              getTitlesWidget: (v, meta) => Text(
+                                v.toInt().toString(),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.brown,
+                                ),
+                              ),
+                            ),
                           ),
                           bottomTitles: AxisTitles(
                             sideTitles: SideTitles(
@@ -250,12 +261,18 @@ class ChartSectionV2 extends StatelessWidget {
                               getTitlesWidget: (value, meta) => Text(
                                 formatDate(value),
                                 style: const TextStyle(
-                                    fontSize: 10, color: Colors.brown),
+                                  fontSize: 10,
+                                  color: Colors.brown,
+                                ),
                               ),
                             ),
                           ),
-                          rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                          rightTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
+                          topTitles: AxisTitles(
+                            sideTitles: SideTitles(showTitles: false),
+                          ),
                         ),
                         borderData: FlBorderData(show: false),
                       ),

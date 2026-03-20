@@ -33,7 +33,9 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
 
       if (widget.category!.icon != null) {
         final cp = widget.category!.icon!;
-        final idx = kCategoryIconList.indexWhere((icon) => icon.codePoint == cp);
+        final idx = kCategoryIconList.indexWhere(
+          (icon) => icon.codePoint == cp,
+        );
         selectedIconIndex = idx >= 0 ? idx : null;
       }
     }
@@ -51,10 +53,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
         icon: iconCodePoint,
       );
     } else {
-      await categoryService.createCategory(
-        name,
-        icon: iconCodePoint,
-      );
+      await categoryService.createCategory(name, icon: iconCodePoint);
     }
 
     if (!mounted) return;
@@ -73,7 +72,9 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               LedgerHeader(
-                title: isEdit ? S.of(context, 'editCategory') : S.of(context, 'addNewCategory'),
+                title: isEdit
+                    ? S.of(context, 'editCategory')
+                    : S.of(context, 'addNewCategory'),
                 showBackButton: true,
               ),
               const SizedBox(height: 16),
@@ -122,7 +123,9 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
                           color: isSelected ? AppColors.inkBlue : Colors.white,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: isSelected ? AppColors.inkBlue : AppColors.divider,
+                            color: isSelected
+                                ? AppColors.inkBlue
+                                : AppColors.divider,
                             width: 2,
                           ),
                         ),

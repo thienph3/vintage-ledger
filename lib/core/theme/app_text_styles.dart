@@ -18,15 +18,9 @@ class AppTextStyles {
   );
 
   // Public styles
-  static TextStyle title = _titleBase.copyWith(
-    color: AppColors.inkPurple,
-  );
+  static TextStyle title = _titleBase.copyWith(color: AppColors.inkPurple);
 
-  static TextStyle body = _bodyBase.copyWith(
-    color: AppColors.inkBlue,
-  );
+  static TextStyle body = _bodyBase.copyWith(color: AppColors.inkBlue);
 
-  static TextStyle amount = _amountBase.copyWith(
-    color: AppColors.inkBlue,
-  );
+  static TextStyle amount = _amountBase.copyWith(color: AppColors.inkBlue);
 }

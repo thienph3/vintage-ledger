@@ -1,5 +1,4 @@
 class TransactionModel {
-
   final int? id;
   final int walletId;
   final int categoryId;
@@ -45,5 +44,4 @@ class TransactionModel {
           : int.parse(map['date'].toString()),
     );
   }
-
 }

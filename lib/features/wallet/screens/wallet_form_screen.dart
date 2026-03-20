@@ -9,20 +9,15 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_header.dart';
 
 class WalletFormScreen extends StatefulWidget {
-
   final Wallet? wallet;
 
-  const WalletFormScreen({
-    super.key,
-    this.wallet,
-  });
+  const WalletFormScreen({super.key, this.wallet});
 
   @override
   State<WalletFormScreen> createState() => _WalletFormScreenState();
 }
 
 class _WalletFormScreenState extends State<WalletFormScreen> {
-
   final WalletService walletService = WalletService();
 
   final _formKey = GlobalKey<FormState>();
@@ -46,7 +41,6 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
   }
 
   Future<void> save() async {
-
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -62,7 +56,11 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
         createdAt: widget.wallet!.createdAt,
       );
 
-      await walletService.updateWallet(updated.id!, updated.name, updated.balance);
+      await walletService.updateWallet(
+        updated.id!,
+        updated.name,
+        updated.balance,
+      );
     } else {
       final created = Wallet(
         name: name,
@@ -80,24 +78,21 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return AppScaffold(
-
       title: "",
 
       body: Padding(
-
         padding: const EdgeInsets.all(16),
 
         child: Form(
-
           key: _formKey,
 
           child: ListView(
-
             children: [
               LedgerHeader(
-                title: isEdit ? S.of(context, 'editWallet') : S.of(context, 'addNewWallet'),
+                title: isEdit
+                    ? S.of(context, 'editWallet')
+                    : S.of(context, 'addNewWallet'),
                 showBackButton: true,
               ),
               TextFormField(
@@ -117,9 +112,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
 
               const SizedBox(height: 16),
 
-              AmountInputField(
-                controller: balanceController,
-              ),
+              AmountInputField(controller: balanceController),
               const SizedBox(height: 24),
 
               SizedBox(
@@ -130,7 +123,6 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
                   child: Text(S.of(context, 'save')),
                 ),
               ),
-
             ],
           ),
         ),

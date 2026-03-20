@@ -21,9 +21,7 @@ class AmountPickerSheet extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            AmountKeypad(onInput: onInput),
-          ],
+          children: [AmountKeypad(onInput: onInput)],
         ),
       ),
     );

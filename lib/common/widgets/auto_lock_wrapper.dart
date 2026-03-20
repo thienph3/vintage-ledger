@@ -18,7 +18,6 @@ class AutoLockWrapper extends StatefulWidget {
 
 class _AutoLockWrapperState extends State<AutoLockWrapper>
     with WidgetsBindingObserver {
-
   DateTime? _backgroundTime;
   bool _showingLock = false;
 
@@ -41,15 +40,12 @@ class _AutoLockWrapperState extends State<AutoLockWrapper>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-
     if (state == AppLifecycleState.paused ||
         state == AppLifecycleState.inactive) {
-
       _backgroundTime = DateTime.now();
     }
 
     if (state == AppLifecycleState.resumed) {
-
       if (_backgroundTime == null) return;
 
       final diff = DateTime.now().difference(_backgroundTime!);
@@ -61,7 +57,6 @@ class _AutoLockWrapperState extends State<AutoLockWrapper>
   }
 
   Future<void> _showLock() async {
-
     if (_showingLock) return;
 
     _showingLock = true;

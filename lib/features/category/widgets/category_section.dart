@@ -25,19 +25,13 @@ class CategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-
-            Text(
-              S.of(context, 'category'),
-              style: AppTextStyles.title,
-            ),
+            Text(S.of(context, 'category'), style: AppTextStyles.title),
 
             InkWell(
               onTap: onAddCategory,
@@ -64,9 +58,7 @@ class CategorySection extends StatelessWidget {
 
         Row(
           children: [
-            Expanded(
-              child: Text(S.of(context, 'categoryNameColumn')),
-            ),
+            Expanded(child: Text(S.of(context, 'categoryNameColumn'))),
           ],
         ),
 
@@ -77,22 +69,16 @@ class CategorySection extends StatelessWidget {
 
         if (categories.isNotEmpty)
           ...categories.map((category) {
-
             return InkWell(
-
               onTap: () => onTapCategory(category),
 
               onLongPress: () async {
-
                 final confirm = await showDialog<bool>(
                   context: context,
                   builder: (_) => AlertDialog(
                     title: Text(S.of(context, 'deleteCategory')),
-                    content: Text(
-                      S.of(context, 'deleteCategoryConfirm'),
-                    ),
+                    content: Text(S.of(context, 'deleteCategoryConfirm')),
                     actions: [
-
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
                         child: Text(S.of(context, 'cancel')),
@@ -102,7 +88,6 @@ class CategorySection extends StatelessWidget {
                         onPressed: () => Navigator.pop(context, true),
                         child: Text(S.of(context, 'delete')),
                       ),
-
                     ],
                   ),
                 );
@@ -113,26 +98,17 @@ class CategorySection extends StatelessWidget {
               },
 
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppSpacing.xs,
-                ),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                 child: Row(
                   children: [
-
                     Expanded(
-                      child: Text(
-                        category.name,
-                        style: AppTextStyles.body,
-                      ),
+                      child: Text(category.name, style: AppTextStyles.body),
                     ),
-
                   ],
                 ),
               ),
             );
-
           }),
-
       ],
     );
   }

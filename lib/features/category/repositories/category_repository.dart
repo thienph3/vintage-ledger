@@ -3,7 +3,6 @@ import 'package:vintage_ledger/core/database.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 
 class CategoryRepository {
-
   /// CREATE
   Future<int> create(Category category) async {
     final db = await AppDatabase.instance.database;
@@ -19,10 +18,7 @@ class CategoryRepository {
   Future<List<Category>> getAll() async {
     final db = await AppDatabase.instance.database;
 
-    final result = await db.query(
-      'categories',
-      orderBy: 'name ASC',
-    );
+    final result = await db.query('categories', orderBy: 'name ASC');
 
     return result.map((e) => Category.fromMap(e)).toList();
   }
@@ -75,11 +71,6 @@ class CategoryRepository {
   Future<int> delete(int id) async {
     final db = await AppDatabase.instance.database;
 
-    return await db.delete(
-      'categories',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('categories', where: 'id = ?', whereArgs: [id]);
   }
-
 }

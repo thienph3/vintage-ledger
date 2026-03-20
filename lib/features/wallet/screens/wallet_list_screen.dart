@@ -50,8 +50,14 @@ class _WalletListScreenState extends State<WalletListScreen> {
         title: Text(S.of(context, 'deleteWallet')),
         content: Text(S.of(context, 'deleteWalletConfirm')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(S.of(context, 'cancel'))),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(S.of(context, 'delete'))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(S.of(context, 'cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(S.of(context, 'delete')),
+          ),
         ],
       ),
     );
@@ -92,7 +98,10 @@ class _WalletListScreenState extends State<WalletListScreen> {
                         confirmDelete: confirmDelete,
                         onDelete: () => deleteWallet(w.id!),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
@@ -106,12 +115,18 @@ class _WalletListScreenState extends State<WalletListScreen> {
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.account_balance_wallet, size: 28, color: AppColors.inkBlue),
+                              const Icon(
+                                Icons.account_balance_wallet,
+                                size: 28,
+                                color: AppColors.inkBlue,
+                              ),
                               const SizedBox(width: 16),
                               Expanded(
                                 child: Text(
                                   w.name,
-                                  style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold),
+                                  style: AppTextStyles.body.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               AmountText(
@@ -134,11 +149,16 @@ class _WalletListScreenState extends State<WalletListScreen> {
                       icon: const Icon(Icons.add, size: 16),
                       label: Text(
                         S.of(context, 'addWallet'),
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.normal,
+                        ),
                       ),
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
                         backgroundColor: AppColors.inkBlue,
                         foregroundColor: Colors.white,
                       ),

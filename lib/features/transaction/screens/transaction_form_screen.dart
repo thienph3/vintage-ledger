@@ -23,11 +23,7 @@ class TransactionFormScreen extends StatefulWidget {
   final int? walletId;
   final TransactionModel? transaction;
 
-  const TransactionFormScreen({
-    super.key,
-    this.walletId,
-    this.transaction,
-  });
+  const TransactionFormScreen({super.key, this.walletId, this.transaction});
 
   bool get isEdit => transaction != null;
 
@@ -56,8 +52,10 @@ class TransactionWithItemsHelper {
     this.items = const [],
   });
 
-  int get totalItemAmount =>
-      items.fold(0, (sum, i) => sum + (int.tryParse(i.amountController.text) ?? 0));
+  int get totalItemAmount => items.fold(
+    0,
+    (sum, i) => sum + (int.tryParse(i.amountController.text) ?? 0),
+  );
 
   int get remainingAmount => transaction.amount - totalItemAmount;
 }
@@ -113,8 +111,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   void _updateDateText() {
-    dateController.text =
-        DateFormat('dd/MM/yyyy HH:mm', 'vi_VN').format(date);
+    dateController.text = DateFormat('dd/MM/yyyy HH:mm', 'vi_VN').format(date);
   }
 
   @override
@@ -135,8 +132,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     setState(() {
       categories = list;
 
-      if (categoryId != null &&
-          !categories.any((c) => c.id == categoryId)) {
+      if (categoryId != null && !categories.any((c) => c.id == categoryId)) {
         categoryId = null;
       }
 
@@ -156,7 +152,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   Future<void> loadItems() async {
     if (!widget.isEdit) return;
 
-    final loadedItems = await transactionService.getTransactionItems(widget.transaction!.id!);
+    final loadedItems = await transactionService.getTransactionItems(
+      widget.transaction!.id!,
+    );
 
     setState(() {
       items = loadedItems.map((item) {
@@ -244,14 +242,20 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
     if (txnAmount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context, 'amountMustBePositive')), backgroundColor: AppColors.divider),
+        SnackBar(
+          content: Text(S.of(context, 'amountMustBePositive')),
+          backgroundColor: AppColors.divider,
+        ),
       );
       return;
     }
 
     if (totalItemAmount > txnAmount) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context, 'itemsTotalExceed')), backgroundColor: AppColors.divider),
+        SnackBar(
+          content: Text(S.of(context, 'itemsTotalExceed')),
+          backgroundColor: AppColors.divider,
+        ),
       );
       return;
     }
@@ -292,7 +296,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         id: itemCtrl.item.id,
         transactionId: txnId,
         amount: itemAmount,
-        note: itemCtrl.noteController.text.isEmpty ? null : itemCtrl.noteController.text,
+        note: itemCtrl.noteController.text.isEmpty
+            ? null
+            : itemCtrl.noteController.text,
       );
 
       if (item.id == null) {
@@ -317,9 +323,12 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
           child: ListView(
             children: [
               LedgerHeader(
-                title: widget.isEdit ? S.of(context, 'editTransaction') : S.of(context, 'addNewTransaction'),
+                title: widget.isEdit
+                    ? S.of(context, 'editTransaction')
+                    : S.of(context, 'addNewTransaction'),
                 showBackButton: true,
               ),
+
               /// TYPE
               Container(
                 padding: const EdgeInsets.all(4),
@@ -336,14 +345,18 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: type == 1 ? AppColors.inkBlue : Colors.transparent,
+                            color: type == 1
+                                ? AppColors.inkBlue
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           alignment: Alignment.center,
                           child: Text(
                             S.of(context, 'income'),
                             style: AppTextStyles.body.copyWith(
-                              color: type == 1 ? Colors.white : AppColors.inkBlue,
+                              color: type == 1
+                                  ? Colors.white
+                                  : AppColors.inkBlue,
                             ),
                           ),
                         ),
@@ -356,14 +369,18 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
-                            color: type == -1 ? AppColors.inkBlue : Colors.transparent,
+                            color: type == -1
+                                ? AppColors.inkBlue
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           alignment: Alignment.center,
                           child: Text(
                             S.of(context, 'expense'),
                             style: AppTextStyles.body.copyWith(
-                              color: type == -1 ? Colors.white : AppColors.inkBlue,
+                              color: type == -1
+                                  ? Colors.white
+                                  : AppColors.inkBlue,
                             ),
                           ),
                         ),
@@ -390,7 +407,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       borderRadius: BorderRadius.circular(12),
                       borderSide: const BorderSide(color: AppColors.divider),
                     ),
-                    labelStyle: AppTextStyles.body.copyWith(color: AppColors.inkPurple),
+                    labelStyle: AppTextStyles.body.copyWith(
+                      color: AppColors.inkPurple,
+                    ),
                   ),
                   items: wallets.map((w) {
                     return DropdownMenuItem(
@@ -417,7 +436,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: AppColors.divider),
                   ),
-                  labelStyle: AppTextStyles.body.copyWith(color: AppColors.inkPurple),
+                  labelStyle: AppTextStyles.body.copyWith(
+                    color: AppColors.inkPurple,
+                  ),
                 ),
                 items: [
                   DropdownMenuItem(
@@ -426,7 +447,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       children: [
                         const Icon(Icons.add, size: 18),
                         const SizedBox(width: 8),
-                        Text(S.of(context, 'addCategory'), style: AppTextStyles.body),
+                        Text(
+                          S.of(context, 'addCategory'),
+                          style: AppTextStyles.body,
+                        ),
                       ],
                     ),
                   ),
@@ -455,7 +479,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                   setState(() => categoryId = v);
                 },
                 validator: (v) {
-                  if (v == null || v == -1) return S.of(context, 'categoryNameRequired');
+                  if (v == null || v == -1)
+                    return S.of(context, 'categoryNameRequired');
                   return null;
                 },
               ),
@@ -473,7 +498,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: AppColors.divider),
                   ),
-                  labelStyle: AppTextStyles.body.copyWith(color: AppColors.inkPurple),
+                  labelStyle: AppTextStyles.body.copyWith(
+                    color: AppColors.inkPurple,
+                  ),
                 ),
                 onTap: pickDateTime,
                 style: AppTextStyles.body,
@@ -483,7 +510,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
               /// TRANSACTION ITEMS
               if (widget.isEdit || true) ...[
-                Text(S.of(context, 'transactionDetails'), style: AppTextStyles.title),
+                Text(
+                  S.of(context, 'transactionDetails'),
+                  style: AppTextStyles.title,
+                ),
                 const SizedBox(height: 8),
                 ...items.asMap().entries.map((entry) {
                   final index = entry.key;
@@ -514,21 +544,23 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                       IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: () => setState(() => items.removeAt(index)),
-                      )
+                      ),
                     ],
                   );
                 }),
                 TextButton.icon(
                   onPressed: () {
                     setState(() {
-                      items.add(TransactionItemWithController(
-                        item: TransactionItemModel(
-                          transactionId: widget.transaction?.id ?? 0,
-                          amount: 0,
+                      items.add(
+                        TransactionItemWithController(
+                          item: TransactionItemModel(
+                            transactionId: widget.transaction?.id ?? 0,
+                            amount: 0,
+                          ),
+                          amountController: TextEditingController(),
+                          noteController: TextEditingController(),
                         ),
-                        amountController: TextEditingController(),
-                        noteController: TextEditingController(),
-                      ));
+                      );
                     });
                   },
                   icon: const Icon(Icons.add),
@@ -547,15 +579,23 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     borderRadius: BorderRadius.circular(12),
                     borderSide: const BorderSide(color: AppColors.divider),
                   ),
-                  labelStyle: AppTextStyles.body.copyWith(color: AppColors.inkPurple),
-                  hintStyle: AppTextStyles.body.copyWith(color: AppColors.inkBlue),
+                  labelStyle: AppTextStyles.body.copyWith(
+                    color: AppColors.inkPurple,
+                  ),
+                  hintStyle: AppTextStyles.body.copyWith(
+                    color: AppColors.inkBlue,
+                  ),
                 ),
                 style: AppTextStyles.body,
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: save,
-                child: Text(widget.isEdit ? S.of(context, 'update') : S.of(context, 'save')),
+                child: Text(
+                  widget.isEdit
+                      ? S.of(context, 'update')
+                      : S.of(context, 'save'),
+                ),
               ),
             ],
           ),

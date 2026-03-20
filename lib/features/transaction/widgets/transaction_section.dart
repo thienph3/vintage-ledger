@@ -20,8 +20,10 @@ class TransactionSection extends StatelessWidget {
   final Map<int, Category> categoryMap;
 
   final Future<void> Function() onAddTransaction;
-  final Future<void> Function(TransactionWithItems transaction) onTapTransaction;
-  final Future<void> Function(TransactionWithItems transaction) onDeleteTransaction;
+  final Future<void> Function(TransactionWithItems transaction)
+  onTapTransaction;
+  final Future<void> Function(TransactionWithItems transaction)
+  onDeleteTransaction;
 
   const TransactionSection({
     super.key,
@@ -41,7 +43,10 @@ class TransactionSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(S.of(context, 'recentTransactions'), style: AppTextStyles.title),
+            Text(
+              S.of(context, 'recentTransactions'),
+              style: AppTextStyles.title,
+            ),
             InkWell(
               onTap: () {
                 Navigator.push(
@@ -63,7 +68,11 @@ class TransactionSection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 4),
-                  const Icon(Icons.arrow_forward, size: 16, color: AppColors.inkBlack),
+                  const Icon(
+                    Icons.arrow_forward,
+                    size: 16,
+                    color: AppColors.inkBlack,
+                  ),
                 ],
               ),
             ),
@@ -73,7 +82,10 @@ class TransactionSection extends StatelessWidget {
 
         Row(
           children: [
-            SizedBox(width: 120, child: Text(S.of(context, 'date'), style: AppTextStyles.body)),
+            SizedBox(
+              width: 120,
+              child: Text(S.of(context, 'date'), style: AppTextStyles.body),
+            ),
             Expanded(
               child: InkWell(
                 onTap: () {
@@ -155,12 +167,15 @@ class TransactionSection extends StatelessWidget {
                         children: [
                           if (category?.icon != null) ...[
                             Icon(
-                            (category?.icon != null && kCategoryIconMap.containsKey(category!.icon))
-                                ? kCategoryIconMap[category.icon]!
-                                : Icons.category,
-                            size: 20,
-                            color: AppColors.inkBlue,
-                          ),
+                              (category?.icon != null &&
+                                      kCategoryIconMap.containsKey(
+                                        category!.icon,
+                                      ))
+                                  ? kCategoryIconMap[category.icon]!
+                                  : Icons.category,
+                              size: 20,
+                              color: AppColors.inkBlue,
+                            ),
                             const SizedBox(width: 6),
                           ],
                           Text(
@@ -190,7 +205,10 @@ class TransactionSection extends StatelessWidget {
             icon: const Icon(Icons.add, size: 16),
             label: Text(
               S.of(context, 'addTransaction'),
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.normal,
+              ),
             ),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),

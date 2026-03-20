@@ -3,7 +3,6 @@ import 'package:vintage_ledger/core/database.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 
 class WalletRepository {
-
   /// CREATE
   Future<int> create(Wallet wallet) async {
     final db = await AppDatabase.instance.database;
@@ -19,10 +18,7 @@ class WalletRepository {
   Future<List<Wallet>> getAll() async {
     final db = await AppDatabase.instance.database;
 
-    final result = await db.query(
-      'wallets',
-      orderBy: 'created_at DESC',
-    );
+    final result = await db.query('wallets', orderBy: 'created_at DESC');
 
     return result.map((e) => Wallet.fromMap(e)).toList();
   }
@@ -61,11 +57,6 @@ class WalletRepository {
   Future<int> delete(int id) async {
     final db = await AppDatabase.instance.database;
 
-    return await db.delete(
-      'wallets',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('wallets', where: 'id = ?', whereArgs: [id]);
   }
-
 }

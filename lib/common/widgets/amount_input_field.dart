@@ -8,10 +8,7 @@ import 'package:vintage_ledger/common/widgets/amount_picker_sheet.dart';
 class AmountInputField extends StatelessWidget {
   final TextEditingController controller;
 
-  const AmountInputField({
-    super.key,
-    required this.controller,
-  });
+  const AmountInputField({super.key, required this.controller});
 
   int parseAmount() {
     final text = controller.text.replaceAll('.', '');
@@ -71,11 +68,15 @@ class AmountInputField extends StatelessWidget {
           valueListenable: controller,
           builder: (context, value, _) {
             return Text(
-              value.text.isEmpty ? "Nhập số tiền" : AmountFormatter.formatCurrency(int.tryParse(value.text) ?? 0),
+              value.text.isEmpty
+                  ? "Nhập số tiền"
+                  : AmountFormatter.formatCurrency(
+                      int.tryParse(value.text) ?? 0,
+                    ),
               style: AppTextStyles.body.copyWith(color: AppColors.inkPurple),
             );
           },
-        )
+        ),
       ),
     );
   }

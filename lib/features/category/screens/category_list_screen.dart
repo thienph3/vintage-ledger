@@ -46,8 +46,14 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
         title: Text(S.of(context, 'deleteCategory')),
         content: Text(S.of(context, 'deleteCategoryConfirm')),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(S.of(context, 'cancel'))),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(S.of(context, 'delete'))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(S.of(context, 'cancel')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(S.of(context, 'delete')),
+          ),
         ],
       ),
     );
@@ -77,48 +83,56 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
             const SizedBox(height: AppSpacing.sm),
             if (categories.isEmpty)
               Center(child: Text(S.of(context, 'noCategories'))),
-            ...categories.map((c) => Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: SwipeListItem(
-                    itemKey: Key(c.id.toString()),
-                    onTap: () => openForm(category: c),
-                    confirmDelete: confirmDelete,
-                    onDelete: () => deleteCategory(c.id!),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black12,
-                            blurRadius: 4,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            (c.icon != null && kCategoryIconMap.containsKey(c.icon))
-                                ? kCategoryIconMap[c.icon]!
-                                : Icons.category,
-                            size: 28,
-                            color: AppColors.inkBlue,
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              c.name,
-                              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.bold),
+            ...categories.map(
+              (c) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: SwipeListItem(
+                  itemKey: Key(c.id.toString()),
+                  onTap: () => openForm(category: c),
+                  confirmDelete: confirmDelete,
+                  onDelete: () => deleteCategory(c.id!),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          (c.icon != null &&
+                                  kCategoryIconMap.containsKey(c.icon))
+                              ? kCategoryIconMap[c.icon]!
+                              : Icons.category,
+                          size: 28,
+                          color: AppColors.inkBlue,
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            c.name,
+                            style: AppTextStyles.body.copyWith(
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
-                )),
+                ),
+              ),
+            ),
             const SizedBox(height: AppSpacing.md),
             SizedBox(
               width: double.infinity,
@@ -127,11 +141,16 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                 icon: const Icon(Icons.add, size: 16),
                 label: Text(
                   S.of(context, 'addCategory'),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(24),
+                  ),
                   backgroundColor: AppColors.inkBlue,
                   foregroundColor: Colors.white,
                 ),

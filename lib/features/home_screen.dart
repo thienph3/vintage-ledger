@@ -51,9 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
 
-    _pageController = PageController(
-      viewportFraction: 0.9,
-    );
+    _pageController = PageController(viewportFraction: 0.9);
 
     loadData();
   }
@@ -73,7 +71,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       wallets = w;
-      transactions = t..sort((a, b) => b.transaction.date.compareTo(a.transaction.date));
+      transactions = t
+        ..sort((a, b) => b.transaction.date.compareTo(a.transaction.date));
       categoryMap = {for (var c in c) c.id!: c};
       totalBalance = balance;
     });
@@ -105,7 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       onPressed: () async {
                         await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const SettingScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const SettingScreen(),
+                          ),
                         );
                         loadData();
                       },
@@ -145,9 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Padding(
                       padding: const EdgeInsets.only(right: 12),
                       child: LedgerCard(
-                        child: ChartSection(
-                          transactions: transactions,
-                        ),
+                        child: ChartSection(transactions: transactions),
                       ),
                     ),
                     Padding(
@@ -158,14 +157,19 @@ class _HomeScreenState extends State<HomeScreen> {
                           onAddWallet: () async {
                             final result = await Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const WalletFormScreen()),
+                              MaterialPageRoute(
+                                builder: (_) => const WalletFormScreen(),
+                              ),
                             );
                             if (result == true) loadData();
                           },
                           onTapWallet: (wallet) async {
                             await Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => WalletDetailScreen(wallet: wallet)),
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    WalletDetailScreen(wallet: wallet),
+                              ),
                             );
                             loadData();
                           },
@@ -185,13 +189,20 @@ class _HomeScreenState extends State<HomeScreen> {
                           onAddTransaction: () async {
                             if (wallets.isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(S.of(context, 'createWalletFirst')), backgroundColor: AppColors.divider),
+                                SnackBar(
+                                  content: Text(
+                                    S.of(context, 'createWalletFirst'),
+                                  ),
+                                  backgroundColor: AppColors.divider,
+                                ),
                               );
                               return;
                             }
                             final result = await Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const TransactionFormScreen()),
+                              MaterialPageRoute(
+                                builder: (_) => const TransactionFormScreen(),
+                              ),
                             );
                             if (result == true) loadData();
                           },
@@ -208,7 +219,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             loadData();
                           },
                           onDeleteTransaction: (transaction) async {
-                            await transactionService.deleteTransaction(transaction.transaction.id!);
+                            await transactionService.deleteTransaction(
+                              transaction.transaction.id!,
+                            );
                             loadData();
                           },
                         ),

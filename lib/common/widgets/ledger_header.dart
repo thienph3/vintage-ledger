@@ -40,10 +40,7 @@ class LedgerHeader extends StatelessWidget implements PreferredSizeWidget {
         ),
 
         // Divider vintage
-        Divider(
-          color: AppColors.divider,
-          thickness: 1.2,
-        ),
+        Divider(color: AppColors.divider, thickness: 1.2),
       ],
     );
   }

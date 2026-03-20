@@ -34,7 +34,8 @@ const Map<String, String> vi = {
   'income': 'Khoản thu',
   'expense': 'Khoản chi',
   'amountMustBePositive': 'Số tiền phải lớn hơn 0',
-  'itemsTotalExceed': 'Tổng các mục chi tiết không được vượt quá số tiền thu chi tổng',
+  'itemsTotalExceed':
+      'Tổng các mục chi tiết không được vượt quá số tiền thu chi tổng',
   'transactionDetails': 'Chi tiết giao dịch',
   'itemName': 'Tên mục chi tiết',
   'itemNameHint': 'Tên mục chi tiết (tùy chọn)',

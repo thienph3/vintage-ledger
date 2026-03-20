@@ -51,7 +51,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     });
   }
 
-  Map<String, List<TransactionWithItems>> _groupByDate(List<TransactionWithItems> transactions) {
+  Map<String, List<TransactionWithItems>> _groupByDate(
+    List<TransactionWithItems> transactions,
+  ) {
     final map = <String, List<TransactionWithItems>>{};
     for (var t in transactions) {
       final date = DateFormatter.date(t.transaction.date);
@@ -60,13 +62,17 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     return map;
   }
 
-  List<TransactionWithItems> _applyFilter(List<TransactionWithItems> transactions) {
+  List<TransactionWithItems> _applyFilter(
+    List<TransactionWithItems> transactions,
+  ) {
     final now = DateTime.now();
     switch (_currentFilter) {
       case TransactionFilter.day:
         return transactions.where((t) {
           final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
-          return dt.year == now.year && dt.month == now.month && dt.day == now.day;
+          return dt.year == now.year &&
+              dt.month == now.month &&
+              dt.day == now.day;
         }).toList();
       case TransactionFilter.week:
         final weekStart = now.subtract(Duration(days: now.weekday - 1));
@@ -111,7 +117,12 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               ),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             ),
-            child: Text(labels[filter]!, style: TextStyle(color: isSelected ? Colors.white : AppColors.inkBlack)),
+            child: Text(
+              labels[filter]!,
+              style: TextStyle(
+                color: isSelected ? Colors.white : AppColors.inkBlack,
+              ),
+            ),
           ),
         );
       }).toList(),
@@ -131,7 +142,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               return const Center(child: CircularProgressIndicator());
             }
             if (snapshot.hasError) {
-              return Center(child: Text('${S.of(context, 'error')}: ${snapshot.error}'));
+              return Center(
+                child: Text('${S.of(context, 'error')}: ${snapshot.error}'),
+              );
             }
 
             var transactions = snapshot.data![0] as List<TransactionWithItems>;
@@ -158,7 +171,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.sm,
+                        ),
                         child: Text(
                           entry.key,
                           style: AppTextStyles.title.copyWith(fontSize: 16),
@@ -170,14 +185,24 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                             children: [
                               SizedBox(
                                 width: 120,
-                                child: Text(DateFormatter.time(t.transaction.date), style: AppTextStyles.body),
+                                child: Text(
+                                  DateFormatter.time(t.transaction.date),
+                                  style: AppTextStyles.body,
+                                ),
                               ),
                               Expanded(
-                                child: Text(categoryMap[t.transaction.categoryId] ?? S.of(context, 'other'), style: AppTextStyles.body),
+                                child: Text(
+                                  categoryMap[t.transaction.categoryId] ??
+                                      S.of(context, 'other'),
+                                  style: AppTextStyles.body,
+                                ),
                               ),
                               SizedBox(
                                 width: 80,
-                                child: AmountText(amount: t.transaction.amount, type: t.transaction.type),
+                                child: AmountText(
+                                  amount: t.transaction.amount,
+                                  type: t.transaction.type,
+                                ),
                               ),
                             ],
                           ),

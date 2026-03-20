@@ -2,7 +2,6 @@ import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
 class AppDatabase {
-
   static final AppDatabase instance = AppDatabase._init();
 
   static Database? _database;
@@ -17,7 +16,6 @@ class AppDatabase {
   }
 
   Future<Database> _initDB(String filePath) async {
-
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
@@ -30,7 +28,6 @@ class AppDatabase {
   }
 
   Future _createDB(Database db, int version) async {
-
     await db.execute('''
 CREATE TABLE settings(
   key TEXT PRIMARY KEY,
@@ -66,14 +63,13 @@ CREATE TABLE transactions(
   date TEXT
 )
 ''');
-
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
     if (oldVersion < 2) {
       // 1️⃣ Thêm cột balance cho wallets
       await db.execute(
-        "ALTER TABLE wallets ADD COLUMN balance INTEGER NOT NULL DEFAULT 0"
+        "ALTER TABLE wallets ADD COLUMN balance INTEGER NOT NULL DEFAULT 0",
       );
     }
 
@@ -92,9 +88,7 @@ CREATE TABLE transactions(
     }
 
     if (oldVersion < 5) {
-      await db.execute(
-        "ALTER TABLE categories ADD COLUMN icon INTEGER"
-      );
+      await db.execute("ALTER TABLE categories ADD COLUMN icon INTEGER");
     }
 
     if (oldVersion < 6) {

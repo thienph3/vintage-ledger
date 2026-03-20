@@ -78,7 +78,10 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
             LedgerCard(
               child: Row(
                 children: [
-                  Text("${S.of(context, 'balance')}:", style: AppTextStyles.body),
+                  Text(
+                    "${S.of(context, 'balance')}:",
+                    style: AppTextStyles.body,
+                  ),
                   const SizedBox(width: AppSpacing.md),
                   AmountText(
                     amount: balance.abs(),
@@ -89,11 +92,7 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            LedgerCard(
-              child: ChartSection(
-                transactions: transactions,
-              ),
-            ),
+            LedgerCard(child: ChartSection(transactions: transactions)),
             const SizedBox(height: AppSpacing.md),
 
             LedgerCard(
@@ -117,7 +116,9 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                   }
                 },
                 onDeleteTransaction: (txn) async {
-                  await transactionService.deleteTransaction(txn.transaction.id!);
+                  await transactionService.deleteTransaction(
+                    txn.transaction.id!,
+                  );
                   await loadData();
                 },
               ),

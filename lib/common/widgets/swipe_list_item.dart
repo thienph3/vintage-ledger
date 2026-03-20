@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 class SwipeListItem extends StatelessWidget {
-
   final Key itemKey;
   final Widget child;
   final VoidCallback? onTap;
@@ -19,9 +18,7 @@ class SwipeListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     return Dismissible(
-
       key: itemKey,
 
       direction: onDelete == null
@@ -32,10 +29,7 @@ class SwipeListItem extends StatelessWidget {
         color: Colors.red,
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: const Icon(
-          Icons.delete,
-          color: Colors.white,
-        ),
+        child: const Icon(Icons.delete, color: Colors.white),
       ),
 
       confirmDismiss: (_) async {
@@ -52,10 +46,7 @@ class SwipeListItem extends StatelessWidget {
       },
 
       child: Card(
-        child: InkWell(
-          onTap: onTap,
-          child: child,
-        ),
+        child: InkWell(onTap: onTap, child: child),
       ),
     );
   }

@@ -11,12 +11,11 @@ import 'package:vintage_ledger/features/transaction/services/transaction_service
 class ChartSection extends StatelessWidget {
   final List<TransactionWithItems> transactions;
 
-  const ChartSection({
-    super.key,
-    required this.transactions,
-  });
+  const ChartSection({super.key, required this.transactions});
 
-  Map<DateTime, Map<String, int>> groupByDayByType(List<TransactionWithItems> tx) {
+  Map<DateTime, Map<String, int>> groupByDayByType(
+    List<TransactionWithItems> tx,
+  ) {
     Map<DateTime, Map<String, int>> data = {};
     for (var t in tx) {
       final date = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
@@ -31,7 +30,9 @@ class ChartSection extends StatelessWidget {
     return data;
   }
 
-  Map<DateTime, Map<String, int>> accumulateByType(Map<DateTime, Map<String, int>> dailyData) {
+  Map<DateTime, Map<String, int>> accumulateByType(
+    Map<DateTime, Map<String, int>> dailyData,
+  ) {
     final sortedKeys = dailyData.keys.toList()..sort();
     int accumulatedIncome = 0;
     int accumulatedExpense = 0;
@@ -39,29 +40,52 @@ class ChartSection extends StatelessWidget {
     for (var key in sortedKeys) {
       accumulatedIncome += dailyData[key]!["income"]!;
       accumulatedExpense += dailyData[key]!["expense"]!;
-      accumulated[key] = {"income": accumulatedIncome, "expense": accumulatedExpense};
+      accumulated[key] = {
+        "income": accumulatedIncome,
+        "expense": accumulatedExpense,
+      };
     }
     return accumulated;
   }
 
-  List<FlSpot> mapToSpotsByType(Map<DateTime, Map<String, int>> data, String type) {
+  List<FlSpot> mapToSpotsByType(
+    Map<DateTime, Map<String, int>> data,
+    String type,
+  ) {
     final sortedKeys = data.keys.toList()..sort();
     return sortedKeys
-        .map((k) => FlSpot(k.millisecondsSinceEpoch.toDouble(), data[k]![type]!.toDouble()))
+        .map(
+          (k) => FlSpot(
+            k.millisecondsSinceEpoch.toDouble(),
+            data[k]![type]!.toDouble(),
+          ),
+        )
         .toList();
   }
 
-  List<BarChartGroupData> mapToMonthlyBarGroups(Map<DateTime, Map<String, int>> data) {
+  List<BarChartGroupData> mapToMonthlyBarGroups(
+    Map<DateTime, Map<String, int>> data,
+  ) {
     final sortedKeys = data.keys.toList()..sort();
     return sortedKeys
-        .map((k) => BarChartGroupData(
-              x: k.millisecondsSinceEpoch.toInt(),
-              barRods: [
-                BarChartRodData(toY: data[k]!["income"]!.toDouble(), color: AppColors.income, width: 8),
-                BarChartRodData(toY: data[k]!["expense"]!.toDouble(), color: AppColors.expense, width: 8),
-              ],
-              barsSpace: 2,
-            ))
+        .map(
+          (k) => BarChartGroupData(
+            x: k.millisecondsSinceEpoch.toInt(),
+            barRods: [
+              BarChartRodData(
+                toY: data[k]!["income"]!.toDouble(),
+                color: AppColors.income,
+                width: 8,
+              ),
+              BarChartRodData(
+                toY: data[k]!["expense"]!.toDouble(),
+                color: AppColors.expense,
+                width: 8,
+              ),
+            ],
+            barsSpace: 2,
+          ),
+        )
         .toList();
   }
 
@@ -72,7 +96,8 @@ class ChartSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (transactions.isEmpty) return Center(child: Text(S.of(context, 'noData')));
+    if (transactions.isEmpty)
+      return Center(child: Text(S.of(context, 'noData')));
 
     final now = DateTime.now();
 
@@ -101,7 +126,10 @@ class ChartSection extends StatelessWidget {
                 TabBar(
                   labelColor: AppColors.inkBlue,
                   unselectedLabelColor: Colors.grey,
-                  tabs: [Tab(text: S.of(context, 'trend')), Tab(text: S.of(context, 'monthlyIncomeExpense'))],
+                  tabs: [
+                    Tab(text: S.of(context, 'trend')),
+                    Tab(text: S.of(context, 'monthlyIncomeExpense')),
+                  ],
                 ),
                 Expanded(
                   child: TabBarView(
@@ -119,11 +147,13 @@ class ChartSection extends StatelessWidget {
                                 color: AppColors.income,
                                 belowBarData: BarAreaData(
                                   show: true,
-                                  color: AppColors.income.withValues(alpha: 0.3),
+                                  color: AppColors.income.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   gradient: LinearGradient(
                                     colors: [
                                       AppColors.income.withValues(alpha: 0.3),
-                                      AppColors.income.withValues(alpha: 0.0)
+                                      AppColors.income.withValues(alpha: 0.0),
                                     ],
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
@@ -137,11 +167,13 @@ class ChartSection extends StatelessWidget {
                                 color: AppColors.expense,
                                 belowBarData: BarAreaData(
                                   show: true,
-                                  color: AppColors.expense.withValues(alpha: 0.3),
+                                  color: AppColors.expense.withValues(
+                                    alpha: 0.3,
+                                  ),
                                   gradient: LinearGradient(
                                     colors: [
                                       AppColors.expense.withValues(alpha: 0.3),
-                                      AppColors.expense.withValues(alpha: 0.0)
+                                      AppColors.expense.withValues(alpha: 0.0),
                                     ],
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
@@ -152,29 +184,45 @@ class ChartSection extends StatelessWidget {
                             borderData: FlBorderData(
                               show: false,
                               border: Border(
-                                bottom: BorderSide(color: AppColors.divider, width: 1),
+                                bottom: BorderSide(
+                                  color: AppColors.divider,
+                                  width: 1,
+                                ),
                               ),
                             ),
                             gridData: FlGridData(
                               show: true,
                               drawVerticalLine: false,
                               drawHorizontalLine: true,
-                              getDrawingHorizontalLine: (value) =>
-                                  FlLine(color: AppColors.divider, strokeWidth: 0.5, dashArray: [4, 4]),
+                              getDrawingHorizontalLine: (value) => FlLine(
+                                color: AppColors.divider,
+                                strokeWidth: 0.5,
+                                dashArray: [4, 4],
+                              ),
                             ),
                             titlesData: FlTitlesData(
                               leftTitles: AxisTitles(
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   reservedSize: 50,
-                                  interval: [...incomeSpots, ...expenseSpots].map((e) => e.y).fold(0.0, (a, b) => a > b ? a : b) / 5 + 1,
+                                  interval:
+                                      [...incomeSpots, ...expenseSpots]
+                                              .map((e) => e.y)
+                                              .fold(
+                                                0.0,
+                                                (a, b) => a > b ? a : b,
+                                              ) /
+                                          5 +
+                                      1,
                                   getTitlesWidget: (value, meta) {
                                     String text;
 
                                     if (value >= 1000000) {
-                                      text = "${(value / 1000000).toStringAsFixed(1)}m";
+                                      text =
+                                          "${(value / 1000000).toStringAsFixed(1)}m";
                                     } else if (value >= 1000) {
-                                      text = "${(value / 1000).toStringAsFixed(0)}k";
+                                      text =
+                                          "${(value / 1000).toStringAsFixed(0)}k";
                                     } else {
                                       text = value.toInt().toString();
                                     }
@@ -186,17 +234,27 @@ class ChartSection extends StatelessWidget {
                                   },
                                 ),
                               ),
-                              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              rightTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              topTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
                               bottomTitles: AxisTitles(
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   getTitlesWidget: (value, meta) {
-                                    final date = DateTime.fromMillisecondsSinceEpoch(value.toInt());
+                                    final date =
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                          value.toInt(),
+                                        );
                                     return SideTitleWidget(
                                       meta: meta,
                                       space: 6,
-                                      child: Text("${date.day}/${date.month}", style: const TextStyle(fontSize: 10)),
+                                      child: Text(
+                                        "${date.day}/${date.month}",
+                                        style: const TextStyle(fontSize: 10),
+                                      ),
                                     );
                                   },
                                 ),
@@ -212,17 +270,30 @@ class ChartSection extends StatelessWidget {
                             barGroups: monthlyGroups,
                             gridData: FlGridData(show: true),
                             titlesData: FlTitlesData(
-                              leftTitles: AxisTitles(sideTitles: SideTitles(reservedSize: 44, showTitles: true)),
-                              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              leftTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  reservedSize: 44,
+                                  showTitles: true,
+                                ),
+                              ),
+                              rightTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
+                              topTitles: AxisTitles(
+                                sideTitles: SideTitles(showTitles: false),
+                              ),
                               bottomTitles: AxisTitles(
                                 sideTitles: SideTitles(
                                   showTitles: true,
-                                  getTitlesWidget: (value, meta) => SideTitleWidget(
-                                    meta: meta,
-                                    space: 6,
-                                    child: Text(formatDate(value), style: const TextStyle(fontSize: 10)),
-                                  ),
+                                  getTitlesWidget: (value, meta) =>
+                                      SideTitleWidget(
+                                        meta: meta,
+                                        space: 6,
+                                        child: Text(
+                                          formatDate(value),
+                                          style: const TextStyle(fontSize: 10),
+                                        ),
+                                      ),
                                 ),
                               ),
                             ),

@@ -182,7 +182,9 @@ class TransactionService {
     return await _itemRepo.delete(id);
   }
 
-  Future<List<TransactionItemModel>> getTransactionItems(int transactionId) async {
+  Future<List<TransactionItemModel>> getTransactionItems(
+    int transactionId,
+  ) async {
     return await _itemRepo.getByTransaction(transactionId);
   }
 }
