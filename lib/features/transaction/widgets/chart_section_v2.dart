@@ -105,7 +105,7 @@ class ChartSectionV2 extends StatelessWidget {
         length: 2,
         child: Column(
           children: [
-            const TabBar(
+            TabBar(
               labelColor: AppColors.inkBlue,
               unselectedLabelColor: Colors.brown,
               tabs: [

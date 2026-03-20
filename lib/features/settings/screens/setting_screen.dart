@@ -32,6 +32,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _changeLocale(String locale) async {
     await _settingService.setLocale(locale);
+    if (!mounted) return;
     setState(() => _currentLocale = locale);
     MyApp.setLocale(context, Locale(locale));
   }

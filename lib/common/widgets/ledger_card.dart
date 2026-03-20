@@ -16,12 +16,12 @@ class LedgerCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.paper,
         border: Border.all(
-          color: AppColors.divider.withOpacity(0.4),
+          color: AppColors.divider.withValues(alpha: 0.4),
         ),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
