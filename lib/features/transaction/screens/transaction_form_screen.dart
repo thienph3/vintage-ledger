@@ -2,21 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
-import 'package:vintage_ledger/features/transaction/models/transaction.dart';
-import 'package:vintage_ledger/features/transaction/models/transaction_item.dart';
-import 'package:vintage_ledger/features/category/models/category.dart';
-import 'package:vintage_ledger/features/wallet/models/wallet.dart';
-
-import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
-import 'package:vintage_ledger/features/category/services/category_service.dart';
-import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
-
 import 'package:vintage_ledger/core/theme/app_colors.dart';
+import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/type_selector.dart';
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 
+import 'package:vintage_ledger/features/transaction/models/transaction.dart';
+import 'package:vintage_ledger/features/transaction/models/transaction_item.dart';
+import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
+import 'package:vintage_ledger/features/transaction/widgets/category_dropdown.dart';
+import 'package:vintage_ledger/features/transaction/widgets/transaction_item_list.dart';
+
+import 'package:vintage_ledger/features/category/models/category.dart';
+import 'package:vintage_ledger/features/category/services/category_service.dart';
 import 'package:vintage_ledger/features/category/screens/category_form_screen.dart';
+
+import 'package:vintage_ledger/features/wallet/models/wallet.dart';
+import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
 
 class TransactionFormScreen extends StatefulWidget {
   final int? walletId;
@@ -30,286 +34,240 @@ class TransactionFormScreen extends StatefulWidget {
   State<TransactionFormScreen> createState() => _TransactionFormScreenState();
 }
 
-class TransactionItemWithController {
-  final TransactionItemModel item;
-  final TextEditingController amountController;
-  final TextEditingController noteController;
-
-  TransactionItemWithController({
-    required this.item,
-    required this.amountController,
-    required this.noteController,
-  });
-}
-
-class TransactionWithItemsHelper {
-  final TransactionModel transaction;
-  final List<TransactionItemWithController> items;
-
-  TransactionWithItemsHelper({
-    required this.transaction,
-    this.items = const [],
-  });
-
-  int get totalItemAmount => items.fold(
-    0,
-    (sum, i) => sum + (int.tryParse(i.amountController.text) ?? 0),
-  );
-
-  int get remainingAmount => transaction.amount - totalItemAmount;
-}
-
 class _TransactionFormScreenState extends State<TransactionFormScreen> {
-  final TransactionService transactionService = TransactionService();
-  final CategoryService categoryService = CategoryService();
-  final WalletService walletService = WalletService();
-
   final _formKey = GlobalKey<FormState>();
+  final _txnService = TransactionService();
+  final _catService = CategoryService();
+  final _walletService = WalletService();
 
-  final TextEditingController amountController = TextEditingController();
-  final TextEditingController noteController = TextEditingController();
-  final TextEditingController dateController = TextEditingController();
+  final _amountCtrl = TextEditingController();
+  final _noteCtrl = TextEditingController();
+  final _dateCtrl = TextEditingController();
 
-  List<Category> categories = [];
-  List<Wallet> wallets = [];
+  List<Category> _categories = [];
+  List<Wallet> _wallets = [];
+  List<TransactionItemEntry> _items = [];
 
-  int? selectedWalletId;
+  int? _walletId;
+  int? _categoryId;
   String _type = 'expense';
-  int? categoryId;
-
-  DateTime date = DateTime.now();
-
-  List<TransactionItemWithController> items = [];
+  DateTime _date = DateTime.now();
 
   @override
   void initState() {
     super.initState();
-
-    selectedWalletId = widget.walletId;
-
-    loadCategories();
-
-    if (widget.walletId == null) {
-      loadWallets();
-    }
+    _walletId = widget.walletId;
 
     if (widget.isEdit) {
-      final txn = widget.transaction!;
-      amountController.text = txn.amount.toString();
-      _type = txn.type;
-      categoryId = txn.categoryId;
-      date = DateTime.fromMillisecondsSinceEpoch(txn.date);
-      noteController.text = txn.note ?? '';
-
-      loadItems();
+      final t = widget.transaction!;
+      _amountCtrl.text = t.amount.toString();
+      _type = t.type;
+      _categoryId = t.categoryId;
+      _date = DateTime.fromMillisecondsSinceEpoch(t.date);
+      _noteCtrl.text = t.note ?? '';
+      _loadItems();
     } else {
-      amountController.text = "0";
+      _amountCtrl.text = '0';
     }
 
     _updateDateText();
-  }
-
-  void _updateDateText() {
-    dateController.text = DateFormat('dd/MM/yyyy HH:mm', 'vi_VN').format(date);
+    _loadCategories();
+    if (widget.walletId == null) _loadWallets();
   }
 
   @override
   void dispose() {
-    amountController.dispose();
-    noteController.dispose();
-    dateController.dispose();
-    for (var item in items) {
-      item.amountController.dispose();
-      item.noteController.dispose();
+    _amountCtrl.dispose();
+    _noteCtrl.dispose();
+    _dateCtrl.dispose();
+    for (var e in _items) {
+      e.dispose();
     }
     super.dispose();
   }
 
-  Future<void> loadCategories() async {
-    final list = await categoryService.getCategoriesByType(_type);
+  // ── Data loading ──
 
+  Future<void> _loadCategories() async {
+    final list = await _catService.getCategoriesByType(_type);
     setState(() {
-      categories = list;
-
-      if (categoryId != null && !categories.any((c) => c.id == categoryId)) {
-        categoryId = null;
+      _categories = list;
+      if (_categoryId != null && !_categories.any((c) => c.id == _categoryId)) {
+        _categoryId = null;
       }
-
-      categoryId ??= categories.isNotEmpty ? categories.first.id : null;
+      _categoryId ??= _categories.isNotEmpty ? _categories.first.id : null;
     });
   }
 
-  Future<void> loadWallets() async {
-    final list = await walletService.getWallets();
-
+  Future<void> _loadWallets() async {
+    final list = await _walletService.getWallets();
     setState(() {
-      wallets = list;
-      selectedWalletId ??= wallets.isNotEmpty ? wallets.first.id : null;
+      _wallets = list;
+      _walletId ??= _wallets.isNotEmpty ? _wallets.first.id : null;
     });
   }
 
-  Future<void> loadItems() async {
+  Future<void> _loadItems() async {
     if (!widget.isEdit) return;
-
-    final loadedItems = await transactionService.getTransactionItems(
-      widget.transaction!.id!,
-    );
-
+    final loaded = await _txnService.getTransactionItems(widget.transaction!.id!);
     setState(() {
-      items = loadedItems.map((item) {
-        return TransactionItemWithController(
-          item: item,
-          amountController: TextEditingController(text: item.amount.toString()),
-          noteController: TextEditingController(text: item.note ?? ''),
-        );
-      }).toList();
+      _items = loaded
+          .map((item) => TransactionItemEntry(
+                item: item,
+                amountController:
+                    TextEditingController(text: item.amount.toString()),
+                noteController:
+                    TextEditingController(text: item.note ?? ''),
+              ))
+          .toList();
     });
   }
 
-  Future<void> pickDateTime() async {
-    final DateTime? pickedDate = await showDatePicker(
+  // ── Actions ──
+
+  void _onTypeChanged(String type) {
+    if (_type == type) return;
+    setState(() => _type = type);
+    _loadCategories();
+  }
+
+  Future<void> _onAddCategory() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CategoryFormScreen(initialType: _type),
+      ),
+    );
+    if (result == true) await _loadCategories();
+  }
+
+  void _addItem() {
+    setState(() {
+      _items.add(TransactionItemEntry(
+        item: TransactionItemModel(
+          transactionId: widget.transaction?.id ?? 0,
+          amount: 0,
+        ),
+        amountController: TextEditingController(),
+        noteController: TextEditingController(),
+      ));
+    });
+  }
+
+  void _removeItem(int index) {
+    setState(() {
+      _items[index].dispose();
+      _items.removeAt(index);
+    });
+  }
+
+  void _updateDateText() {
+    _dateCtrl.text = DateFormat('dd/MM/yyyy HH:mm', 'vi_VN').format(_date);
+  }
+
+  Future<void> _pickDateTime() async {
+    final pickedDate = await showDatePicker(
       context: context,
-      initialDate: date,
+      initialDate: _date,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
       locale: Localizations.localeOf(context),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            textTheme: TextTheme(
-              titleLarge: AppTextStyles.title,
-              bodyMedium: AppTextStyles.body,
-            ),
-            colorScheme: ColorScheme.light(
-              primary: AppColors.inkBlue,
-              onPrimary: Colors.white,
-              onSurface: AppColors.inkBlue,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
-
     if (!mounted || pickedDate == null) return;
 
-    final TimeOfDay? pickedTime = await showTimePicker(
+    final pickedTime = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.fromDateTime(date),
-      builder: (builderContext, child) {
-        return Localizations.override(
-          context: builderContext,
-          locale: Localizations.localeOf(context),
-          child: child!,
-        );
-      },
+      initialTime: TimeOfDay.fromDateTime(_date),
     );
-
     if (!mounted || pickedTime == null) return;
 
-    final picked = DateTime(
-      pickedDate.year,
-      pickedDate.month,
-      pickedDate.day,
-      pickedTime.hour,
-      pickedTime.minute,
-    );
-
     setState(() {
-      date = picked;
+      _date = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
       _updateDateText();
     });
   }
 
-  Future<void> save() async {
+  Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_walletId == null) return;
 
-    if (selectedWalletId == null) return;
+    var amount = int.tryParse(_amountCtrl.text) ?? 0;
+    final itemTotal = _items.fold<int>(
+        0, (s, e) => s + (int.tryParse(e.amountController.text) ?? 0));
 
-    var txnAmount = int.tryParse(amountController.text) ?? 0;
-
-    txnAmount = int.tryParse(amountController.text) ?? 0;
-
-    final totalItemAmount = items.fold<int>(0, (sum, item) {
-      return sum + (int.tryParse(item.amountController.text) ?? 0);
-    });
-
-    if (txnAmount == 0 && totalItemAmount > 0) {
-      txnAmount = totalItemAmount;
-      amountController.text = txnAmount.toString();
+    if (amount == 0 && itemTotal > 0) {
+      amount = itemTotal;
+      _amountCtrl.text = amount.toString();
     }
 
-    if (txnAmount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(S.of(context, 'amountMustBePositive')),
-          backgroundColor: AppColors.divider,
-        ),
-      );
+    if (amount <= 0) {
+      _showError(S.of(context, 'amountMustBePositive'));
       return;
     }
-
-    if (totalItemAmount > txnAmount) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(S.of(context, 'itemsTotalExceed')),
-          backgroundColor: AppColors.divider,
-        ),
-      );
+    if (itemTotal > amount) {
+      _showError(S.of(context, 'itemsTotalExceed'));
       return;
     }
 
     int txnId;
+    final txn = TransactionModel(
+      id: widget.transaction?.id,
+      walletId: _walletId!,
+      categoryId: _categoryId!,
+      amount: amount,
+      type: _type,
+      date: _date.millisecondsSinceEpoch,
+      note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
+    );
 
     if (widget.isEdit) {
-      final txn = widget.transaction!;
-
-      final updatedTxn = TransactionModel(
-        id: txn.id,
-        walletId: selectedWalletId!,
-        categoryId: categoryId!,
-        amount: txnAmount,
-        type: _type,
-        date: date.millisecondsSinceEpoch,
-        note: noteController.text.isEmpty ? null : noteController.text,
-      );
-
-      await transactionService.updateTransaction(updatedTxn);
+      await _txnService.updateTransaction(txn);
       txnId = txn.id!;
     } else {
-      txnId = await transactionService.createTransaction(
-        walletId: selectedWalletId!,
-        categoryId: categoryId!,
-        type: _type,
-        amount: txnAmount,
-        date: date.millisecondsSinceEpoch,
-        note: noteController.text.isEmpty ? null : noteController.text,
+      txnId = await _txnService.createTransaction(
+        walletId: txn.walletId,
+        categoryId: txn.categoryId,
+        type: txn.type,
+        amount: txn.amount,
+        date: txn.date,
+        note: txn.note,
       );
     }
 
-    for (var itemCtrl in items) {
-      final itemAmount = int.tryParse(itemCtrl.amountController.text) ?? 0;
-      if (itemAmount <= 0) continue;
-
-      final item = TransactionItemModel(
-        id: itemCtrl.item.id,
-        transactionId: txnId,
-        amount: itemAmount,
-        note: itemCtrl.noteController.text.isEmpty
-            ? null
-            : itemCtrl.noteController.text,
-      );
-
-      if (item.id == null) {
-        await transactionService.addTransactionItem(item);
-      } else {
-        await transactionService.updateTransactionItem(item);
-      }
-    }
-
+    await _saveItems(txnId);
     if (!mounted) return;
     Navigator.pop(context, true);
   }
+
+  Future<void> _saveItems(int txnId) async {
+    for (var e in _items) {
+      final amount = int.tryParse(e.amountController.text) ?? 0;
+      if (amount <= 0) continue;
+      final item = TransactionItemModel(
+        id: e.item.id,
+        transactionId: txnId,
+        amount: amount,
+        note: e.noteController.text.isEmpty ? null : e.noteController.text,
+      );
+      if (item.id == null) {
+        await _txnService.addTransactionItem(item);
+      } else {
+        await _txnService.updateTransactionItem(item);
+      }
+    }
+  }
+
+  void _showError(String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  // ── Build ──
 
   @override
   Widget build(BuildContext context) {
@@ -317,266 +275,101 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       title: widget.isEdit
           ? S.of(context, 'editTransaction')
           : S.of(context, 'addNewTransaction'),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          children: [
+            TypeSelector(value: _type, onChanged: _onTypeChanged),
+            const SizedBox(height: AppSpacing.lg),
 
-              /// TYPE
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    _typeButton('income', S.of(context, 'income')),
-                    const SizedBox(width: 4),
-                    _typeButton('expense', S.of(context, 'expense')),
-                  ],
-                ),
-              ),
+            // Amount
+            Center(
+              child: AmountInputField(controller: _amountCtrl),
+            ),
+            const SizedBox(height: AppSpacing.lg),
 
-              const SizedBox(height: 16),
-
-              /// AMOUNT
-              AmountInputField(controller: amountController),
-
-              const SizedBox(height: 16),
-
-              if (widget.walletId == null) ...[
-                DropdownButtonFormField<int>(
-                  initialValue: selectedWalletId,
-                  decoration: InputDecoration(
-                    labelText: S.of(context, 'selectWallet'),
-                    floatingLabelBehavior: FloatingLabelBehavior.always,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.divider),
-                    ),
-                    labelStyle: AppTextStyles.body.copyWith(
-                      color: AppColors.inkPurple,
-                    ),
-                  ),
-                  items: wallets.map((w) {
-                    return DropdownMenuItem(
-                      value: w.id,
-                      child: Text(w.name, style: AppTextStyles.body),
-                    );
-                  }).toList(),
-                  onChanged: (v) => setState(() => selectedWalletId = v),
-                  validator: (v) {
-                    if (v == null) return S.of(context, 'selectWalletRequired');
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
-
-              /// CATEGORY
-              DropdownButtonFormField<int>(
-                initialValue: categoryId,
-                decoration: InputDecoration(
-                  labelText: S.of(context, 'category'),
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.divider),
-                  ),
-                  labelStyle: AppTextStyles.body.copyWith(
-                    color: AppColors.inkPurple,
-                  ),
-                ),
-                items: [
-                  DropdownMenuItem(
-                    value: -1,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.add, size: 18),
-                        const SizedBox(width: 8),
-                        Text(
-                          S.of(context, 'addCategory'),
-                          style: AppTextStyles.body,
-                        ),
-                      ],
-                    ),
-                  ),
-                  ...categories.map((c) {
-                    return DropdownMenuItem(
-                      value: c.id,
-                      child: Text(c.name, style: AppTextStyles.body),
-                    );
-                  }),
-                ],
-                onChanged: (v) async {
-                  if (v == -1) {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CategoryFormScreen(initialType: _type),
-                      ),
-                    );
-
-                    if (result == true) await loadCategories();
-                    return;
-                  }
-
-                  setState(() => categoryId = v);
-                },
-                validator: (v) {
-                  if (v == null || v == -1) {
-                    return S.of(context, 'categoryNameRequired');
-                  }
-                  return null;
-                },
-              ),
-
-              const SizedBox(height: 16),
-
-              /// DATE
-              TextFormField(
-                readOnly: true,
-                controller: dateController,
-                decoration: InputDecoration(
-                  labelText: S.of(context, 'date'),
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.divider),
-                  ),
-                  labelStyle: AppTextStyles.body.copyWith(
-                    color: AppColors.inkPurple,
-                  ),
-                ),
-                onTap: pickDateTime,
-                style: AppTextStyles.body,
-              ),
-
-              const SizedBox(height: 16),
-
-              /// TRANSACTION ITEMS
-              if (widget.isEdit || true) ...[
-                Text(
-                  S.of(context, 'transactionDetails'),
-                  style: AppTextStyles.title,
-                ),
-                const SizedBox(height: 8),
-                ...items.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final itemCtrl = entry.value;
-                  return Row(
-                    children: [
-                      Expanded(
-                        flex: 3,
-                        child: TextFormField(
-                          controller: itemCtrl.noteController,
-                          decoration: InputDecoration(
-                            hintText: S.of(context, 'itemNameHint'),
-                            labelText: S.of(context, 'itemName'),
-                            floatingLabelBehavior: FloatingLabelBehavior.always,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 2,
-                        child: AmountInputField(
-                          controller: itemCtrl.amountController,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => setState(() => items.removeAt(index)),
-                      ),
-                    ],
-                  );
-                }),
-                TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      items.add(
-                        TransactionItemWithController(
-                          item: TransactionItemModel(
-                            transactionId: widget.transaction?.id ?? 0,
-                            amount: 0,
-                          ),
-                          amountController: TextEditingController(),
-                          noteController: TextEditingController(),
-                        ),
-                      );
-                    });
-                  },
-                  icon: const Icon(Icons.add),
-                  label: Text(S.of(context, 'addItem')),
-                ),
-                const SizedBox(height: 16),
-              ],
-              TextFormField(
-                controller: noteController,
-                maxLines: 2,
-                decoration: InputDecoration(
-                  labelText: S.of(context, 'note'),
-                  hintText: S.of(context, 'noteHint'),
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: AppColors.divider),
-                  ),
-                  labelStyle: AppTextStyles.body.copyWith(
-                    color: AppColors.inkPurple,
-                  ),
-                  hintStyle: AppTextStyles.body.copyWith(
-                    color: AppColors.inkBlue,
-                  ),
-                ),
-                style: AppTextStyles.body,
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: save,
-                child: Text(
-                  widget.isEdit
-                      ? S.of(context, 'update')
-                      : S.of(context, 'save'),
-                ),
-              ),
+            // Wallet (only when not pre-selected)
+            if (widget.walletId == null) ...[
+              _buildWalletDropdown(),
+              const SizedBox(height: AppSpacing.md),
             ],
-          ),
+
+            // Category
+            CategoryDropdown(
+              value: _categoryId,
+              categories: _categories,
+              onChanged: (v) => setState(() => _categoryId = v),
+              onAdd: _onAddCategory,
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Date
+            TextFormField(
+              readOnly: true,
+              controller: _dateCtrl,
+              decoration: InputDecoration(
+                labelText: S.of(context, 'date'),
+                suffixIcon: const Icon(Icons.calendar_today, size: 20),
+              ),
+              onTap: _pickDateTime,
+              style: AppTextStyles.body,
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Items
+            TransactionItemList(
+              items: _items,
+              onAdd: _addItem,
+              onRemove: _removeItem,
+            ),
+            const SizedBox(height: AppSpacing.md),
+
+            // Note
+            TextFormField(
+              controller: _noteCtrl,
+              maxLines: 2,
+              decoration: InputDecoration(
+                labelText: S.of(context, 'note'),
+                hintText: S.of(context, 'noteHint'),
+              ),
+              style: AppTextStyles.body,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Save
+            ElevatedButton(
+              onPressed: _save,
+              child: Text(
+                widget.isEdit
+                    ? S.of(context, 'update')
+                    : S.of(context, 'save'),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xl),
+          ],
         ),
       ),
     );
   }
 
-  Widget _typeButton(String value, String label) {
-    final selected = _type == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          if (_type == value) return;
-          setState(() => _type = value);
-          loadCategories();
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.inkBlue : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: AppTextStyles.body.copyWith(
-              color: selected ? Colors.white : AppColors.inkBlue,
-            ),
-          ),
-        ),
+  Widget _buildWalletDropdown() {
+    return DropdownButtonFormField<int>(
+      value: _walletId,
+      decoration: InputDecoration(
+        labelText: S.of(context, 'selectWallet'),
       ),
+      items: _wallets.map((w) {
+        return DropdownMenuItem(
+          value: w.id,
+          child: Text(w.name, style: AppTextStyles.body),
+        );
+      }).toList(),
+      onChanged: (v) => setState(() => _walletId = v),
+      validator: (v) {
+        if (v == null) return S.of(context, 'selectWalletRequired');
+        return null;
+      },
     );
   }
 }

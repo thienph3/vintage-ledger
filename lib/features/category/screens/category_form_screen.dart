@@ -4,8 +4,10 @@ import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/services/category_service.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
+import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
+import 'package:vintage_ledger/common/widgets/type_selector.dart';
 
 class CategoryFormScreen extends StatefulWidget {
   final Category? category;
@@ -66,37 +68,24 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
           ? S.of(context, 'editCategory')
           : S.of(context, 'addNewCategory'),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
 
-              // Type selector
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade200,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    _typeButton('income', S.of(context, 'income')),
-                    const SizedBox(width: 4),
-                    _typeButton('expense', S.of(context, 'expense')),
-                  ],
-                ),
+              TypeSelector(
+                value: _type,
+                onChanged: (v) => setState(() => _type = v),
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               TextFormField(
                 controller: nameController,
                 decoration: InputDecoration(
                   labelText: S.of(context, 'categoryName'),
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -105,9 +94,9 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
-              Text(S.of(context, 'selectIcon'), style: AppTextStyles.bodyBold),
-              const SizedBox(height: 8),
+              const SizedBox(height: AppSpacing.md),
+              Text(S.of(context, 'selectIcon'), style: AppTextStyles.titleSmall),
+              const SizedBox(height: AppSpacing.sm),
               SizedBox(
                 height: 120,
                 child: GridView.builder(
@@ -149,7 +138,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
                   },
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -158,29 +147,6 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
                 ),
               ),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _typeButton(String value, String label) {
-    final selected = _type == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _type = value),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.inkBlue : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: AppTextStyles.body.copyWith(
-              color: selected ? Colors.white : AppColors.inkBlue,
-            ),
           ),
         ),
       ),
