@@ -74,7 +74,7 @@ class _ChartSectionState extends State<ChartSection> {
         _buildLegend(),
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
-          height: 220,
+          height: 240,
           child: widget.transactions.isEmpty
               ? EmptyState(message: S.of(context, 'noData'))
               : AnimatedSwitcher(

@@ -34,10 +34,9 @@ class SummaryView extends StatelessWidget {
       }
     }
 
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
         children: [
           _amountRow(S.of(context, 'totalIncome'), totalIncome, 'income'),
           const Divider(),
