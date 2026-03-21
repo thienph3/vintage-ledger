@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<int, Category> categoryMap = {};
 
   int totalBalance = 0;
+  bool _amountVisible = false;
 
   @override
   void initState() {
@@ -171,10 +172,28 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(S.of(context, 'totalBalance'), style: AppTextStyles.caption),
           const SizedBox(height: AppSpacing.xs),
-          AmountText(
-            amount: totalBalance.abs(),
-            type: totalBalance >= 0 ? 'income' : 'expense',
-            fontSize: 28,
+          GestureDetector(
+            onTap: () => setState(() => _amountVisible = !_amountVisible),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (_amountVisible)
+                  AmountText(
+                    amount: totalBalance.abs(),
+                    type: totalBalance >= 0 ? 'income' : 'expense',
+                    fontSize: 28,
+                    compact: true,
+                  )
+                else
+                  Text('••••••', style: AppTextStyles.title.copyWith(fontSize: 28)),
+                const SizedBox(width: AppSpacing.sm),
+                Icon(
+                  _amountVisible ? Icons.visibility : Icons.visibility_off,
+                  size: 20,
+                  color: AppColors.inkBlue,
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           const Divider(),
@@ -225,7 +244,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: AppSpacing.xs),
-        AmountText(amount: amount, type: type),
+        if (_amountVisible)
+          AmountText(amount: amount, type: type, compact: true)
+        else
+          Text('••••', style: AppTextStyles.amount),
       ],
     );
   }
@@ -321,10 +343,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ],
             ),
-            AmountText(
-              amount: wallet.balance.abs(),
-              type: wallet.balance >= 0 ? 'income' : 'expense',
-            ),
+            if (_amountVisible)
+              AmountText(
+                amount: wallet.balance.abs(),
+                type: wallet.balance >= 0 ? 'income' : 'expense',
+                compact: true,
+              )
+            else
+              Text('••••', style: AppTextStyles.amount),
           ],
         ),
       ),

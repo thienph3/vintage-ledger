@@ -339,11 +339,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               child: Text(group.label, style: AppTextStyles.titleSmall),
             ),
             if (group.income > 0)
-              AmountText(amount: group.income, type: 'income'),
+              AmountText(amount: group.income, type: 'income', compact: true),
             if (group.income > 0 && group.expense > 0)
               const SizedBox(width: AppSpacing.sm),
             if (group.expense > 0)
-              AmountText(amount: group.expense, type: 'expense'),
+              AmountText(amount: group.expense, type: 'expense', compact: true),
           ],
         ),
         const Divider(),

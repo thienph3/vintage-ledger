@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
+import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 mixin ChartStyles {
   FlGridData get vintageGrid => FlGridData(
@@ -23,13 +23,9 @@ mixin ChartStyles {
   SideTitles get leftTitles => SideTitles(
         showTitles: true,
         reservedSize: 46,
-        getTitlesWidget: (value, _) =>
-            Text(compactAmount(value), style: AppTextStyles.caption),
+        getTitlesWidget: (value, _) => Text(
+          AmountFormatter.formatChartAxis(value),
+          style: AppTextStyles.caption,
+        ),
       );
-
-  String compactAmount(double value) {
-    if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(1)}m';
-    if (value >= 1000) return '${(value / 1000).toStringAsFixed(0)}k';
-    return value.toInt().toString();
-  }
 }
