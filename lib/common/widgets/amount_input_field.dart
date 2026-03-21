@@ -19,8 +19,15 @@ class AmountInputField extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
+        await Scrollable.ensureVisible(
+          context,
+          duration: const Duration(milliseconds: 300),
+          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+        );
+
         int tempValue = _parseAmount();
 
+        if (!context.mounted) return;
         await showModalBottomSheet<int>(
           context: context,
           isScrollControlled: true,

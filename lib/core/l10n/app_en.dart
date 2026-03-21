@@ -106,6 +106,7 @@ const Map<String, String> en = {
   // Common
   'cancel': 'Cancel',
   'delete': 'Delete',
+  'done': 'Done',
 
   // Onboarding
   'welcomeTitle': 'Welcome to Vintage Ledger',

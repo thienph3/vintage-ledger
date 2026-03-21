@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:vintage_ledger/core/l10n/s.dart';
+import 'package:vintage_ledger/core/theme/app_colors.dart';
+import 'package:vintage_ledger/core/theme/app_spacing.dart';
+import 'package:vintage_ledger/core/theme/app_text_styles.dart';
+import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/common/widgets/amount_keypad.dart';
 
 class AmountPickerSheet extends StatelessWidget {
@@ -18,10 +23,32 @@ class AmountPickerSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [AmountKeypad(onInput: onInput)],
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    value > 0
+                        ? AmountFormatter.formatCurrency(value)
+                        : S.of(context, 'enterAmount'),
+                    style: value > 0
+                        ? AppTextStyles.title.copyWith(color: AppColors.inkBlue)
+                        : AppTextStyles.hint,
+                  ),
+                ),
+                TextButton(
+                  onPressed: onDone,
+                  child: Text(S.of(context, 'done')),
+                ),
+              ],
+            ),
+            const Divider(),
+            const SizedBox(height: AppSpacing.sm),
+            AmountKeypad(onInput: onInput),
+          ],
         ),
       ),
     );

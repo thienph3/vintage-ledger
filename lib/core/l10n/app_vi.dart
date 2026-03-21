@@ -105,6 +105,7 @@ const Map<String, String> vi = {
   // Common
   'cancel': 'Hủy',
   'delete': 'Xóa',
+  'done': 'Xong',
 
   // Onboarding
   'welcomeTitle': 'Chào mừng đến Sổ Thu Chi',
