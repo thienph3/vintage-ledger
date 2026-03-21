@@ -102,4 +102,10 @@ const Map<String, String> vi = {
   // Common
   'cancel': 'Hủy',
   'delete': 'Xóa',
+
+  // Onboarding
+  'welcomeTitle': 'Chào mừng đến Sổ Thu Chi',
+  'welcomeSubtitle': 'Bạn có muốn tạo dữ liệu mẫu để khám phá ứng dụng không?',
+  'startWithSample': 'Bắt đầu với dữ liệu mẫu',
+  'startEmpty': 'Bắt đầu từ đầu',
 };

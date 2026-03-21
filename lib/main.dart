@@ -7,6 +7,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:vintage_ledger/features/settings/services/setting_service.dart';
 import 'package:vintage_ledger/common/widgets/auto_lock_wrapper.dart';
 import 'package:vintage_ledger/features/home_screen.dart';
+import 'package:vintage_ledger/features/onboarding/welcome_screen.dart';
 import 'package:vintage_ledger/core/theme/app_theme.dart';
 
 void main() {
@@ -31,17 +32,23 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  final _settingService = SettingService();
   Locale _locale = const Locale('vi', 'VN');
+  bool? _setupDone;
 
   @override
   void initState() {
     super.initState();
-    _loadLocale();
+    _loadSettings();
   }
 
-  Future<void> _loadLocale() async {
-    final code = await SettingService().getLocale();
-    setState(() => _locale = Locale(code));
+  Future<void> _loadSettings() async {
+    final code = await _settingService.getLocale();
+    final done = await _settingService.isSetupDone();
+    setState(() {
+      _locale = Locale(code);
+      _setupDone = done;
+    });
   }
 
   void _setLocale(Locale locale) {
@@ -65,9 +72,19 @@ class _MyAppState extends State<MyApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
 
-      home: Platform.isWindows
-          ? const HomeScreen()
-          : AutoLockWrapper(child: const HomeScreen()),
+      home: _buildHome(),
     );
+  }
+
+  Widget _buildHome() {
+    // Still loading settings
+    if (_setupDone == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final screen = _setupDone! ? const HomeScreen() : const WelcomeScreen();
+
+    if (Platform.isWindows) return screen;
+    return AutoLockWrapper(child: screen);
   }
 }
