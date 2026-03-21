@@ -122,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(height: AppSpacing.lg),
             _buildWalletRow(),
             const SizedBox(height: AppSpacing.lg),
-            LedgerCard(child: ChartSection(transactions: monthTransactions)),
+            LedgerCard(child: ChartSection(transactions: monthTransactions, categoryMap: categoryMap)),
             const SizedBox(height: AppSpacing.lg),
             LedgerCard(
               child: TransactionSection(

@@ -107,7 +107,7 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            LedgerCard(child: ChartSection(transactions: monthTransactions)),
+            LedgerCard(child: ChartSection(transactions: monthTransactions, categoryMap: categoryMap)),
             const SizedBox(height: AppSpacing.md),
 
             LedgerCard(

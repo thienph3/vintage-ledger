@@ -84,8 +84,14 @@ const Map<String, String> vi = {
 
   // Chart
   'noData': 'Không có dữ liệu',
-  'trend': 'Xu hướng',
-  'monthlyIncomeExpense': 'Thu chi trong tháng',
+  'chartTrend': 'Xu hướng',
+  'chartDaily': 'Theo ngày',
+  'chartBreakdown': 'Tỷ lệ chi',
+  'chartSummary': 'Tổng quan',
+  'net': 'Chênh lệch',
+  'transactionCount': 'Số giao dịch',
+  'topSpendingDay': 'Ngày chi nhiều nhất',
+  'uncategorized': 'Chưa phân loại',
 
   // Settings
   'settings': 'CÀI ĐẶT',

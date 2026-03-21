@@ -85,8 +85,14 @@ const Map<String, String> en = {
 
   // Chart
   'noData': 'No data',
-  'trend': 'Trend',
-  'monthlyIncomeExpense': 'Monthly income/expense',
+  'chartTrend': 'Trend',
+  'chartDaily': 'Daily',
+  'chartBreakdown': 'Breakdown',
+  'chartSummary': 'Summary',
+  'net': 'Net',
+  'transactionCount': 'Transactions',
+  'topSpendingDay': 'Top spending day',
+  'uncategorized': 'Uncategorized',
 
   // Settings
   'settings': 'SETTINGS',
