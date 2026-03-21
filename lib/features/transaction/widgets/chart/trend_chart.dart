@@ -81,7 +81,7 @@ class TrendChart extends StatelessWidget with ChartStyles {
       color: color,
       dotData: FlDotData(
         show: true,
-        getDotPainter: (_, __, ___, ____) => FlDotCirclePainter(
+        getDotPainter: (_, _, _, _) => FlDotCirclePainter(
           radius: 3,
           color: color,
           strokeWidth: 0,
