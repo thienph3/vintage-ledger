@@ -74,7 +74,7 @@ class _ChartSectionState extends State<ChartSection> {
         _buildLegend(),
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
-          height: 240,
+          height: 250,
           child: widget.transactions.isEmpty
               ? EmptyState(message: S.of(context, 'noData'))
               : AnimatedSwitcher(
@@ -130,30 +130,36 @@ class _ChartSectionState extends State<ChartSection> {
     );
   }
 
+  static const _legendHeight = 20.0;
+
   Widget _buildLegend() {
-    if (_view == ChartView.summary) return const SizedBox.shrink();
+    return SizedBox(
+      height: _legendHeight,
+      child: switch (_view) {
+        ChartView.summary => const SizedBox.shrink(),
+        ChartView.breakdown => _breakdownLegend(),
+        _ => Row(
+            children: [
+              _legendDot(AppColors.income, S.of(context, 'income')),
+              const SizedBox(width: AppSpacing.md),
+              _legendDot(AppColors.expense, S.of(context, 'expense')),
+            ],
+          ),
+      },
+    );
+  }
 
-    if (_view == ChartView.breakdown) {
-      final categories = _expenseByCategory;
-      if (categories.isEmpty) return const SizedBox.shrink();
-      final keys = categories.keys.toList();
-      return Wrap(
-        spacing: AppSpacing.md,
-        runSpacing: AppSpacing.xs,
-        children: List.generate(keys.length, (i) {
-          return _legendDot(
-              BreakdownChart.pieColors[i % BreakdownChart.pieColors.length],
-              keys[i]);
-        }),
-      );
-    }
-
-    return Row(
-      children: [
-        _legendDot(AppColors.income, S.of(context, 'income')),
-        const SizedBox(width: AppSpacing.md),
-        _legendDot(AppColors.expense, S.of(context, 'expense')),
-      ],
+  Widget _breakdownLegend() {
+    final keys = _expenseByCategory.keys.toList();
+    if (keys.isEmpty) return const SizedBox.shrink();
+    return ListView.separated(
+      scrollDirection: Axis.horizontal,
+      itemCount: keys.length,
+      separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+      itemBuilder: (_, i) => _legendDot(
+        BreakdownChart.pieColors[i % BreakdownChart.pieColors.length],
+        keys[i],
+      ),
     );
   }
 
