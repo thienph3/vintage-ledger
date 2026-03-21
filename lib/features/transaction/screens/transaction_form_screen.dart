@@ -358,7 +358,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   Widget _buildWalletDropdown() {
     return DropdownButtonFormField<int>(
-      value: _walletId,
+      initialValue: _walletId,
       decoration: InputDecoration(
         labelText: S.of(context, 'selectWallet'),
       ),
