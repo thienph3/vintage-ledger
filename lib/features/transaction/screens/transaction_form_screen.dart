@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
-import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
@@ -70,9 +69,14 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       _amountCtrl.text = '0';
     }
 
-    _updateDateText();
     _loadCategories();
     if (widget.walletId == null) _loadWallets();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateDateText();
   }
 
   @override
@@ -162,7 +166,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   void _updateDateText() {
-    _dateCtrl.text = DateFormat('dd/MM/yyyy HH:mm', 'vi_VN').format(_date);
+    final locale = Localizations.localeOf(context).toString();
+    _dateCtrl.text = DateFormat('dd/MM/yyyy HH:mm', locale).format(_date);
   }
 
   Future<void> _pickDateTime() async {
@@ -284,10 +289,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             const SizedBox(height: AppSpacing.lg),
 
             // Amount
-            Center(
-              child: AmountInputField(controller: _amountCtrl),
-            ),
-            const SizedBox(height: AppSpacing.lg),
+            AmountInputField(controller: _amountCtrl),
+            const SizedBox(height: AppSpacing.md),
 
             // Wallet (only when not pre-selected)
             if (widget.walletId == null) ...[

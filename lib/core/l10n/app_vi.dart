@@ -35,6 +35,7 @@ const Map<String, String> vi = {
   'addNewTransaction': 'THÊM THU CHI MỚI',
   'income': 'Khoản thu',
   'expense': 'Khoản chi',
+  'enterAmount': 'Nhập số tiền',
   'amountMustBePositive': 'Số tiền phải lớn hơn 0',
   'itemsTotalExceed':
       'Tổng các mục chi tiết không được vượt quá số tiền thu chi tổng',
@@ -42,6 +43,8 @@ const Map<String, String> vi = {
   'itemName': 'Tên mục chi tiết',
   'itemNameHint': 'Tên mục chi tiết (tùy chọn)',
   'addItem': 'Thêm mục chi tiết',
+  'addDetails': 'Thêm chi tiết',
+  'selectCategoryRequired': 'Vui lòng chọn danh mục',
   'note': 'Ghi chú',
   'noteHint': 'Nhập ghi chú cho thu chi (tùy chọn)',
   'update': 'Cập nhật',

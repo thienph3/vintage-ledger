@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:vintage_ledger/core/theme/app_colors.dart';
+import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/common/widgets/amount_picker_sheet.dart';
@@ -10,7 +10,7 @@ class AmountInputField extends StatelessWidget {
 
   const AmountInputField({super.key, required this.controller});
 
-  int parseAmount() {
+  int _parseAmount() {
     final text = controller.text.replaceAll('.', '');
     return int.tryParse(text) ?? 0;
   }
@@ -19,7 +19,7 @@ class AmountInputField extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        int tempValue = parseAmount();
+        int tempValue = _parseAmount();
 
         await showModalBottomSheet<int>(
           context: context,
@@ -32,14 +32,10 @@ class AmountInputField extends StatelessWidget {
                   setState(() {
                     if (input == "BACKSPACE") {
                       tempValue = tempValue ~/ 10;
+                    } else if (input == "000") {
+                      tempValue *= 1000;
                     } else {
-                      final add = int.tryParse(input) ?? 0;
-
-                      if (input == "000") {
-                        tempValue *= 1000;
-                      } else {
-                        tempValue = tempValue * 10 + add;
-                      }
+                      tempValue = tempValue * 10 + (int.tryParse(input) ?? 0);
                     }
                     controller.text = tempValue.toString();
                   });
@@ -48,32 +44,31 @@ class AmountInputField extends StatelessWidget {
                 return AmountPickerSheet(
                   value: tempValue,
                   onInput: handleInput,
-                  onDone: () {
-                    Navigator.pop(context, tempValue);
-                  },
+                  onDone: () => Navigator.pop(context, tempValue),
                 );
               },
             );
           },
         );
       },
-
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(color: AppColors.divider),
-          borderRadius: BorderRadius.circular(12),
-        ),
+      child: AbsorbPointer(
         child: ValueListenableBuilder<TextEditingValue>(
           valueListenable: controller,
           builder: (context, value, _) {
-            return Text(
-              value.text.isEmpty
-                  ? "Nhập số tiền"
-                  : AmountFormatter.formatCurrency(
-                      int.tryParse(value.text) ?? 0,
-                    ),
-              style: AppTextStyles.body.copyWith(color: AppColors.inkPurple),
+            final amount = int.tryParse(value.text) ?? 0;
+            return InputDecorator(
+              decoration: InputDecoration(
+                labelText: S.of(context, 'amount'),
+                suffixIcon: const Icon(Icons.dialpad, size: 20),
+              ),
+              child: Text(
+                amount > 0
+                    ? AmountFormatter.formatCurrency(amount)
+                    : S.of(context, 'enterAmount'),
+                style: amount > 0
+                    ? AppTextStyles.amount
+                    : AppTextStyles.hint,
+              ),
             );
           },
         ),

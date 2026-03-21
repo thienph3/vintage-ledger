@@ -35,6 +35,7 @@ const Map<String, String> en = {
   'addNewTransaction': 'ADD NEW TRANSACTION',
   'income': 'Income',
   'expense': 'Expense',
+  'enterAmount': 'Enter amount',
   'amountMustBePositive': 'Amount must be greater than 0',
   'itemsTotalExceed':
       'Total of detail items must not exceed the transaction amount',
@@ -42,6 +43,8 @@ const Map<String, String> en = {
   'itemName': 'Item name',
   'itemNameHint': 'Item name (optional)',
   'addItem': 'Add item',
+  'addDetails': 'Add details',
+  'selectCategoryRequired': 'Please select a category',
   'note': 'Note',
   'noteHint': 'Enter note (optional)',
   'update': 'Update',

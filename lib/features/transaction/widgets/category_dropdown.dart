@@ -64,7 +64,7 @@ class CategoryDropdown extends StatelessWidget {
       },
       validator: (v) {
         if (v == null || v == -1) {
-          return S.of(context, 'categoryNameRequired');
+          return S.of(context, 'selectCategoryRequired');
         }
         return null;
       },

@@ -38,10 +38,24 @@ class TransactionItemList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Collapsed: just show "Add details" link
+    if (items.isEmpty) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton.icon(
+          onPressed: onAdd,
+          icon: const Icon(Icons.add, size: 18),
+          label: Text(S.of(context, 'addDetails')),
+        ),
+      );
+    }
+
+    // Expanded: header + items + add more
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(S.of(context, 'transactionDetails'), style: AppTextStyles.titleSmall),
+        Text(S.of(context, 'transactionDetails'),
+            style: AppTextStyles.bodyBold),
         const SizedBox(height: AppSpacing.sm),
         ...items.asMap().entries.map((entry) {
           final i = entry.key;
