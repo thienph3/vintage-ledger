@@ -63,6 +63,8 @@ CREATE TABLE categories(
 )
 ''');
 
+    await _seedCategories(db);
+
     await db.execute('''
 CREATE TABLE transactions(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -85,6 +87,33 @@ CREATE TABLE transaction_items(
   FOREIGN KEY(transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
 )
 ''');
+  }
+
+  Future<void> _seedCategories(Database db) async {
+    const categories = [
+      // Expense
+      {'name': 'Ăn uống', 'type': 'expense', 'icon': 0xe25a},      // fastfood
+      {'name': 'Di chuyển', 'type': 'expense', 'icon': 0xe1d7},    // directions_car
+      {'name': 'Mua sắm', 'type': 'expense', 'icon': 0xe8cc},      // shopping_cart
+      {'name': 'Nhà ở', 'type': 'expense', 'icon': 0xe318},        // home
+      {'name': 'Sức khỏe', 'type': 'expense', 'icon': 0xe8e8},     // health_and_safety
+      {'name': 'Giáo dục', 'type': 'expense', 'icon': 0xe80c},     // school
+      {'name': 'Giải trí', 'type': 'expense', 'icon': 0xe02c},     // movie
+      {'name': 'Cà phê', 'type': 'expense', 'icon': 0xe541},       // local_cafe
+      {'name': 'Hóa đơn', 'type': 'expense', 'icon': 0xe873},      // receipt_long
+      {'name': 'Khác', 'type': 'expense', 'icon': 0xe5d3},         // more_horiz
+      // Income
+      {'name': 'Lương', 'type': 'income', 'icon': 0xe850},         // account_balance_wallet
+      {'name': 'Thưởng', 'type': 'income', 'icon': 0xe8f6},        // star
+      {'name': 'Đầu tư', 'type': 'income', 'icon': 0xe8e5},        // trending_up
+      {'name': 'Khác', 'type': 'income', 'icon': 0xe5d3},          // more_horiz
+    ];
+
+    final batch = db.batch();
+    for (final c in categories) {
+      batch.insert('categories', c);
+    }
+    await batch.commit(noResult: true);
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {}

@@ -74,7 +74,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   List<Wallet> wallets = [];
 
   int? selectedWalletId;
-  int type = -1;
+  String _type = 'expense';
   int? categoryId;
 
   DateTime date = DateTime.now();
@@ -96,7 +96,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     if (widget.isEdit) {
       final txn = widget.transaction!;
       amountController.text = txn.amount.toString();
-      type = txn.type == "income" ? 1 : -1;
+      _type = txn.type;
       categoryId = txn.categoryId;
       date = DateTime.fromMillisecondsSinceEpoch(txn.date);
       noteController.text = txn.note ?? '';
@@ -126,7 +126,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Future<void> loadCategories() async {
-    final list = await categoryService.getCategories();
+    final list = await categoryService.getCategoriesByType(_type);
 
     setState(() {
       categories = list;
@@ -269,7 +269,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         walletId: selectedWalletId!,
         categoryId: categoryId!,
         amount: txnAmount,
-        type: type == 1 ? "income" : "expense",
+        type: _type,
         date: date.millisecondsSinceEpoch,
         note: noteController.text.isEmpty ? null : noteController.text,
       );
@@ -280,7 +280,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       txnId = await transactionService.createTransaction(
         walletId: selectedWalletId!,
         categoryId: categoryId!,
-        type: type == 1 ? "income" : "expense",
+        type: _type,
         amount: txnAmount,
         date: date.millisecondsSinceEpoch,
         note: noteController.text.isEmpty ? null : noteController.text,
@@ -332,55 +332,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => type = 1),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: type == 1
-                                ? AppColors.inkBlue
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            S.of(context, 'income'),
-                            style: AppTextStyles.body.copyWith(
-                              color: type == 1
-                                  ? Colors.white
-                                  : AppColors.inkBlue,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    _typeButton('income', S.of(context, 'income')),
                     const SizedBox(width: 4),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => type = -1),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            color: type == -1
-                                ? AppColors.inkBlue
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            S.of(context, 'expense'),
-                            style: AppTextStyles.body.copyWith(
-                              color: type == -1
-                                  ? Colors.white
-                                  : AppColors.inkBlue,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
+                    _typeButton('expense', S.of(context, 'expense')),
                   ],
                 ),
               ),
@@ -461,13 +416,11 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const CategoryFormScreen(),
+                        builder: (_) => CategoryFormScreen(initialType: _type),
                       ),
                     );
 
-                    if (result == true) {
-                      await loadCategories();
-                    }
+                    if (result == true) await loadCategories();
                     return;
                   }
 
@@ -594,6 +547,33 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _typeButton(String value, String label) {
+    final selected = _type == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          if (_type == value) return;
+          setState(() => _type = value);
+          loadCategories();
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.inkBlue : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: AppTextStyles.body.copyWith(
+              color: selected ? Colors.white : AppColors.inkBlue,
+            ),
           ),
         ),
       ),

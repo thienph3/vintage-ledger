@@ -1,15 +1,17 @@
 class Category {
   final int? id;
   final String name;
-  final int? icon; // mã icon MaterialIcons, nullable nếu muốn dùng mặc định
+  final String? type;
+  final int? icon;
 
-  Category({this.id, required this.name, this.icon});
+  Category({this.id, required this.name, this.type, this.icon});
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'name': name,
-      'icon': icon, // lưu icon vào map
+      'type': type,
+      'icon': icon,
     };
   }
 
@@ -17,7 +19,8 @@ class Category {
     return Category(
       id: map['id'],
       name: map['name'],
-      icon: map['icon'], // đọc icon từ map
+      type: map['type'],
+      icon: map['icon'],
     );
   }
 }

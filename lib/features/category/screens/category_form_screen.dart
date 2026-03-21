@@ -9,8 +9,9 @@ import 'package:vintage_ledger/core/constants/category_icons.dart';
 
 class CategoryFormScreen extends StatefulWidget {
   final Category? category;
+  final String? initialType;
 
-  const CategoryFormScreen({super.key, this.category});
+  const CategoryFormScreen({super.key, this.category, this.initialType});
 
   @override
   State<CategoryFormScreen> createState() => _CategoryFormScreenState();
@@ -22,7 +23,8 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
   bool isEdit = false;
-  int? selectedIconIndex;
+  String _type = 'expense';
+  int? selectedCodePoint;
 
   @override
   void initState() {
@@ -30,14 +32,10 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
     if (widget.category != null) {
       isEdit = true;
       nameController.text = widget.category!.name;
-
-      if (widget.category!.icon != null) {
-        final cp = widget.category!.icon!;
-        final idx = kCategoryIconList.indexWhere(
-          (icon) => icon.codePoint == cp,
-        );
-        selectedIconIndex = idx >= 0 ? idx : null;
-      }
+      _type = widget.category!.type ?? 'expense';
+      selectedCodePoint = widget.category!.icon;
+    } else {
+      _type = widget.initialType ?? 'expense';
     }
   }
 
@@ -45,15 +43,16 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
     if (!_formKey.currentState!.validate()) return;
     final name = nameController.text.trim();
 
-    final iconCodePoint = selectedIconIndex;
     if (isEdit) {
       await categoryService.updateCategory(
         widget.category!.id!,
         name,
-        icon: iconCodePoint,
+        type: _type,
+        icon: selectedCodePoint,
       );
     } else {
-      await categoryService.createCategory(name, icon: iconCodePoint);
+      await categoryService.createCategory(name,
+          type: _type, icon: selectedCodePoint);
     }
 
     if (!mounted) return;
@@ -73,6 +72,24 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              const SizedBox(height: 16),
+
+              // Type selector
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    _typeButton('income', S.of(context, 'income')),
+                    const SizedBox(width: 4),
+                    _typeButton('expense', S.of(context, 'expense')),
+                  ],
+                ),
+              ),
+
               const SizedBox(height: 16),
               TextFormField(
                 controller: nameController,
@@ -101,14 +118,14 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
                     crossAxisSpacing: 12,
                     childAspectRatio: 1,
                   ),
-                  itemCount: kCategoryIconList.length,
+                  itemCount: kCategoryIcons.length,
                   itemBuilder: (context, index) {
-                    final iconData = kCategoryIconList[index];
-                    final isSelected = selectedIconIndex == index;
+                    final iconData = kCategoryIcons[index];
+                    final isSelected = selectedCodePoint == iconData.codePoint;
                     return GestureDetector(
                       onTap: () {
                         setState(() {
-                          selectedIconIndex = index;
+                          selectedCodePoint = iconData.codePoint;
                         });
                       },
                       child: Container(
@@ -141,6 +158,29 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _typeButton(String value, String label) {
+    final selected = _type == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _type = value),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.inkBlue : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            label,
+            style: AppTextStyles.body.copyWith(
+              color: selected ? Colors.white : AppColors.inkBlue,
+            ),
           ),
         ),
       ),

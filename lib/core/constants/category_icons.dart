@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
 
-const Map<int, IconData> kCategoryIconMap = {
-  0: Icons.fastfood,
-  1: Icons.directions_car,
-  2: Icons.shopping_cart,
-  3: Icons.home,
-  4: Icons.sports_soccer,
-  5: Icons.movie,
-  6: Icons.local_cafe,
-  7: Icons.health_and_safety,
-  8: Icons.phone_iphone,
-  9: Icons.school,
-  10: Icons.pets,
-  11: Icons.flight,
-  12: Icons.music_note,
-  13: Icons.local_hospital,
-};
+const kCategoryIcons = [
+  Icons.fastfood,
+  Icons.directions_car,
+  Icons.shopping_cart,
+  Icons.home,
+  Icons.health_and_safety,
+  Icons.school,
+  Icons.movie,
+  Icons.local_cafe,
+  Icons.receipt_long,
+  Icons.more_horiz,
+  Icons.account_balance_wallet,
+  Icons.star,
+  Icons.trending_up,
+  Icons.sports_soccer,
+  Icons.phone_iphone,
+  Icons.pets,
+  Icons.flight,
+  Icons.music_note,
+  Icons.local_hospital,
+];
 
-List<IconData> get kCategoryIconList => kCategoryIconMap.values.toList();
+IconData? getCategoryIcon(int? codePoint) {
+  if (codePoint == null) return null;
+  return IconData(codePoint, fontFamily: 'MaterialIcons');
+}

@@ -106,10 +106,7 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                     child: Row(
                       children: [
                         Icon(
-                          (c.icon != null &&
-                                  kCategoryIconMap.containsKey(c.icon))
-                              ? kCategoryIconMap[c.icon]!
-                              : Icons.category,
+                          getCategoryIcon(c.icon) ?? Icons.category,
                           size: 28,
                           color: AppColors.inkBlue,
                         ),

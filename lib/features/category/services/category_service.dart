@@ -4,48 +4,33 @@ import 'package:vintage_ledger/features/category/repositories/category_repositor
 class CategoryService {
   final CategoryRepository _repo = CategoryRepository();
 
-  /// CREATE CATEGORY
-  Future<int> createCategory(String name, {int? icon}) async {
+  Future<int> createCategory(String name, {String? type, int? icon}) async {
     if (name.trim().isEmpty) {
       throw Exception("Category name cannot be empty");
     }
-
-    final category = Category(
-      name: name,
-      icon: icon, // thêm icon
-    );
-
-    return await _repo.create(category);
+    return await _repo.create(Category(name: name, type: type, icon: icon));
   }
 
-  /// GET ALL CATEGORIES
   Future<List<Category>> getCategories() async {
     return await _repo.getAll();
   }
 
-  /// GET CATEGORY BY ID
+  Future<List<Category>> getCategoriesByType(String type) async {
+    return await _repo.getByType(type);
+  }
+
   Future<Category?> getCategory(int id) async {
     return await _repo.getById(id);
   }
 
-  /// UPDATE CATEGORY
-  Future<int> updateCategory(int id, String name, {int? icon}) async {
+  Future<int> updateCategory(int id, String name,
+      {String? type, int? icon}) async {
     final category = await _repo.getById(id);
-
-    if (category == null) {
-      throw Exception("Category not found");
-    }
-
-    final updated = Category(
-      id: id,
-      name: name,
-      icon: icon, // cập nhật icon
-    );
-
-    return await _repo.update(updated);
+    if (category == null) throw Exception("Category not found");
+    return await _repo.update(
+        Category(id: id, name: name, type: type, icon: icon));
   }
 
-  /// DELETE CATEGORY
   Future<int> deleteCategory(int id) async {
     return await _repo.delete(id);
   }
