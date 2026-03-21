@@ -155,7 +155,7 @@ class _ChartSectionState extends State<ChartSection> {
     return ListView.separated(
       scrollDirection: Axis.horizontal,
       itemCount: keys.length,
-      separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+      separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.md),
       itemBuilder: (_, i) => _legendDot(
         BreakdownChart.pieColors[i % BreakdownChart.pieColors.length],
         keys[i],
