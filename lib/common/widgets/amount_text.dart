@@ -20,11 +20,12 @@ class AmountText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
     final color = type == 'income' ? AppColors.income : AppColors.expense;
     final sign = type == 'income' ? '' : '-';
     final formatted = compact
-        ? AmountFormatter.formatCompactCurrency(amount)
-        : AmountFormatter.formatCurrency(amount);
+        ? AmountFormatter.formatCompactCurrency(amount, locale)
+        : AmountFormatter.formatCurrency(amount, locale);
 
     return Text(
       '$sign$formatted',

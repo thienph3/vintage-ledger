@@ -20,11 +20,11 @@ mixin ChartStyles {
   AxisTitles get noTitles =>
       AxisTitles(sideTitles: SideTitles(showTitles: false));
 
-  SideTitles get leftTitles => SideTitles(
+  SideTitles leftTitlesFor(String locale) => SideTitles(
         showTitles: true,
         reservedSize: 46,
         getTitlesWidget: (value, _) => Text(
-          AmountFormatter.formatChartAxis(value),
+          AmountFormatter.formatChartAxis(value, locale),
           style: AppTextStyles.caption,
         ),
       );

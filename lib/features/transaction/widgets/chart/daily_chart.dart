@@ -41,6 +41,8 @@ class DailyChart extends StatelessWidget with ChartStyles {
       );
     });
 
+    final locale = Localizations.localeOf(context).languageCode;
+
     return Padding(
       padding: const EdgeInsets.only(top: AppSpacing.sm, right: AppSpacing.sm),
       child: BarChart(
@@ -49,7 +51,7 @@ class DailyChart extends StatelessWidget with ChartStyles {
           gridData: vintageGrid,
           borderData: noBorder,
           titlesData: FlTitlesData(
-            leftTitles: AxisTitles(sideTitles: leftTitles),
+            leftTitles: AxisTitles(sideTitles: leftTitlesFor(locale)),
             rightTitles: noTitles,
             topTitles: noTitles,
             bottomTitles: AxisTitles(

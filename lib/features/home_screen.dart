@@ -182,7 +182,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     amount: totalBalance.abs(),
                     type: totalBalance >= 0 ? 'income' : 'expense',
                     fontSize: 28,
-                    compact: true,
                   )
                 else
                   Text('••••••', style: AppTextStyles.title.copyWith(fontSize: 28)),
@@ -245,7 +244,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         const SizedBox(height: AppSpacing.xs),
         if (_amountVisible)
-          AmountText(amount: amount, type: type, compact: true)
+          AmountText(amount: amount, type: type)
         else
           Text('••••', style: AppTextStyles.amount),
       ],
@@ -347,7 +346,6 @@ class _HomeScreenState extends State<HomeScreen> {
               AmountText(
                 amount: wallet.balance.abs(),
                 type: wallet.balance >= 0 ? 'income' : 'expense',
-                compact: true,
               )
             else
               Text('••••', style: AppTextStyles.amount),
