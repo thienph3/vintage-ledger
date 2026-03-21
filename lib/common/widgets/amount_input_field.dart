@@ -70,7 +70,7 @@ class AmountInputField extends StatelessWidget {
               ),
               child: Text(
                 amount > 0
-                    ? AmountFormatter.formatCurrency(amount)
+                    ? AmountFormatter.formatCurrency(amount, Localizations.localeOf(context).languageCode)
                     : S.of(context, 'enterAmount'),
                 style: amount > 0
                     ? AppTextStyles.amount

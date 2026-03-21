@@ -32,7 +32,7 @@ class AmountPickerSheet extends StatelessWidget {
                 Expanded(
                   child: Text(
                     value > 0
-                        ? AmountFormatter.formatCurrency(value)
+                        ? AmountFormatter.formatCurrency(value, Localizations.localeOf(context).languageCode)
                         : S.of(context, 'enterAmount'),
                     style: value > 0
                         ? AppTextStyles.title.copyWith(color: AppColors.inkBlue)
