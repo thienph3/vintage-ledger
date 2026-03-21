@@ -3,9 +3,8 @@ import 'package:flutter/services.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
+import 'package:vintage_ledger/common/widgets/locale_toggle.dart';
 import 'package:vintage_ledger/features/auth/services/auth_service.dart';
-import 'package:vintage_ledger/features/settings/services/setting_service.dart';
-import 'package:vintage_ledger/main.dart';
 
 class LockScreen extends StatefulWidget {
   const LockScreen({super.key});
@@ -16,18 +15,9 @@ class LockScreen extends StatefulWidget {
 
 class _LockScreenState extends State<LockScreen> {
   final AuthService _authService = AuthService();
-  final SettingService _settingService = SettingService();
 
   bool _loading = false;
   String? _error;
-
-  Future<void> _toggleLocale() async {
-    final current = Localizations.localeOf(context).languageCode;
-    final next = current == 'vi' ? 'en' : 'vi';
-    await _settingService.setLocale(next);
-    if (!mounted) return;
-    MyApp.setLocale(context, Locale(next));
-  }
 
   Future<void> _unlock() async {
     if (_loading) return;
@@ -57,9 +47,6 @@ class _LockScreenState extends State<LockScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final langCode = Localizations.localeOf(context).languageCode;
-    final flag = langCode == 'vi' ? '🇻🇳' : '🇺🇸';
-
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -70,10 +57,7 @@ class _LockScreenState extends State<LockScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
 
               children: [
-                TextButton(
-                  onPressed: _toggleLocale,
-                  child: Text(flag, style: AppTextStyles.emojiLarge),
-                ),
+                const LocaleToggle(),
 
                 const SizedBox(height: 8),
 
