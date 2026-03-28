@@ -20,7 +20,7 @@ class AmountFormatter {
 
   /// Compact with currency: vi → 1tr5đ | en → ₫1.5m
   static String formatCompactCurrency(int value, String locale) {
-    if (locale == 'vi') return '${_compactVi(value)}';
+    if (locale == 'vi') return _compactVi(value);
     return '₫${_compactEn(value)}';
   }
 
