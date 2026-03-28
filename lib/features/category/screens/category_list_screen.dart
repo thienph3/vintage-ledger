@@ -106,7 +106,7 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                     child: Row(
                       children: [
                         Icon(
-                          getCategoryIcon(c.icon) ?? Icons.category,
+                          getCategoryIcon(c.icon),
                           size: 28,
                           color: AppColors.inkBlue,
                         ),

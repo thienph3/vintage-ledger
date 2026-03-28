@@ -367,7 +367,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         child: Row(
           children: [
             Icon(
-              getCategoryIcon(catIcon) ?? Icons.category,
+              getCategoryIcon(catIcon),
               size: 22,
               color: AppColors.inkBlue,
             ),

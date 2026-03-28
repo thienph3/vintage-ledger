@@ -153,7 +153,7 @@ class TransactionSection extends StatelessWidget {
                         children: [
                           if (category?.icon != null) ...[
                             Icon(
-                              getCategoryIcon(category?.icon) ?? Icons.category,
+                              getCategoryIcon(category?.icon),
                               size: 20,
                               color: AppColors.inkBlue,
                             ),
