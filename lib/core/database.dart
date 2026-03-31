@@ -24,7 +24,7 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -46,7 +46,8 @@ CREATE TABLE wallets(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   balance INTEGER NOT NULL DEFAULT 0,
-  created_at INTEGER NOT NULL
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER
 )
 ''');
 
@@ -70,6 +71,7 @@ CREATE TABLE transactions(
   amount INTEGER NOT NULL CHECK(amount > 0),
   note TEXT,
   date INTEGER NOT NULL,
+  updated_at INTEGER,
   FOREIGN KEY(wallet_id) REFERENCES wallets(id) ON DELETE CASCADE,
   FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE RESTRICT
 )
@@ -131,7 +133,14 @@ CREATE TABLE transaction_items(
     }
     if (oldVersion < 3) {
       await _migrateToV3(db);
+    if (oldVersion < 4) {
+      await _migrateToV4(db);
     }
+  }
+
+  Future<void> _migrateToV4(Database db) async {
+    await db.execute('ALTER TABLE wallets ADD COLUMN updated_at INTEGER');
+    await db.execute('ALTER TABLE transactions ADD COLUMN updated_at INTEGER');
   }
 
   /// V3 migration: recreate wallets (created_at → INTEGER) and transactions

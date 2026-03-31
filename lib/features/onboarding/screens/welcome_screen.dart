@@ -6,7 +6,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/locale_toggle.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/features/onboarding/sample_data_service.dart';
+import 'package:vintage_ledger/features/onboarding/services/sample_data_service.dart';
 import 'package:vintage_ledger/features/home/screens/home_screen.dart';
 
 class WelcomeScreen extends StatefulWidget {

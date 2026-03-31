@@ -7,7 +7,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/common/widgets/auto_lock_wrapper.dart';
 import 'package:vintage_ledger/features/home/screens/home_screen.dart';
-import 'package:vintage_ledger/features/onboarding/welcome_screen.dart';
+import 'package:vintage_ledger/features/onboarding/screens/welcome_screen.dart';
 import 'package:vintage_ledger/core/theme/app_theme.dart';
 
 void main() {

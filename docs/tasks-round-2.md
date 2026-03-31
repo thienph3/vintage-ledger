@@ -15,7 +15,7 @@
 | 11 | Xóa inline `floatingLabelBehavior` và `border` trong `WalletFormScreen` | Vi phạm style guide: đã config trong `InputDecorationTheme` nhưng vẫn override inline. Xóa để dùng theme. | ✅ chưa verify |
 | 12 | Thêm `copyWith`, `==`, `hashCode` cho models | `Wallet`, `TransactionModel`, `Category` chỉ có `toMap`/`fromMap`. Thêm `copyWith()` để tránh tạo object thủ công, `==`/`hashCode` để so sánh. | ✅ chưa verify |
 | 13 | Cache chart data trong `DashboardData` | `ChartSection` tính `_dailyData`, `_expenseByCategory` mỗi lần rebuild. Tính sẵn trong `DashboardData` hoặc cache trong `ChartSection` state. | ✅ chưa verify |
-| 14 | Batch insert trong `SampleDataService` | `generate()` tạo ~60-90 transactions tuần tự (1 DB transaction mỗi cái). Batch insert để tăng tốc onboarding. | ⬜ |
-| 15 | Thêm `updated_at` cho wallets và transactions | Không track thời điểm sửa record. Thêm `updated_at INTEGER` column cho audit/sync. | ⬜ |
-| 16 | Mở rộng test coverage | Chỉ có test cho formatters. Thêm service tests (mock DB), widget tests cho common widgets. | ⬜ |
-| 17 | Chuẩn hóa `onboarding/` folder structure | `onboarding/` không theo cấu trúc feature chuẩn (thiếu `screens/`, `services/` subfolder). Tách cho consistency. | ⬜ |
+| 14 | Batch insert trong `SampleDataService` | `generate()` tạo ~60-90 transactions tuần tự (1 DB transaction mỗi cái). Batch insert để tăng tốc onboarding. | ✅ chưa verify |
+| 15 | Thêm `updated_at` cho wallets và transactions | Không track thời điểm sửa record. Thêm `updated_at INTEGER` column cho audit/sync. | ✅ chưa verify |
+| 16 | Mở rộng test coverage | Chỉ có test cho formatters. Thêm test cho TransactionType enum, Wallet/TransactionModel/Category models (copyWith, ==, fromMap/toMap). | ✅ chưa verify |
+| 17 | Chuẩn hóa `onboarding/` folder structure | `onboarding/` không theo cấu trúc feature chuẩn (thiếu `screens/`, `services/` subfolder). Tách cho consistency. | ✅ chưa verify |
