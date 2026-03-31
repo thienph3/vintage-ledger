@@ -7,12 +7,12 @@
 
 | # | Task | Mô tả | Status |
 |---|---|---|---|
-| 1 | Thêm `cloud_firestore` + `connectivity_plus` dependencies | Thêm vào `pubspec.yaml`. | ⬜ |
-| 2 | DB migration: thêm sync columns | Thêm `is_synced INTEGER DEFAULT 1`, `remote_id TEXT` vào wallets, transactions, categories. Thêm `created_by TEXT` vào transactions. Bump DB version. | ⬜ |
-| 3 | Cập nhật models: thêm sync fields | `Wallet`, `TransactionModel`, `Category` thêm `isSynced`, `remoteId`. `TransactionModel` thêm `createdBy`. Cập nhật `toMap`/`fromMap`/`copyWith`. | ⬜ |
-| 4 | Auto set `is_synced = 0` khi create/update/delete | Mọi write operation trong repositories tự động mark record dirty. | ⬜ |
-| 5 | Tạo `SyncService` skeleton | Class với methods: `pushAll()`, `pullAll()`, `syncAccount(accountId)`. Inject vào `ServiceLocator`. | ⬜ |
-| 6 | Tạo `SyncRepository` | Helper đọc/ghi Firestore: `pushWallets`, `pushTransactions`, `pushCategories`, `pullWallets`, `pullTransactions`, `pullCategories`. | ⬜ |
+| 1 | Thêm `cloud_firestore` + `connectivity_plus` dependencies | Thêm vào `pubspec.yaml`. | ✅ |
+| 2 | DB migration: thêm sync columns | Thêm `is_synced INTEGER DEFAULT 1`, `remote_id TEXT` vào wallets, transactions, categories. Thêm `created_by TEXT` vào transactions. Bump DB version. | ✅ |
+| 3 | Cập nhật models: thêm sync fields | `Wallet`, `TransactionModel`, `Category` thêm `isSynced`, `remoteId`. `TransactionModel` thêm `createdBy`. Cập nhật `toMap`/`fromMap`/`copyWith`. | ✅ |
+| 4 | Auto set `is_synced = 0` khi create/update/delete | Mọi write operation trong repositories tự động mark record dirty. | ✅ |
+| 5 | Tạo `SyncService` skeleton | Class với methods: `pushAll()`, `pullAll()`, `syncAccount(accountId)`. Inject vào `ServiceLocator`. | ✅ |
+| 6 | Tạo `SyncRepository` | Helper đọc/ghi Firestore: `pushWallets`, `pushTransactions`, `pushCategories`, `pullWallets`, `pullTransactions`, `pullCategories`. | ✅ |
 
 ## Phase 4B: Push (Local → Cloud)
 

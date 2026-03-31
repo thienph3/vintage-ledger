@@ -94,6 +94,7 @@ class TransactionService {
         'amount': amount,
         'note': note,
         'date': date,
+        'is_synced': 0,
       });
     });
   }
@@ -170,6 +171,7 @@ class TransactionService {
 
       final updateMap = transaction.toMap();
       updateMap['updated_at'] = DateTime.now().millisecondsSinceEpoch;
+      updateMap['is_synced'] = 0;
 
       return await txn.update(
         'transactions',
@@ -222,6 +224,17 @@ class TransactionService {
         where: 'transaction_id = ?',
         whereArgs: [id],
       );
+
+      // Log delete for sync
+      final remoteId = transaction.remoteId;
+      if (remoteId != null && remoteId.isNotEmpty) {
+        await txn.insert('sync_deletes', {
+          'table_name': 'transactions',
+          'remote_id': remoteId,
+          'account_id': transaction.accountId,
+          'deleted_at': DateTime.now().millisecondsSinceEpoch,
+        });
+      }
 
       return await txn.delete(
         'transactions',

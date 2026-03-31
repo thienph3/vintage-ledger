@@ -6,12 +6,9 @@ class WalletRepository {
   /// CREATE
   Future<int> create(Wallet wallet) async {
     final db = await AppDatabase.instance.database;
-
-    return await db.insert(
-      'wallets',
-      wallet.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    final map = wallet.toMap();
+    map['is_synced'] = 0;
+    return await db.insert('wallets', map, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   /// READ ALL
@@ -44,20 +41,28 @@ class WalletRepository {
   Future<int> update(Wallet wallet, {int? updatedAt}) async {
     final db = await AppDatabase.instance.database;
     final map = wallet.toMap();
+    map['is_synced'] = 0;
     if (updatedAt != null) map['updated_at'] = updatedAt;
-
-    return await db.update(
-      'wallets',
-      map,
-      where: 'id = ?',
-      whereArgs: [wallet.id],
-    );
+    return await db.update('wallets', map, where: 'id = ?', whereArgs: [wallet.id]);
   }
 
-  /// DELETE
+  /// DELETE (ghi sync_deletes trước khi xóa)
   Future<int> delete(int id) async {
     final db = await AppDatabase.instance.database;
-
+    await _logDeleteForSync(db, 'wallets', id);
     return await db.delete('wallets', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> _logDeleteForSync(Database db, String table, int id) async {
+    final record = await db.query(table, where: 'id = ?', whereArgs: [id], limit: 1);
+    if (record.isEmpty) return;
+    final remoteId = record.first['remote_id'] as String?;
+    if (remoteId == null || remoteId.isEmpty) return;
+    await db.insert('sync_deletes', {
+      'table_name': table,
+      'remote_id': remoteId,
+      'account_id': record.first['account_id'],
+      'deleted_at': DateTime.now().millisecondsSinceEpoch,
+    });
   }
 }

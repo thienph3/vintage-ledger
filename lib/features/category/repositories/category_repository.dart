@@ -6,12 +6,9 @@ class CategoryRepository {
   /// CREATE
   Future<int> create(Category category) async {
     final db = await AppDatabase.instance.database;
-
-    return await db.insert(
-      'categories',
-      category.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
-    );
+    final map = category.toMap();
+    map['is_synced'] = 0;
+    return await db.insert('categories', map, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   /// READ ALL
@@ -51,19 +48,28 @@ class CategoryRepository {
   /// UPDATE
   Future<int> update(Category category) async {
     final db = await AppDatabase.instance.database;
-
-    return await db.update(
-      'categories',
-      category.toMap(),
-      where: 'id = ?',
-      whereArgs: [category.id],
-    );
+    final map = category.toMap();
+    map['is_synced'] = 0;
+    return await db.update('categories', map, where: 'id = ?', whereArgs: [category.id]);
   }
 
-  /// DELETE
+  /// DELETE (ghi sync_deletes trước khi xóa)
   Future<int> delete(int id) async {
     final db = await AppDatabase.instance.database;
-
+    await _logDeleteForSync(db, 'categories', id);
     return await db.delete('categories', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> _logDeleteForSync(Database db, String table, int id) async {
+    final record = await db.query(table, where: 'id = ?', whereArgs: [id], limit: 1);
+    if (record.isEmpty) return;
+    final remoteId = record.first['remote_id'] as String?;
+    if (remoteId == null || remoteId.isEmpty) return;
+    await db.insert('sync_deletes', {
+      'table_name': table,
+      'remote_id': remoteId,
+      'account_id': record.first['account_id'],
+      'deleted_at': DateTime.now().millisecondsSinceEpoch,
+    });
   }
 }

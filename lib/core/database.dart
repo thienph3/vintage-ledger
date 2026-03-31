@@ -22,7 +22,7 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -46,7 +46,9 @@ CREATE TABLE wallets(
   balance INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL,
   updated_at INTEGER,
-  account_id TEXT NOT NULL DEFAULT 'local'
+  account_id TEXT NOT NULL DEFAULT 'local',
+  is_synced INTEGER NOT NULL DEFAULT 1,
+  remote_id TEXT
 )
 ''');
 
@@ -56,7 +58,9 @@ CREATE TABLE categories(
   name TEXT NOT NULL,
   type TEXT,
   icon INTEGER,
-  account_id TEXT NOT NULL DEFAULT 'local'
+  account_id TEXT NOT NULL DEFAULT 'local',
+  is_synced INTEGER NOT NULL DEFAULT 1,
+  remote_id TEXT
 )
 ''');
 
@@ -73,6 +77,9 @@ CREATE TABLE transactions(
   date INTEGER NOT NULL,
   updated_at INTEGER,
   account_id TEXT NOT NULL DEFAULT 'local',
+  is_synced INTEGER NOT NULL DEFAULT 1,
+  remote_id TEXT,
+  created_by TEXT,
   FOREIGN KEY(wallet_id) REFERENCES wallets(id) ON DELETE CASCADE,
   FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE RESTRICT
 )
@@ -90,6 +97,19 @@ CREATE TABLE transaction_items(
 ''');
 
     await _createIndexes(db);
+    await _createSyncDeletesTable(db);
+  }
+
+  Future<void> _createSyncDeletesTable(Database db) async {
+    await db.execute('''
+CREATE TABLE IF NOT EXISTS sync_deletes(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  table_name TEXT NOT NULL,
+  remote_id TEXT NOT NULL,
+  account_id TEXT NOT NULL,
+  deleted_at INTEGER NOT NULL
+)
+''');
   }
 
   Future<void> _createIndexes(Database db) async {
@@ -141,6 +161,20 @@ CREATE TABLE transaction_items(
     if (oldVersion < 5) {
       await _migrateToV5(db);
     }
+    if (oldVersion < 6) {
+      await _migrateToV6(db);
+    }
+  }
+
+  Future<void> _migrateToV6(Database db) async {
+    await db.execute('ALTER TABLE wallets ADD COLUMN is_synced INTEGER NOT NULL DEFAULT 1');
+    await db.execute('ALTER TABLE wallets ADD COLUMN remote_id TEXT');
+    await db.execute('ALTER TABLE transactions ADD COLUMN is_synced INTEGER NOT NULL DEFAULT 1');
+    await db.execute('ALTER TABLE transactions ADD COLUMN remote_id TEXT');
+    await db.execute('ALTER TABLE transactions ADD COLUMN created_by TEXT');
+    await db.execute('ALTER TABLE categories ADD COLUMN is_synced INTEGER NOT NULL DEFAULT 1');
+    await db.execute('ALTER TABLE categories ADD COLUMN remote_id TEXT');
+    await _createSyncDeletesTable(db);
   }
 
   Future<void> _migrateToV5(Database db) async {
