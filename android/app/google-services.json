@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1068857729867",
+    "project_id": "vintage-ledger",
+    "storage_bucket": "vintage-ledger.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1068857729867:android:bdaad9d2155659ed847ece",
+        "android_client_info": {
+          "package_name": "com.thienph3.vintageledger"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyADGQc3HZk1ABM6zgDvqGU2_HtrEkvmfIg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
