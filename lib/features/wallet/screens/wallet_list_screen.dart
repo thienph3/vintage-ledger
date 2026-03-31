@@ -92,6 +92,7 @@ class _WalletListScreenState extends State<WalletListScreen>
                   ),
                 ],
               ),
+        ),
       ),
     );
   }
