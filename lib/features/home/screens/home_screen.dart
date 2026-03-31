@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
+import 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
 
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 
