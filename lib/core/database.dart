@@ -24,7 +24,7 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -46,7 +46,7 @@ CREATE TABLE wallets(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   balance INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT
+  created_at INTEGER NOT NULL
 )
 ''');
 
@@ -66,12 +66,12 @@ CREATE TABLE transactions(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   wallet_id INTEGER NOT NULL,
   category_id INTEGER NOT NULL,
-  type TEXT,
-  amount INTEGER,
+  type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
+  amount INTEGER NOT NULL CHECK(amount > 0),
   note TEXT,
-  date INTEGER,
-  FOREIGN KEY(wallet_id) REFERENCES wallets(id),
-  FOREIGN KEY(category_id) REFERENCES categories(id)
+  date INTEGER NOT NULL,
+  FOREIGN KEY(wallet_id) REFERENCES wallets(id) ON DELETE CASCADE,
+  FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE RESTRICT
 )
 ''');
 
@@ -79,7 +79,7 @@ CREATE TABLE transactions(
 CREATE TABLE transaction_items(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   transaction_id INTEGER NOT NULL,
-  amount INTEGER NOT NULL,
+  amount INTEGER NOT NULL CHECK(amount > 0),
   category_id INTEGER,
   note TEXT,
   FOREIGN KEY(transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
@@ -129,6 +129,67 @@ CREATE TABLE transaction_items(
     if (oldVersion < 2) {
       await _createIndexes(db);
     }
+    if (oldVersion < 3) {
+      await _migrateToV3(db);
+    }
+  }
+
+  /// V3 migration: recreate wallets (created_at → INTEGER) and transactions
+  /// (ON DELETE CASCADE/RESTRICT, CHECK constraints).
+  Future<void> _migrateToV3(Database db) async {
+    await db.execute('PRAGMA foreign_keys = OFF');
+
+    await db.transaction((txn) async {
+      // ── Migrate wallets: created_at TEXT → INTEGER ──
+      await txn.execute('ALTER TABLE wallets RENAME TO wallets_old');
+      await txn.execute('''
+CREATE TABLE wallets(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  balance INTEGER NOT NULL DEFAULT 0,
+  created_at INTEGER NOT NULL
+)
+''');
+      // Convert ISO string to epoch, fallback to 0
+      await txn.execute('''
+INSERT INTO wallets(id, name, balance, created_at)
+SELECT id, name, balance,
+  CASE
+    WHEN created_at IS NOT NULL AND created_at != ''
+    THEN CAST(strftime('%s', created_at) AS INTEGER) * 1000
+    ELSE 0
+  END
+FROM wallets_old
+''');
+      await txn.execute('DROP TABLE wallets_old');
+
+      // ── Migrate transactions: add FK actions + CHECK constraints ──
+      await txn.execute('ALTER TABLE transactions RENAME TO transactions_old');
+      await txn.execute('''
+CREATE TABLE transactions(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  wallet_id INTEGER NOT NULL,
+  category_id INTEGER NOT NULL,
+  type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
+  amount INTEGER NOT NULL CHECK(amount > 0),
+  note TEXT,
+  date INTEGER NOT NULL,
+  FOREIGN KEY(wallet_id) REFERENCES wallets(id) ON DELETE CASCADE,
+  FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE RESTRICT
+)
+''');
+      await txn.execute('''
+INSERT INTO transactions(id, wallet_id, category_id, type, amount, note, date)
+SELECT id, wallet_id, category_id, type, amount, note, date
+FROM transactions_old
+''');
+      await txn.execute('DROP TABLE transactions_old');
+
+      // Recreate indexes
+      await _createIndexes(txn as Database);
+    });
+
+    await db.execute('PRAGMA foreign_keys = ON');
   }
 
   /// Tính lại balance của wallet từ tổng transactions.

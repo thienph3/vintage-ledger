@@ -2,7 +2,7 @@ class Wallet {
   final int? id;
   final String name;
   final int balance;
-  final String createdAt;
+  final int createdAt;
 
   Wallet({
     this.id,
@@ -25,7 +25,9 @@ class Wallet {
       id: map['id'],
       name: map['name'],
       balance: map['balance'],
-      createdAt: map['created_at'],
+      createdAt: map['created_at'] is int
+          ? map['created_at']
+          : int.tryParse(map['created_at'].toString()) ?? 0,
     );
   }
 }

@@ -2,11 +2,11 @@
 
 | # | Task | Mô tả | Status |
 |---|---|---|---|
-| 1 | Thêm `ON DELETE CASCADE` cho FK wallet_id | `transactions.wallet_id` FK không có ON DELETE action → nếu gọi `WalletRepository.delete` trực tiếp sẽ FK violation. Thêm `ON DELETE CASCADE`. | ⬜ |
-| 2 | Thêm `ON DELETE RESTRICT` cho FK category_id | `transactions.category_id` FK không có ON DELETE action → xóa category đang dùng sẽ crash. Thêm `ON DELETE RESTRICT` và handle ở UI. | ⬜ |
-| 3 | Thêm DB constraints cho `amount` và `type` | `amount` có thể null/âm, `type` có thể là bất kỳ string. Thêm `NOT NULL CHECK(amount > 0)` và `CHECK(type IN ('income','expense'))`. | ⬜ |
-| 4 | Wrap `deleteAllByWallet` trong DB transaction | `TransactionRepository.deleteAllByWallet` xóa items + transactions trong 2 queries riêng, không atomic. Wrap trong `db.transaction()`. | ⬜ |
-| 5 | Thống nhất datetime convention | `wallets.created_at` lưu ISO string, `transactions.date` lưu epoch int. Chuyển `created_at` sang INTEGER (epoch) cho nhất quán. | ⬜ |
+| 1 | Thêm `ON DELETE CASCADE` cho FK wallet_id | `transactions.wallet_id` FK không có ON DELETE action → nếu gọi `WalletRepository.delete` trực tiếp sẽ FK violation. Thêm `ON DELETE CASCADE`. | ✅ chưa verify |
+| 2 | Thêm `ON DELETE RESTRICT` cho FK category_id | `transactions.category_id` FK không có ON DELETE action → xóa category đang dùng sẽ crash. Thêm `ON DELETE RESTRICT` và handle ở UI. | ✅ chưa verify |
+| 3 | Thêm DB constraints cho `amount` và `type` | `amount` có thể null/âm, `type` có thể là bất kỳ string. Thêm `NOT NULL CHECK(amount > 0)` và `CHECK(type IN ('income','expense'))`. | ✅ chưa verify |
+| 4 | Wrap `deleteAllByWallet` trong DB transaction | `TransactionRepository.deleteAllByWallet` xóa items + transactions trong 2 queries riêng, không atomic. Wrap trong `db.transaction()`. | ✅ chưa verify |
+| 5 | Thống nhất datetime convention | `wallets.created_at` lưu ISO string, `transactions.date` lưu epoch int. Chuyển `created_at` sang INTEGER (epoch) cho nhất quán. | ✅ chưa verify |
 | 6 | Dùng enum cho transaction type | `'income'`/`'expense'` string literals rải rác khắp codebase. Tạo `enum TransactionType` và dùng xuyên suốt models/services/widgets. | ⬜ |
 | 7 | Tách `DashboardData` ra file riêng | `DashboardData` class nằm trong `transaction_service.dart`. Tách ra `models/dashboard_data.dart` cho đúng convention. | ⬜ |
 | 8 | Chuyển `home_screen.dart` vào folder `home/` | `home_screen.dart` nằm trực tiếp trong `features/` thay vì trong feature folder. Chuyển vào `features/home/screens/`. | ⬜ |

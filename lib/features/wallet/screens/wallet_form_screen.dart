@@ -63,7 +63,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
       final created = Wallet(
         name: name,
         balance: balance,
-        createdAt: DateTime.now().toIso8601String(),
+        createdAt: DateTime.now().millisecondsSinceEpoch,
       );
 
       await sl.walletService.createWallet(created.name, created.balance);

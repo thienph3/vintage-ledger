@@ -15,7 +15,7 @@ class WalletService {
     final wallet = Wallet(
       name: name,
       balance: balance,
-      createdAt: DateTime.now().toIso8601String(),
+      createdAt: DateTime.now().millisecondsSinceEpoch,
     );
 
     return await _repo.create(wallet);

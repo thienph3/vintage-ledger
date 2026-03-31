@@ -68,18 +68,18 @@ class TransactionRepository {
     )).map((e) => TransactionModel.fromMap(e)).toList();
   }
 
-  /// DELETE ALL TRANSACTIONS FOR A WALLET
+  /// DELETE ALL TRANSACTIONS FOR A WALLET (atomic)
   Future<void> deleteAllByWallet(int walletId) async {
     final db = await AppDatabase.instance.database;
 
-    // Delete items first
-    await db.rawDelete(
-      'DELETE FROM transaction_items WHERE transaction_id IN '
-      '(SELECT id FROM transactions WHERE wallet_id = ?)',
-      [walletId],
-    );
-
-    await db.delete('transactions', where: 'wallet_id = ?', whereArgs: [walletId]);
+    await db.transaction((txn) async {
+      await txn.rawDelete(
+        'DELETE FROM transaction_items WHERE transaction_id IN '
+        '(SELECT id FROM transactions WHERE wallet_id = ?)',
+        [walletId],
+      );
+      await txn.delete('transactions', where: 'wallet_id = ?', whereArgs: [walletId]);
+    });
   }
 
   /// UPDATE
