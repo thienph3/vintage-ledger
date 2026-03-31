@@ -32,6 +32,8 @@ class AccountService {
       'created_at': now,
     });
 
+    await _seedCategories(accountRef.id);
+
     return accountRef.id;
   }
 
@@ -222,16 +224,17 @@ class AccountService {
     final batch = _firestore.batch();
     final catCol = _accounts.doc(accountId).collection('categories');
 
+    final now = DateTime.now().millisecondsSinceEpoch;
     final seeds = [
-      {'name': 'Ăn uống', 'type': 'expense', 'icon': kCategoryIcons[0].codePoint},
-      {'name': 'Di chuyển', 'type': 'expense', 'icon': kCategoryIcons[1].codePoint},
-      {'name': 'Mua sắm', 'type': 'expense', 'icon': kCategoryIcons[2].codePoint},
-      {'name': 'Nhà ở', 'type': 'expense', 'icon': kCategoryIcons[3].codePoint},
-      {'name': 'Hóa đơn', 'type': 'expense', 'icon': kCategoryIcons[8].codePoint},
-      {'name': 'Khác', 'type': 'expense', 'icon': kCategoryIcons[9].codePoint},
-      {'name': 'Lương', 'type': 'income', 'icon': kCategoryIcons[10].codePoint},
-      {'name': 'Thưởng', 'type': 'income', 'icon': kCategoryIcons[11].codePoint},
-      {'name': 'Khác', 'type': 'income', 'icon': kCategoryIcons[9].codePoint},
+      {'name': 'Ăn uống', 'type': 'expense', 'icon': kCategoryIcons[0].codePoint, 'updated_at': now},
+      {'name': 'Di chuyển', 'type': 'expense', 'icon': kCategoryIcons[1].codePoint, 'updated_at': now},
+      {'name': 'Mua sắm', 'type': 'expense', 'icon': kCategoryIcons[2].codePoint, 'updated_at': now},
+      {'name': 'Nhà ở', 'type': 'expense', 'icon': kCategoryIcons[3].codePoint, 'updated_at': now},
+      {'name': 'Hóa đơn', 'type': 'expense', 'icon': kCategoryIcons[8].codePoint, 'updated_at': now},
+      {'name': 'Khác', 'type': 'expense', 'icon': kCategoryIcons[9].codePoint, 'updated_at': now},
+      {'name': 'Lương', 'type': 'income', 'icon': kCategoryIcons[10].codePoint, 'updated_at': now},
+      {'name': 'Thưởng', 'type': 'income', 'icon': kCategoryIcons[11].codePoint, 'updated_at': now},
+      {'name': 'Khác', 'type': 'income', 'icon': kCategoryIcons[9].codePoint, 'updated_at': now},
     ];
 
     for (final seed in seeds) {

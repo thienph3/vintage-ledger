@@ -75,8 +75,18 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
     }
   }
 
-  void _selectAccount(Account account) {
+  Future<void> _selectAccount(Account account) async {
     sl.appState.currentAccountId = account.id;
+    setState(() => _loading = true);
+
+    // Auto-sync khi chọn account để pull seed data về local
+    try {
+      await sl.syncService.syncAccount(account.id);
+    } catch (_) {
+      // Offline thì bỏ qua, dùng data local có sẵn
+    }
+
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const HomeScreen()),
