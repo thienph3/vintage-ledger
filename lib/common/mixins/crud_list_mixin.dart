@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
-mixin CrudListMixin<T> on State {
+mixin CrudListMixin<T, W extends StatefulWidget> on State<W> {
   List<T> items = [];
   bool crudLoading = true;
   String? crudError;

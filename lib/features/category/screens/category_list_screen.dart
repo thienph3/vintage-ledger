@@ -24,7 +24,7 @@ class CategoryListScreen extends StatefulWidget {
 }
 
 class _CategoryListScreenState extends State<CategoryListScreen>
-    with CrudListMixin<Category> {
+    with CrudListMixin<Category, CategoryListScreen> {
   @override
   String get deleteTitle => 'deleteCategory';
   @override

@@ -24,7 +24,7 @@ class WalletListScreen extends StatefulWidget {
 }
 
 class _WalletListScreenState extends State<WalletListScreen>
-    with CrudListMixin<Wallet> {
+    with CrudListMixin<Wallet, WalletListScreen> {
   @override
   String get deleteTitle => 'deleteWallet';
   @override
