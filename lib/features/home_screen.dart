@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
-import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
 import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
-import 'package:vintage_ledger/features/category/services/category_service.dart';
 
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 
@@ -15,7 +13,7 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
-import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
+import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
 
@@ -36,14 +34,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final WalletService walletService = WalletService();
   final TransactionService transactionService = TransactionService();
-  final CategoryService categoryService = CategoryService();
 
   List<Wallet> wallets = [];
-  List<TransactionWithItems> recentTransactions = [];
-  List<TransactionWithItems> monthTransactions = [];
-  Map<int, Category> categoryMap = {};
-
-  int totalBalance = 0;
+  DashboardData? _dashboard;
+  bool _loading = true;
+  String? _error;
   bool _amountVisible = false;
 
   @override
@@ -53,34 +48,30 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> loadData() async {
-    final now = DateTime.now();
-    final monthStart = DateTime(now.year, now.month, 1);
-    final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
-
-    final w = await walletService.getWallets();
-    final recent = await transactionService.getRecentWithItems(5);
-    final month = await transactionService.getByDateRangeWithItems(
-      monthStart.millisecondsSinceEpoch,
-      monthEnd.millisecondsSinceEpoch,
-    );
-    final c = await categoryService.getCategories();
-
-    setState(() {
-      wallets = w;
-      recentTransactions = recent;
-      monthTransactions = month;
-      categoryMap = {for (var c in c) c.id!: c};
-      totalBalance = w.fold<int>(0, (sum, wallet) => sum + wallet.balance);
-    });
+    try {
+      final w = await walletService.getWallets();
+      final dashboard = await transactionService.getDashboard();
+      setState(() {
+        wallets = w;
+        _dashboard = dashboard;
+        _loading = false;
+        _error = null;
+      });
+    } catch (e) {
+      setState(() {
+        _loading = false;
+        _error = e.toString();
+      });
+    }
   }
 
-  int get _monthIncome => monthTransactions
+  int get _monthIncome => _dashboard?.monthly
       .where((t) => t.transaction.type == 'income')
-      .fold(0, (sum, t) => sum + t.transaction.amount);
+      .fold(0, (sum, t) => sum + t.transaction.amount) ?? 0;
 
-  int get _monthExpense => monthTransactions
+  int get _monthExpense => _dashboard?.monthly
       .where((t) => t.transaction.type == 'expense')
-      .fold(0, (sum, t) => sum + t.transaction.amount);
+      .fold(0, (sum, t) => sum + t.transaction.amount) ?? 0;
 
   Future<void> _addTransaction() async {
     if (wallets.isEmpty) {
@@ -110,39 +101,46 @@ class _HomeScreenState extends State<HomeScreen> {
           },
         ),
       ],
-      body: RefreshIndicator(
-        onRefresh: loadData,
-        child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          children: [
-            _buildBalanceCard(),
-            const SizedBox(height: AppSpacing.lg),
-            _buildWalletRow(),
-            const SizedBox(height: AppSpacing.lg),
-            LedgerCard(child: ChartSection(transactions: monthTransactions, categoryMap: categoryMap)),
-            const SizedBox(height: AppSpacing.lg),
-            LedgerCard(
-              child: TransactionSection(
-                transactions: recentTransactions,
-                categoryMap: categoryMap,
-                onAddTransaction: _addTransaction,
-                onTapTransaction: (txn) async {
-                  await context.pushScreen(TransactionFormScreen(
-                    walletId: txn.transaction.walletId,
-                    transaction: txn.transaction,
-                  ));
-                  loadData();
-                },
-                onDeleteTransaction: (txn) async {
-                  await transactionService.deleteTransaction(
-                    txn.transaction.id!,
-                  );
-                  loadData();
-                },
+      body: AsyncContent(
+        loading: _loading,
+        error: _error,
+        child: RefreshIndicator(
+          onRefresh: loadData,
+          child: ListView(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            children: [
+              _buildBalanceCard(),
+              const SizedBox(height: AppSpacing.lg),
+              _buildWalletRow(),
+              const SizedBox(height: AppSpacing.lg),
+              LedgerCard(child: ChartSection(
+                transactions: _dashboard?.monthly ?? [],
+                categoryMap: _dashboard?.categoryMap ?? {},
+              )),
+              const SizedBox(height: AppSpacing.lg),
+              LedgerCard(
+                child: TransactionSection(
+                  transactions: _dashboard?.recent ?? [],
+                  categoryMap: _dashboard?.categoryMap ?? {},
+                  onAddTransaction: _addTransaction,
+                  onTapTransaction: (txn) async {
+                    await context.pushScreen(TransactionFormScreen(
+                      walletId: txn.transaction.walletId,
+                      transaction: txn.transaction,
+                    ));
+                    loadData();
+                  },
+                  onDeleteTransaction: (txn) async {
+                    await transactionService.deleteTransaction(
+                      txn.transaction.id!,
+                    );
+                    loadData();
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 80),
-          ],
+              const SizedBox(height: 80),
+            ],
+          ),
         ),
       ),
       fab: FloatingActionButton(
@@ -170,8 +168,8 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 if (_amountVisible)
                   AmountText(
-                    amount: totalBalance.abs(),
-                    type: totalBalance >= 0 ? 'income' : 'expense',
+                    amount: (_dashboard?.balance ?? 0).abs(),
+                    type: (_dashboard?.balance ?? 0) >= 0 ? 'income' : 'expense',
                     fontSize: 28,
                   )
                 else

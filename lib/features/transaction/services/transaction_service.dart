@@ -4,14 +4,63 @@ import 'package:vintage_ledger/features/transaction/models/transaction_item.dart
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 export 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
+import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_item_repository.dart';
 import 'package:vintage_ledger/features/wallet/repositories/wallet_repository.dart';
+import 'package:vintage_ledger/features/category/repositories/category_repository.dart';
+
+class DashboardData {
+  final List<TransactionWithItems> recent;
+  final List<TransactionWithItems> monthly;
+  final Map<int, Category> categoryMap;
+  final int balance;
+
+  const DashboardData({
+    required this.recent,
+    required this.monthly,
+    required this.categoryMap,
+    required this.balance,
+  });
+}
 
 class TransactionService {
   final TransactionRepository _repo = TransactionRepository();
   final TransactionItemRepository _itemRepo = TransactionItemRepository();
   final WalletRepository _walletRepo = WalletRepository();
+  final CategoryRepository _catRepo = CategoryRepository();
+
+  /// Load dashboard data for Home or WalletDetail screen.
+  Future<DashboardData> getDashboard({int? walletId}) async {
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month, 1);
+    final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+    final recent = await getRecentWithItems(5, walletId: walletId);
+    final monthly = await getByDateRangeWithItems(
+      monthStart.millisecondsSinceEpoch,
+      monthEnd.millisecondsSinceEpoch,
+      walletId: walletId,
+    );
+    final categories = await _catRepo.getAll();
+    final categoryMap = {for (var c in categories) c.id!: c};
+
+    int balance;
+    if (walletId != null) {
+      final wallet = await _walletRepo.getById(walletId);
+      balance = wallet?.balance ?? 0;
+    } else {
+      final wallets = await _walletRepo.getAll();
+      balance = wallets.fold<int>(0, (sum, w) => sum + w.balance);
+    }
+
+    return DashboardData(
+      recent: recent,
+      monthly: monthly,
+      categoryMap: categoryMap,
+      balance: balance,
+    );
+  }
 
   /// CREATE TRANSACTION (atomic: update balance + insert in one DB transaction)
   Future<int> createTransaction({

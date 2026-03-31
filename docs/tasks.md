@@ -12,19 +12,19 @@
 | 8 | Extract `showDeleteConfirmation()` helper | Confirm delete dialog copy-paste 4 lần (WalletList, CategoryList, TransactionList, TransactionSection) chỉ khác title/content key. Extract thành 1 function chung. | ✅ chưa verify |
 | 9 | Extract `LedgerListTile` widget | Inline `BoxDecoration` (background, borderRadius 12, shadow) lặp lại giống hệt ở `WalletListScreen` và `CategoryListScreen`. Extract thành widget chung. | ✅ chưa verify |
 | 10 | Tạo `NavigatorX` extension | Pattern `Navigator.push → MaterialPageRoute → if (result == true) reload` lặp lại 15+ lần. Tạo extension method `context.pushScreen(widget)` để giảm boilerplate. | ✅ chưa verify |
-| 11 | Thêm `AsyncContent` widget | Không có loading/error/empty state chung. HomeScreen, WalletDetailScreen không có loading indicator → flash trống khi load data. Tạo widget `AsyncContent(loading, error, isEmpty, child)`. | ⬜ |
-| 12 | Thêm error handling ở UI layer | Hầu hết screen gọi service không try-catch → crash nếu DB lỗi. Wrap `loadData()` trong try-catch, hiển thị error state hoặc snackbar. | ⬜ |
+| 11 | Thêm `AsyncContent` widget | Không có loading/error/empty state chung. HomeScreen, WalletDetailScreen không có loading indicator → flash trống khi load data. Tạo widget `AsyncContent(loading, error, isEmpty, child)`. | ✅ chưa verify |
+| 12 | Thêm error handling ở UI layer | Hầu hết screen gọi service không try-catch → crash nếu DB lỗi. Wrap `loadData()` trong try-catch, hiển thị error state hoặc snackbar. | ✅ chưa verify |
 | 13 | Extract `IncomeExpenseSummaryRow` widget | Pattern "2 cột income/expense chia bởi divider dọc" lặp lại ở HomeScreen, TransactionListScreen, SummaryView. Extract thành widget chung. | ✅ chưa verify |
-| 14 | Tạo `DashboardData` + service method | `loadData()` logic trùng ~80% giữa `HomeScreen` và `WalletDetailScreen` (chỉ khác walletId filter). Extract vào `TransactionService.getDashboard({walletId})`. | ⬜ |
+| 14 | Tạo `DashboardData` + service method | `loadData()` logic trùng ~80% giữa `HomeScreen` và `WalletDetailScreen` (chỉ khác walletId filter). Extract vào `TransactionService.getDashboard({walletId})`. | ✅ chưa verify |
 | 15 | Refactor `TransactionSection` giảm callback | `TransactionSection` nhận 3 callback gần giống nhau ở cả HomeScreen và WalletDetailScreen. Cho nó tự handle navigation/delete, chỉ nhận `walletId` + `onDataChanged`. | ⬜ |
 | 16 | Extract `FormSaveButton` widget | 3 form screen đều có pattern full-width ElevatedButton với text "Lưu"/"Cập nhật" theo isEdit. Extract thành widget chung. | ✅ chưa verify |
-| 17 | Hardcode Vietnamese trong AuthService | `AuthService._reason()` hardcode tiếng Việt cho biometric dialog. Truyền `localizedReason` từ caller (LockScreen/AutoLockWrapper) thay vì hardcode. | ⬜ |
+| 17 | Hardcode Vietnamese trong AuthService | `AuthService._reason()` hardcode tiếng Việt cho biometric dialog. Truyền `localizedReason` từ caller (LockScreen/AutoLockWrapper) thay vì hardcode. | ✅ chưa verify |
 | 18 | Fix N+1 query trong `_attachItems` | `TransactionService._attachItems` gọi 1 query per transaction để load items. Batch load bằng `WHERE transaction_id IN (...)` rồi group theo id. | ✅ chưa verify |
 | 19 | Thêm `recalculateBalance()` | Wallet balance denormalized, cập nhật thủ công → có thể drift nếu bug. Thêm function tính lại balance từ tổng transactions để verify/repair. | ✅ chưa verify |
 | 20 | Viết unit test cho services | Không có test nào. Ưu tiên: `AmountFormatter` (pure function), `TransactionService` (balance logic), `WalletService.deleteWallet` (cascade). | ⬜ |
 | 21 | Dependency injection cho services | Mỗi screen tự tạo `new Service()` → không mock được khi test, tạo nhiều instance thừa. Dùng singleton hoặc DI (get_it, Provider). | ⬜ |
 | 22 | Tạo `CrudListScreen<T>` hoặc mixin | `WalletListScreen` và `CategoryListScreen` trùng 60-70% code (load, delete, confirmDelete, openForm, build ListView). Extract thành generic pattern. | ⬜ |
-| 23 | Xóa dead code | `PrimaryButton` và `CategorySection` widget không được sử dụng ở đâu. Xóa hoặc integrate. | ⬜ |
-| 24 | Chuyển `rename` sang dev_dependencies | Package `rename` chỉ dùng khi build, không cần trong runtime. Chuyển từ `dependencies` sang `dev_dependencies` trong `pubspec.yaml`. | ⬜ |
+| 23 | Xóa dead code | `PrimaryButton` và `CategorySection` widget không được sử dụng ở đâu. Xóa hoặc integrate. | ✅ chưa verify |
+| 24 | Chuyển `rename` sang dev_dependencies | Package `rename` và `flutter_launcher_icons` chỉ dùng khi build, không cần trong runtime. Chuyển từ `dependencies` sang `dev_dependencies` trong `pubspec.yaml`. | ✅ chưa verify |
 | 25 | Batch delete transaction items | `deleteTransaction` xóa items bằng vòng lặp (1 query/item). Dùng `DELETE FROM transaction_items WHERE transaction_id = ?` thay vì loop. | ✅ chưa verify |
-| 26 | Xóa `_resetOnInit` flag | `AppDatabase._resetOnInit` là debug flag trong production code. Xóa hoặc chuyển sang build config/environment variable. | ⬜ |
+| 26 | Xóa `_resetOnInit` flag | `AppDatabase._resetOnInit` là debug flag trong production code. Xóa hoặc chuyển sang build config/environment variable. | ✅ chưa verify |

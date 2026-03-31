@@ -27,7 +27,9 @@ class _LockScreenState extends State<LockScreen> {
       _error = null;
     });
 
-    final ok = await _authService.authenticate();
+    final ok = await _authService.authenticate(
+      localizedReason: S.of(context, 'authenticateToContinue'),
+    );
 
     if (!mounted) return;
 
