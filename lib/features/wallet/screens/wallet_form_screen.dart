@@ -92,8 +92,6 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
                 controller: nameController,
                 decoration: InputDecoration(
                   labelText: S.of(context, 'walletName'),
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  border: const OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {

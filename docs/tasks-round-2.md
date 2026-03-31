@@ -11,10 +11,10 @@
 | 7 | Tách `DashboardData` ra file riêng | `DashboardData` class nằm trong `transaction_service.dart`. Tách ra `models/dashboard_data.dart` cho đúng convention. | ✅ chưa verify |
 | 8 | Chuyển `home_screen.dart` vào folder `home/` | `home_screen.dart` nằm trực tiếp trong `features/` thay vì trong feature folder. Chuyển vào `features/home/screens/`. | ✅ chưa verify |
 | 9 | DI xuyên suốt service layer | `WalletService` tạo `TransactionService()` nội bộ, `SampleDataService` tạo services trực tiếp. Chuyển sang dùng `sl` hoặc inject qua constructor. | ✅ chưa verify |
-| 10 | Thêm error handling cho `TransactionListScreen` | `_initialLoad`, `_loadMonth` không có try-catch. Thêm error handling + hiển thị error state. | ⬜ |
-| 11 | Xóa inline `floatingLabelBehavior` và `border` trong `WalletFormScreen` | Vi phạm style guide: đã config trong `InputDecorationTheme` nhưng vẫn override inline. Xóa để dùng theme. | ⬜ |
-| 12 | Thêm `copyWith`, `==`, `hashCode` cho models | `Wallet`, `TransactionModel`, `Category` chỉ có `toMap`/`fromMap`. Thêm `copyWith()` để tránh tạo object thủ công, `==`/`hashCode` để so sánh. | ⬜ |
-| 13 | Cache chart data trong `DashboardData` | `ChartSection` tính `_dailyData`, `_expenseByCategory` mỗi lần rebuild. Tính sẵn trong `DashboardData` hoặc cache trong `ChartSection` state. | ⬜ |
+| 10 | Thêm error handling cho `TransactionListScreen` | `_initialLoad`, `_loadMonth` không có try-catch. Thêm error handling + hiển thị error state. | ✅ chưa verify |
+| 11 | Xóa inline `floatingLabelBehavior` và `border` trong `WalletFormScreen` | Vi phạm style guide: đã config trong `InputDecorationTheme` nhưng vẫn override inline. Xóa để dùng theme. | ✅ chưa verify |
+| 12 | Thêm `copyWith`, `==`, `hashCode` cho models | `Wallet`, `TransactionModel`, `Category` chỉ có `toMap`/`fromMap`. Thêm `copyWith()` để tránh tạo object thủ công, `==`/`hashCode` để so sánh. | ✅ chưa verify |
+| 13 | Cache chart data trong `DashboardData` | `ChartSection` tính `_dailyData`, `_expenseByCategory` mỗi lần rebuild. Tính sẵn trong `DashboardData` hoặc cache trong `ChartSection` state. | ✅ chưa verify |
 | 14 | Batch insert trong `SampleDataService` | `generate()` tạo ~60-90 transactions tuần tự (1 DB transaction mỗi cái). Batch insert để tăng tốc onboarding. | ⬜ |
 | 15 | Thêm `updated_at` cho wallets và transactions | Không track thời điểm sửa record. Thêm `updated_at INTEGER` column cho audit/sync. | ⬜ |
 | 16 | Mở rộng test coverage | Chỉ có test cho formatters. Thêm service tests (mock DB), widget tests cho common widgets. | ⬜ |

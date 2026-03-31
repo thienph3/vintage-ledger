@@ -6,9 +6,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 
-import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
-import 'package:vintage_ledger/features/category/models/category.dart';
-import 'package:vintage_ledger/core/enums/transaction_type.dart';
+import 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
 
 import 'package:vintage_ledger/features/transaction/widgets/chart/chart_view.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart/trend_chart.dart';
@@ -17,14 +15,9 @@ import 'package:vintage_ledger/features/transaction/widgets/chart/breakdown_char
 import 'package:vintage_ledger/features/transaction/widgets/chart/summary_view.dart';
 
 class ChartSection extends StatefulWidget {
-  final List<TransactionWithItems> transactions;
-  final Map<int, Category> categoryMap;
+  final DashboardData dashboard;
 
-  const ChartSection({
-    super.key,
-    required this.transactions,
-    required this.categoryMap,
-  });
+  const ChartSection({super.key, required this.dashboard});
 
   @override
   State<ChartSection> createState() => _ChartSectionState();
@@ -32,37 +25,6 @@ class ChartSection extends StatefulWidget {
 
 class _ChartSectionState extends State<ChartSection> {
   ChartView _view = ChartView.trend;
-
-  // ── Data helpers ──
-
-  Map<DateTime, Map<String, int>> get _dailyData {
-    final map = <DateTime, Map<String, int>>{};
-    for (var t in widget.transactions) {
-      final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
-      final day = DateTime(dt.year, dt.month, dt.day);
-      map.putIfAbsent(day, () => {'income': 0, 'expense': 0});
-      map[day]![t.transaction.type.value] =
-          map[day]![t.transaction.type.value]! + t.transaction.amount;
-    }
-    return map;
-  }
-
-  int _totalByType(TransactionType type) => widget.transactions
-      .where((t) => t.transaction.type == type)
-      .fold(0, (s, t) => s + t.transaction.amount);
-
-  Map<String, int> get _expenseByCategory {
-    final map = <String, int>{};
-    for (var t in widget.transactions) {
-      if (t.transaction.type != TransactionType.expense) continue;
-      final name = widget.categoryMap[t.transaction.categoryId]?.name ??
-          S.of(context, 'uncategorized');
-      map[name] = (map[name] ?? 0) + t.transaction.amount;
-    }
-    return map;
-  }
-
-  // ── Build ──
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +38,7 @@ class _ChartSectionState extends State<ChartSection> {
         const SizedBox(height: AppSpacing.sm),
         SizedBox(
           height: 250,
-          child: widget.transactions.isEmpty
+          child: widget.dashboard.monthly.isEmpty
               ? EmptyState(message: S.of(context, 'noData'))
               : AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
@@ -151,7 +113,7 @@ class _ChartSectionState extends State<ChartSection> {
   }
 
   Widget _breakdownLegend() {
-    final keys = _expenseByCategory.keys.toList();
+    final keys = widget.dashboard.expenseByCategory.keys.toList();
     if (keys.isEmpty) return const SizedBox.shrink();
     return ListView.separated(
       scrollDirection: Axis.horizontal,
@@ -180,23 +142,23 @@ class _ChartSectionState extends State<ChartSection> {
   }
 
   Widget _buildCurrentView() {
-    final daily = _dailyData;
+    final d = widget.dashboard;
     switch (_view) {
       case ChartView.trend:
-        return TrendChart(key: const ValueKey('trend'), dailyData: daily);
+        return TrendChart(key: const ValueKey('trend'), dailyData: d.dailyData);
       case ChartView.daily:
-        return DailyChart(key: const ValueKey('daily'), dailyData: daily);
+        return DailyChart(key: const ValueKey('daily'), dailyData: d.dailyData);
       case ChartView.breakdown:
         return BreakdownChart(
             key: const ValueKey('breakdown'),
-            expenseByCategory: _expenseByCategory);
+            expenseByCategory: d.expenseByCategory);
       case ChartView.summary:
         return SummaryView(
           key: const ValueKey('summary'),
-          totalIncome: _totalByType(TransactionType.income),
-          totalExpense: _totalByType(TransactionType.expense),
-          transactionCount: widget.transactions.length,
-          dailyData: daily,
+          totalIncome: d.monthIncome,
+          totalExpense: d.monthExpense,
+          transactionCount: d.monthly.length,
+          dailyData: d.dailyData,
         );
     }
   }

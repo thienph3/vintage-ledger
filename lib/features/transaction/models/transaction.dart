@@ -19,6 +19,26 @@ class TransactionModel {
     required this.date,
   });
 
+  TransactionModel copyWith({
+    int? id,
+    int? walletId,
+    int? categoryId,
+    TransactionType? type,
+    int? amount,
+    String? note,
+    int? date,
+  }) {
+    return TransactionModel(
+      id: id ?? this.id,
+      walletId: walletId ?? this.walletId,
+      categoryId: categoryId ?? this.categoryId,
+      type: type ?? this.type,
+      amount: amount ?? this.amount,
+      note: note ?? this.note,
+      date: date ?? this.date,
+    );
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -46,4 +66,22 @@ class TransactionModel {
           : int.parse(map['date'].toString()),
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TransactionModel &&
+          id == other.id &&
+          walletId == other.walletId &&
+          categoryId == other.categoryId &&
+          type == other.type &&
+          amount == other.amount &&
+          date == other.date;
+
+  @override
+  int get hashCode => Object.hash(id, walletId, categoryId, type, amount, date);
+
+  @override
+  String toString() =>
+      'TransactionModel(id: $id, type: ${type.value}, amount: $amount)';
 }

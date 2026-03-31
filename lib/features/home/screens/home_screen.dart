@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 
@@ -62,13 +61,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  int get _monthIncome => _dashboard?.monthly
-      .where((t) => t.transaction.type.isIncome)
-      .fold(0, (sum, t) => sum + t.transaction.amount) ?? 0;
+  int get _monthIncome => _dashboard?.monthIncome ?? 0;
 
-  int get _monthExpense => _dashboard?.monthly
-      .where((t) => t.transaction.type.isExpense)
-      .fold(0, (sum, t) => sum + t.transaction.amount) ?? 0;
+  int get _monthExpense => _dashboard?.monthExpense ?? 0;
 
   Future<void> _addTransaction() async {
     if (wallets.isEmpty) {
@@ -110,10 +105,8 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: AppSpacing.lg),
               _buildWalletRow(),
               const SizedBox(height: AppSpacing.lg),
-              LedgerCard(child: ChartSection(
-                transactions: _dashboard?.monthly ?? [],
-                categoryMap: _dashboard?.categoryMap ?? {},
-              )),
+              if (_dashboard != null)
+                LedgerCard(child: ChartSection(dashboard: _dashboard!)),
               const SizedBox(height: AppSpacing.lg),
               LedgerCard(
                 child: TransactionSection(

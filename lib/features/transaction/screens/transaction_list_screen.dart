@@ -38,11 +38,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   Map<int, int?> _categoryIconMap = {};
   GroupMode _groupMode = GroupMode.day;
 
-  /// The month cursor: next _loadMonth will load this month's data.
   late DateTime _cursor;
   bool _loading = false;
   bool _loadingMore = false;
   bool _categoriesLoaded = false;
+  String? _error;
 
   @override
   void initState() {
@@ -68,9 +68,16 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   Future<void> _initialLoad() async {
-    setState(() => _loading = true);
-    await _loadCategories();
-    await _loadMonth();
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await _loadCategories();
+      await _loadMonth();
+    } catch (e) {
+      _error = e.toString();
+    }
     setState(() => _loading = false);
   }
 
@@ -82,22 +89,24 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     _categoriesLoaded = true;
   }
 
-  /// Load one month of data at [_cursor], then move cursor back one month.
   Future<void> _loadMonth() async {
     final start = _cursor;
     final end = DateTime(start.year, start.month + 1, 0, 23, 59, 59, 999);
 
-    final txns = await sl.transactionService.getByDateRangeWithItems(
-      start.millisecondsSinceEpoch,
-      end.millisecondsSinceEpoch,
-      walletId: widget.walletId,
-    );
+    try {
+      final txns = await sl.transactionService.getByDateRangeWithItems(
+        start.millisecondsSinceEpoch,
+        end.millisecondsSinceEpoch,
+        walletId: widget.walletId,
+      );
 
-    setState(() {
-      _transactions.addAll(txns);
-      // Move cursor to previous month
-      _cursor = DateTime(start.year, start.month - 1, 1);
-    });
+      setState(() {
+        _transactions.addAll(txns);
+        _cursor = DateTime(start.year, start.month - 1, 1);
+      });
+    } catch (e) {
+      setState(() => _error = e.toString());
+    }
   }
 
   Future<void> _loadMore() async {
@@ -213,12 +222,14 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           Expanded(
             child: _loading
                 ? const Center(child: CircularProgressIndicator())
-                : _transactions.isEmpty
-                    ? Center(child: Text(S.of(context, 'noTransactions')))
-                    : RefreshIndicator(
-                        onRefresh: _refresh,
-                        child: _buildList(),
-                      ),
+                : _error != null
+                    ? Center(child: Text(_error!, style: AppTextStyles.error))
+                    : _transactions.isEmpty
+                        ? Center(child: Text(S.of(context, 'noTransactions')))
+                        : RefreshIndicator(
+                            onRefresh: _refresh,
+                            child: _buildList(),
+                          ),
           ),
         ],
       ),
