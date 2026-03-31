@@ -28,12 +28,12 @@
 
 | # | Task | Mô tả | Status |
 |---|---|---|---|
-| 12 | Implement pull wallets | Query `accounts/{id}/wallets WHERE updated_at > lastPullAt` → UPSERT vào SQLite by `remote_id`. | ⬜ |
-| 13 | Implement pull transactions | Tương tự. Extract embedded `items` → insert vào `transaction_items` table. | ⬜ |
-| 14 | Implement pull categories | Tương tự wallets. | ⬜ |
-| 15 | Implement pull soft deletes | Records có `deleted_at` trên Firestore → DELETE khỏi SQLite local. | ⬜ |
-| 16 | Recalculate wallet balances sau pull | Gọi `AppDatabase.recalculateBalance()` cho mỗi wallet có thay đổi. | ⬜ |
-| 17 | Lưu `last_pull_at` per account | Lưu trong SQLite `settings` table: key = `sync_pull_{accountId}`. | ⬜ |
+| 12 | Implement pull wallets | Query `accounts/{id}/wallets WHERE updated_at > lastPullAt` → UPSERT vào SQLite by `remote_id`. | ✅ |
+| 13 | Implement pull transactions | Tương tự. Extract embedded `items` → insert vào `transaction_items` table. | ✅ |
+| 14 | Implement pull categories | Tương tự wallets. | ✅ |
+| 15 | Implement pull soft deletes | Records có `deleted_at` trên Firestore → DELETE khỏi SQLite local. | ✅ |
+| 16 | Recalculate wallet balances sau pull | Gọi `AppDatabase.recalculateBalance()` cho mỗi wallet có thay đổi. | ✅ |
+| 17 | Lưu `last_pull_at` per account | Lưu trong SQLite `settings` table: key = `sync_pull_{accountId}`. | ✅ |
 
 ## Phase 4D: Conflict Resolution + Edge Cases
 

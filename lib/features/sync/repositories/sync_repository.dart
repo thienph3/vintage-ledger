@@ -106,6 +106,53 @@ class SyncRepository {
         where: 'id = ?', whereArgs: [localId]);
   }
 
+  // ── Upsert helpers (Pull) ──
+
+  /// Upsert 1 record vào SQLite by remote_id. Returns local id.
+  Future<int> upsertByRemoteId({
+    required String table,
+    required String remoteId,
+    required String accountId,
+    required Map<String, dynamic> data,
+  }) async {
+    final db = await AppDatabase.instance.database;
+
+    // Tìm existing by remote_id
+    final existing = await db.query(table,
+        where: 'remote_id = ? AND account_id = ?',
+        whereArgs: [remoteId, accountId],
+        limit: 1);
+
+    final row = Map<String, dynamic>.from(data);
+    row['remote_id'] = remoteId;
+    row['account_id'] = accountId;
+    row['is_synced'] = 1;
+
+    if (existing.isNotEmpty) {
+      final localId = existing.first['id'] as int;
+      await db.update(table, row, where: 'id = ?', whereArgs: [localId]);
+      return localId;
+    } else {
+      return await db.insert(table, row);
+    }
+  }
+
+  /// Upsert transaction items (delete old + insert new)
+  Future<void> upsertTransactionItems(int transactionId, List<dynamic> items) async {
+    final db = await AppDatabase.instance.database;
+    await db.delete('transaction_items',
+        where: 'transaction_id = ?', whereArgs: [transactionId]);
+    for (final item in items) {
+      final m = item as Map<String, dynamic>;
+      await db.insert('transaction_items', {
+        'transaction_id': transactionId,
+        'amount': m['amount'],
+        'note': m['note'],
+        'category_id': m['category_id'],
+      });
+    }
+  }
+
   // ── Dirty count ──
 
   Future<int> getDirtyCount(String accountId) async {

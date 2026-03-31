@@ -140,30 +140,142 @@ class SyncService {
     final lastPullStr = await _settingRepo.get('sync_pull_$accountId');
     final lastPullAt = lastPullStr != null ? int.parse(lastPullStr) : 0;
 
-    await _pullCollection(accountId, 'wallets', lastPullAt);
-    await _pullCollection(accountId, 'transactions', lastPullAt);
-    await _pullCollection(accountId, 'categories', lastPullAt);
+    await _pullWallets(accountId, lastPullAt);
+    await _pullTransactions(accountId, lastPullAt);
+    await _pullCategories(accountId, lastPullAt);
 
     await _settingRepo.set('sync_pull_$accountId',
         DateTime.now().millisecondsSinceEpoch.toString());
   }
 
-  Future<void> _pullCollection(
-      String accountId, String collection, int lastPullAt) async {
+  /// #12 — Pull wallets
+  Future<void> _pullWallets(String accountId, int lastPullAt) async {
     final docs = await _syncRepo.pullRecords(
-      accountId: accountId,
-      collection: collection,
-      lastPullAt: lastPullAt,
+      accountId: accountId, collection: 'wallets', lastPullAt: lastPullAt,
     );
 
-    // TODO Phase 4C: UPSERT vào SQLite by remote_id
-    // Placeholder — sẽ implement chi tiết trong Phase 4C
+    final changedWalletIds = <int>[];
     for (final doc in docs) {
-      // doc.id = remote_id, doc.data() = fields
-      _ = doc;
+      final data = doc.data() as Map<String, dynamic>;
+
+      // #15 — Soft delete: Firestore doc đã bị xóa (ko có trong pull vì đã delete)
+      // Nhưng nếu có field deleted_at → xóa local
+      if (data['deleted_at'] != null) {
+        final db = await AppDatabase.instance.database;
+        await db.delete('wallets',
+            where: 'remote_id = ? AND account_id = ?',
+            whereArgs: [doc.id, accountId]);
+        continue;
+      }
+
+      // #18 placeholder — last-write-wins check sẽ ở Phase 4D
+      final localId = await _syncRepo.upsertByRemoteId(
+        table: 'wallets',
+        remoteId: doc.id,
+        accountId: accountId,
+        data: {
+          'name': data['name'],
+          'balance': data['balance'] ?? 0,
+          'created_at': data['created_at'] ?? 0,
+          'updated_at': data['updated_at'],
+        },
+      );
+      changedWalletIds.add(localId);
+    }
+
+    // #16 — Recalculate balances
+    for (final id in changedWalletIds) {
+      await AppDatabase.instance.recalculateBalance(id);
     }
   }
 
+  /// #13 — Pull transactions (extract embedded items)
+  Future<void> _pullTransactions(String accountId, int lastPullAt) async {
+    final docs = await _syncRepo.pullRecords(
+      accountId: accountId, collection: 'transactions', lastPullAt: lastPullAt,
+    );
+
+    final walletIdsToRecalc = <int>{};
+    for (final doc in docs) {
+      final data = doc.data() as Map<String, dynamic>;
+
+      if (data['deleted_at'] != null) {
+        final db = await AppDatabase.instance.database;
+        // Lấy wallet_id trước khi xóa để recalc
+        final existing = await db.query('transactions',
+            columns: ['wallet_id'],
+            where: 'remote_id = ? AND account_id = ?',
+            whereArgs: [doc.id, accountId], limit: 1);
+        if (existing.isNotEmpty) {
+          walletIdsToRecalc.add(existing.first['wallet_id'] as int);
+        }
+        await db.delete('transactions',
+            where: 'remote_id = ? AND account_id = ?',
+            whereArgs: [doc.id, accountId]);
+        continue;
+      }
+
+      final items = data.remove('items') as List<dynamic>? ?? [];
+
+      final localId = await _syncRepo.upsertByRemoteId(
+        table: 'transactions',
+        remoteId: doc.id,
+        accountId: accountId,
+        data: {
+          'wallet_id': data['wallet_id'],
+          'category_id': data['category_id'],
+          'type': data['type'],
+          'amount': data['amount'],
+          'note': data['note'],
+          'date': data['date'],
+          'created_by': data['created_by'],
+          'updated_at': data['updated_at'],
+        },
+      );
+
+      // Extract embedded items → transaction_items table
+      await _syncRepo.upsertTransactionItems(localId, items);
+      walletIdsToRecalc.add(data['wallet_id'] as int);
+    }
+
+    for (final id in walletIdsToRecalc) {
+      await AppDatabase.instance.recalculateBalance(id);
+    }
+  }
+
+  /// #14 — Pull categories
+  Future<void> _pullCategories(String accountId, int lastPullAt) async {
+    final docs = await _syncRepo.pullRecords(
+      accountId: accountId, collection: 'categories', lastPullAt: lastPullAt,
+    );
+
+    for (final doc in docs) {
+      final data = doc.data() as Map<String, dynamic>;
+
+      if (data['deleted_at'] != null) {
+        final db = await AppDatabase.instance.database;
+        await db.delete('categories',
+            where: 'remote_id = ? AND account_id = ?',
+            whereArgs: [doc.id, accountId]);
+        continue;
+      }
+
+      await _syncRepo.upsertByRemoteId(
+        table: 'categories',
+        remoteId: doc.id,
+        accountId: accountId,
+        data: {
+          'name': data['name'],
+          'type': data['type'],
+          'icon': data['icon'],
+          'updated_at': data['updated_at'],
+        },
+      );
+    }
+  }
+
+  /// Push deletes as tombstones (set deleted_at + updated_at, không xóa thật)
+  /// Để device khác pull thấy deleted_at → xóa local.
   Future<void> _pushDeletes(String accountId) async {
     final deletes = await _syncRepo.getPendingDeletes(accountId);
     if (deletes.isEmpty) return;
@@ -171,11 +283,17 @@ class SyncService {
     final firestore = FirebaseFirestore.instance;
     final batch = firestore.batch();
     final accountDoc = firestore.collection('accounts').doc(accountId);
+    final now = DateTime.now().millisecondsSinceEpoch;
 
     for (final d in deletes) {
       final table = d['table_name'] as String;
       final remoteId = d['remote_id'] as String;
-      batch.delete(accountDoc.collection(table).doc(remoteId));
+      final docRef = accountDoc.collection(table).doc(remoteId);
+      // Tombstone: giữ doc nhưng đánh dấu deleted_at
+      batch.set(docRef, {
+        'deleted_at': now,
+        'updated_at': now,
+      }, SetOptions(merge: true));
     }
     await batch.commit();
 
