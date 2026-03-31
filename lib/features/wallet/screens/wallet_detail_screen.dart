@@ -15,8 +15,6 @@ import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 
-import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
-import 'package:vintage_ledger/utils/navigator_x.dart';
 
 class WalletDetailScreen extends StatefulWidget {
   final Wallet wallet;
@@ -54,13 +52,6 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
         _error = e.toString();
       });
     }
-  }
-
-  Future<void> _openForm() async {
-    final result = await context.pushScreen(
-      TransactionFormScreen(walletId: widget.wallet.id!),
-    );
-    if (result == true) await loadData();
   }
 
   @override

@@ -7,7 +7,6 @@ export 'package:vintage_ledger/features/transaction/models/transaction_with_item
 import 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
 export 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
-import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_item_repository.dart';
 import 'package:vintage_ledger/features/wallet/repositories/wallet_repository.dart';
