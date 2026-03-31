@@ -91,6 +91,7 @@ const Map<String, String> vi = {
   'displayName': 'Tên hiển thị',
   'skipLogin': 'Bỏ qua',
   'logout': 'Đăng xuất',
+  'account': 'Tài khoản',
 
   // Chart
   'noData': 'Không có dữ liệu',
@@ -127,6 +128,7 @@ const Map<String, String> vi = {
   'deleteFamily': 'Xóa gia đình',
   'owner': 'Chủ sở hữu',
   'member': 'Thành viên',
+  'removeMemberConfirm': 'Bạn có chắc muốn xóa thành viên này?',
 
   // Sync
   'sync': 'Đồng bộ',

@@ -89,6 +89,12 @@ class SyncRepository {
         where: 'account_id = ? AND is_synced = 0', whereArgs: [accountId]);
   }
 
+  Future<List<Map<String, dynamic>>> getTransactionItems(int transactionId) async {
+    final db = await AppDatabase.instance.database;
+    return await db.query('transaction_items',
+        where: 'transaction_id = ?', whereArgs: [transactionId]);
+  }
+
   // ── Mark synced ──
 
   Future<void> markSynced(String table, List<int> ids) async {
@@ -158,6 +164,46 @@ class SyncRepository {
         'category_id': m['category_id'],
       });
     }
+  }
+
+  /// Resolve local wallet_id → wallet remote_id (for push)
+  Future<String?> getWalletRemoteId(int localWalletId) async {
+    final db = await AppDatabase.instance.database;
+    final result = await db.query('wallets',
+        columns: ['remote_id'], where: 'id = ?', whereArgs: [localWalletId], limit: 1);
+    if (result.isEmpty) return null;
+    return result.first['remote_id'] as String?;
+  }
+
+  /// Resolve wallet remote_id → local wallet_id (for pull)
+  Future<int?> getWalletLocalId(String walletRemoteId, String accountId) async {
+    final db = await AppDatabase.instance.database;
+    final result = await db.query('wallets',
+        columns: ['id'],
+        where: 'remote_id = ? AND account_id = ?',
+        whereArgs: [walletRemoteId, accountId], limit: 1);
+    if (result.isEmpty) return null;
+    return result.first['id'] as int?;
+  }
+
+  /// Resolve local category_id → category remote_id (for push)
+  Future<String?> getCategoryRemoteId(int localCategoryId) async {
+    final db = await AppDatabase.instance.database;
+    final result = await db.query('categories',
+        columns: ['remote_id'], where: 'id = ?', whereArgs: [localCategoryId], limit: 1);
+    if (result.isEmpty) return null;
+    return result.first['remote_id'] as String?;
+  }
+
+  /// Resolve category remote_id → local category_id (for pull)
+  Future<int?> getCategoryLocalId(String categoryRemoteId, String accountId) async {
+    final db = await AppDatabase.instance.database;
+    final result = await db.query('categories',
+        columns: ['id'],
+        where: 'remote_id = ? AND account_id = ?',
+        whereArgs: [categoryRemoteId, accountId], limit: 1);
+    if (result.isEmpty) return null;
+    return result.first['id'] as int?;
   }
 
   // ── Dirty count ──

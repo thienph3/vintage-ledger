@@ -1,27 +1,26 @@
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/wallet/repositories/wallet_repository.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 
 class WalletService {
   final WalletRepository _repo = WalletRepository();
   final TransactionRepository _txnRepo = TransactionRepository();
 
-  Future<int> createWallet(String name, int balance) async {
-    if (name.trim().isEmpty) {
-      throw Exception("Wallet name cannot be empty");
-    }
+  String get _accountId => sl.appState.currentAccountId;
 
-    final wallet = Wallet(
+  Future<int> createWallet(String name, int balance) async {
+    if (name.trim().isEmpty) throw Exception("Wallet name cannot be empty");
+    return await _repo.create(Wallet(
       name: name,
       balance: balance,
       createdAt: DateTime.now().millisecondsSinceEpoch,
-    );
-
-    return await _repo.create(wallet);
+      accountId: _accountId,
+    ));
   }
 
   Future<List<Wallet>> getWallets() async {
-    return await _repo.getAll();
+    return await _repo.getAll(accountId: _accountId);
   }
 
   Future<Wallet?> getWallet(int id) async {

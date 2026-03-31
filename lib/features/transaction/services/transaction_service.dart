@@ -12,6 +12,7 @@ import 'package:vintage_ledger/features/transaction/repositories/transaction_rep
 import 'package:vintage_ledger/features/transaction/repositories/transaction_item_repository.dart';
 import 'package:vintage_ledger/features/wallet/repositories/wallet_repository.dart';
 import 'package:vintage_ledger/features/category/repositories/category_repository.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 
 class TransactionService {
   final TransactionRepository _repo = TransactionRepository();
@@ -19,7 +20,8 @@ class TransactionService {
   final WalletRepository _walletRepo = WalletRepository();
   final CategoryRepository _catRepo = CategoryRepository();
 
-  /// Load dashboard data for Home or WalletDetail screen.
+  String get _accountId => sl.appState.currentAccountId;
+
   Future<DashboardData> getDashboard({int? walletId}) async {
     final now = DateTime.now();
     final monthStart = DateTime(now.year, now.month, 1);
@@ -31,7 +33,7 @@ class TransactionService {
       monthEnd.millisecondsSinceEpoch,
       walletId: walletId,
     );
-    final categories = await _catRepo.getAll();
+    final categories = await _catRepo.getAll(accountId: _accountId);
     final categoryMap = {for (var c in categories) c.id!: c};
 
     int balance;
@@ -39,7 +41,7 @@ class TransactionService {
       final wallet = await _walletRepo.getById(walletId);
       balance = wallet?.balance ?? 0;
     } else {
-      final wallets = await _walletRepo.getAll();
+      final wallets = await _walletRepo.getAll(accountId: _accountId);
       balance = wallets.fold<int>(0, (sum, w) => sum + w.balance);
     }
 
@@ -104,7 +106,7 @@ class TransactionService {
     int limit, {
     int? walletId,
   }) async {
-    final transactions = await _repo.getRecent(limit, walletId: walletId);
+    final transactions = await _repo.getRecent(limit, walletId: walletId, accountId: _accountId);
     return _attachItems(transactions);
   }
 
@@ -118,6 +120,7 @@ class TransactionService {
       startDate,
       endDate,
       walletId: walletId,
+      accountId: _accountId,
     );
     return _attachItems(transactions);
   }

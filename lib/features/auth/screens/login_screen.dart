@@ -73,15 +73,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _maybeImportFromCloud(String accountId) async {
     try {
-      // Check if cloud has data by trying a pull
-      final dirtyCount = await sl.syncService.getDirtyCount(accountId);
-      // If local is empty (fresh login), offer import
-      if (dirtyCount == 0) {
+      final wallets = await sl.walletService.getWallets();
+      if (wallets.isEmpty) {
         await sl.syncService.syncAccount(accountId);
       }
-    } catch (_) {
-      // Offline or error — skip silently, user can sync later
-    }
+    } catch (_) {}
   }
 
   Future<void> _skip() async {
@@ -144,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: const Icon(Icons.email_outlined),
                   ),
                   validator: (v) =>
-                      v == null || !v.contains('@') ? S.of(context, 'email') : null,
+                      v == null || !v.contains('@') || !v.contains('.') ? S.of(context, 'email') : null,
                 ),
                 const SizedBox(height: AppSpacing.md),
 

@@ -31,3 +31,6 @@ Thumbs.db
 ios/Pods/
 ios/.symlinks/
 ios/Flutter/.last_build_id
+
+# Firebase config (contains API key)
+lib/firebase_options.dart

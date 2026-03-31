@@ -17,6 +17,7 @@ class _FamilyFormScreenState extends State<FamilyFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   bool _loading = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -36,7 +37,10 @@ class _FamilyFormScreenState extends State<FamilyFormScreen> {
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
-      setState(() => _loading = false);
+      setState(() {
+        _loading = false;
+        _error = e.toString();
+      });
     }
   }
 
@@ -60,6 +64,11 @@ class _FamilyFormScreenState extends State<FamilyFormScreen> {
                 validator: (v) => v == null || v.trim().isEmpty ? S.of(context, 'familyName') : null,
               ),
               const SizedBox(height: AppSpacing.lg),
+              if (_error != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                  child: Text(_error!, style: const TextStyle(color: Colors.red)),
+                ),
               _loading
                   ? const Center(child: CircularProgressIndicator())
                   : FormSaveButton(isEdit: false, onPressed: _save),

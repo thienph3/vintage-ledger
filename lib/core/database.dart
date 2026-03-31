@@ -119,6 +119,12 @@ CREATE TABLE IF NOT EXISTS sync_deletes(
         'CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date)');
     await db.execute(
         'CREATE INDEX IF NOT EXISTS idx_transaction_items_txn ON transaction_items(transaction_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_wallets_account_sync ON wallets(account_id, is_synced)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_transactions_account_sync ON transactions(account_id, is_synced)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_categories_account_sync ON categories(account_id, is_synced)');
   }
 
   Future<void> _seedCategories(Database db) async {

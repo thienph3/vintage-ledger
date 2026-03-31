@@ -87,7 +87,7 @@ class _SettingScreenState extends State<SettingScreen> {
           // Account section
           if (user != null) ...[
             const SizedBox(height: AppSpacing.md),
-            Text('Account', style: AppTextStyles.title),
+            Text(S.of(context, 'account'), style: AppTextStyles.title),
             const SizedBox(height: AppSpacing.sm),
             ListTile(
               leading: const Icon(Icons.email_outlined),

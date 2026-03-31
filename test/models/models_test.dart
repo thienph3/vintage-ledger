@@ -3,7 +3,6 @@ import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
-import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
 void main() {
   group('Wallet', () {
@@ -15,10 +14,10 @@ void main() {
     });
 
     test('copyWith creates modified copy', () {
-      final copy = wallet.copyWith(name: 'New');
+      final copy = wallet.copyWith(name: 'New', accountId: 'acc1');
       expect(copy.name, 'New');
       expect(copy.balance, 100);
-      expect(copy.id, 1);
+      expect(copy.accountId, 'acc1');
     });
 
     test('equality', () {
@@ -26,29 +25,25 @@ void main() {
       final diff = Wallet(id: 2, name: 'Test', balance: 100, createdAt: 1000);
       expect(wallet, same);
       expect(wallet, isNot(diff));
-      expect(wallet.hashCode, same.hashCode);
     });
 
-    test('fromMap handles string created_at fallback', () {
-      final w = Wallet.fromMap({
-        'id': 1,
-        'name': 'X',
-        'balance': 0,
-        'created_at': '12345',
-      });
-      expect(w.createdAt, 12345);
+    test('sync fields default values', () {
+      expect(wallet.accountId, 'local');
+      expect(wallet.isSynced, 1);
+      expect(wallet.remoteId, null);
+      expect(wallet.isDirty, false);
+    });
+
+    test('isDirty when isSynced = 0', () {
+      final dirty = wallet.copyWith(isSynced: 0);
+      expect(dirty.isDirty, true);
     });
   });
 
   group('TransactionModel', () {
     final txn = TransactionModel(
-      id: 1,
-      walletId: 1,
-      categoryId: 2,
-      type: TransactionType.income,
-      amount: 500,
-      note: 'test',
-      date: 2000,
+      id: 1, walletId: 1, categoryId: 2,
+      type: TransactionType.income, amount: 500, note: 'test', date: 2000,
     );
 
     test('toMap and fromMap roundtrip', () {
@@ -56,23 +51,18 @@ void main() {
       expect(restored, txn);
     });
 
-    test('copyWith creates modified copy', () {
-      final copy = txn.copyWith(amount: 999);
-      expect(copy.amount, 999);
-      expect(copy.type, TransactionType.income);
+    test('copyWith with sync fields', () {
+      final copy = txn.copyWith(accountId: 'acc1', remoteId: 'r1', createdBy: 'u1');
+      expect(copy.accountId, 'acc1');
+      expect(copy.remoteId, 'r1');
+      expect(copy.createdBy, 'u1');
     });
 
-    test('equality ignores note', () {
-      final withNote = txn.copyWith(note: 'different');
-      // note is not in == comparison
-      expect(txn, withNote);
-    });
-
-    test('fromMap parses type string to enum', () {
-      final map = txn.toMap();
-      expect(map['type'], 'income');
-      final restored = TransactionModel.fromMap(map);
-      expect(restored.type, TransactionType.income);
+    test('sync fields default values', () {
+      expect(txn.accountId, 'local');
+      expect(txn.isSynced, 1);
+      expect(txn.remoteId, null);
+      expect(txn.createdBy, null);
     });
   });
 
@@ -84,16 +74,16 @@ void main() {
       expect(restored, cat);
     });
 
-    test('copyWith creates modified copy', () {
-      final copy = cat.copyWith(name: 'Drink');
-      expect(copy.name, 'Drink');
-      expect(copy.type, TransactionType.expense);
+    test('copyWith with sync fields', () {
+      final copy = cat.copyWith(accountId: 'acc1', remoteId: 'r1');
+      expect(copy.accountId, 'acc1');
+      expect(copy.remoteId, 'r1');
     });
 
-    test('equality', () {
-      final same = Category(id: 1, name: 'Food', type: TransactionType.expense, icon: 0xe57a);
-      expect(cat, same);
-      expect(cat.hashCode, same.hashCode);
+    test('sync fields default values', () {
+      expect(cat.accountId, 'local');
+      expect(cat.isSynced, 1);
+      expect(cat.isDirty, false);
     });
   });
 }

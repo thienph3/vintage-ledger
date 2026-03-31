@@ -92,6 +92,7 @@ const Map<String, String> en = {
   'displayName': 'Display name',
   'skipLogin': 'Skip',
   'logout': 'Log out',
+  'account': 'Account',
 
   // Chart
   'noData': 'No data',
@@ -128,6 +129,7 @@ const Map<String, String> en = {
   'deleteFamily': 'Delete family',
   'owner': 'Owner',
   'member': 'Member',
+  'removeMemberConfirm': 'Are you sure you want to remove this member?',
 
   // Sync
   'sync': 'Sync',

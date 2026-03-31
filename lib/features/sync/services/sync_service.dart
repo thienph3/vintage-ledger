@@ -64,7 +64,6 @@ class SyncService {
     final dirtyRecords = await _syncRepo.getDirtyTransactions(accountId);
     if (dirtyRecords.isEmpty) return;
 
-    final db = await AppDatabase.instance.database;
     final records = <Map<String, dynamic>>[];
 
     for (final r in dirtyRecords) {
@@ -75,9 +74,14 @@ class SyncService {
       data.remove('account_id');
       data['updated_at'] = DateTime.now().millisecondsSinceEpoch;
 
-      // Embed transaction_items
-      final items = await db.query('transaction_items',
-          where: 'transaction_id = ?', whereArgs: [localId]);
+      // Convert local IDs → remote IDs for cross-device compatibility
+      final walletRemoteId = await _syncRepo.getWalletRemoteId(data['wallet_id'] as int);
+      final categoryRemoteId = await _syncRepo.getCategoryRemoteId(data['category_id'] as int);
+      data['wallet_id'] = walletRemoteId ?? data['wallet_id'];
+      data['category_id'] = categoryRemoteId ?? data['category_id'];
+
+      // Embed transaction_items via repository
+      final items = await _syncRepo.getTransactionItems(localId);
       data['items'] = items.map((i) => {
         'amount': i['amount'],
         'note': i['note'],
@@ -118,6 +122,7 @@ class SyncService {
       final remoteId = data.remove('remote_id') as String?;
       data.remove('is_synced');
       data.remove('account_id');
+      data.remove('balance');
       data['updated_at'] = DateTime.now().millisecondsSinceEpoch;
       return {'local_id': localId, 'remote_id': remoteId, 'data': data};
     }).toList();
@@ -228,13 +233,32 @@ class SyncService {
 
       final items = data.remove('items') as List<dynamic>? ?? [];
 
+      // Resolve remote IDs → local IDs
+      final walletRemoteId = data['wallet_id'];
+      final categoryRemoteId = data['category_id'];
+      int? localWalletId;
+      int? localCategoryId;
+
+      if (walletRemoteId is String) {
+        localWalletId = await _syncRepo.getWalletLocalId(walletRemoteId, accountId);
+      } else {
+        localWalletId = walletRemoteId as int?;
+      }
+      if (categoryRemoteId is String) {
+        localCategoryId = await _syncRepo.getCategoryLocalId(categoryRemoteId, accountId);
+      } else {
+        localCategoryId = categoryRemoteId as int?;
+      }
+
+      if (localWalletId == null || localCategoryId == null) continue;
+
       final localId = await _syncRepo.upsertByRemoteId(
         table: 'transactions',
         remoteId: doc.id,
         accountId: accountId,
         data: {
-          'wallet_id': data['wallet_id'],
-          'category_id': data['category_id'],
+          'wallet_id': localWalletId,
+          'category_id': localCategoryId,
           'type': data['type'],
           'amount': data['amount'],
           'note': data['note'],
@@ -248,7 +272,7 @@ class SyncService {
 
       // Extract embedded items → transaction_items table
       await _syncRepo.upsertTransactionItems(localId, items);
-      walletIdsToRecalc.add(data['wallet_id'] as int);
+      walletIdsToRecalc.add(localWalletId);
     }
 
     for (final id in walletIdsToRecalc) {

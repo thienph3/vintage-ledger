@@ -201,12 +201,15 @@ class AccountService {
       });
     }
 
-    // Xóa subcollections
+    // Xóa subcollections bằng batch
     for (final sub in ['wallets', 'transactions', 'categories']) {
       final docs = await _accounts.doc(accountId).collection(sub).get();
+      if (docs.docs.isEmpty) continue;
+      final batch = _firestore.batch();
       for (final doc in docs.docs) {
-        await doc.reference.delete();
+        batch.delete(doc.reference);
       }
+      await batch.commit();
     }
 
     // Xóa account document

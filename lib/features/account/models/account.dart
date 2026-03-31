@@ -1,6 +1,6 @@
 class Account {
   final String id;
-  final String type; // 'personal' | 'family'
+  final String type;
   final String name;
   final String ownerId;
   final List<String> memberIds;
@@ -18,6 +18,20 @@ class Account {
   bool get isPersonal => type == 'personal';
   bool get isFamily => type == 'family';
 
+  Account copyWith({
+    String? id, String? type, String? name,
+    String? ownerId, List<String>? memberIds, int? createdAt,
+  }) {
+    return Account(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      name: name ?? this.name,
+      ownerId: ownerId ?? this.ownerId,
+      memberIds: memberIds ?? this.memberIds,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
   Map<String, dynamic> toMap() => {
     'type': type,
     'name': name,
@@ -34,4 +48,16 @@ class Account {
     memberIds: List<String>.from(map['member_ids'] ?? []),
     createdAt: map['created_at'] ?? 0,
   );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is Account && id == other.id && type == other.type &&
+          name == other.name && ownerId == other.ownerId;
+
+  @override
+  int get hashCode => Object.hash(id, type, name, ownerId);
+
+  @override
+  String toString() => 'Account(id: $id, type: $type, name: $name)';
 }

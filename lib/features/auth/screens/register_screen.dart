@@ -99,7 +99,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   prefixIcon: const Icon(Icons.email_outlined),
                 ),
                 validator: (v) =>
-                    v == null || !v.contains('@') ? S.of(context, 'email') : null,
+                    v == null || !v.contains('@') || !v.contains('.') ? S.of(context, 'email') : null,
               ),
               const SizedBox(height: AppSpacing.md),
 
