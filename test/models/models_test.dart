@@ -3,6 +3,7 @@ import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
 void main() {
   group('Wallet', () {
@@ -76,7 +77,7 @@ void main() {
   });
 
   group('Category', () {
-    final cat = Category(id: 1, name: 'Food', type: 'expense', icon: 0xe57a);
+    final cat = Category(id: 1, name: 'Food', type: TransactionType.expense, icon: 0xe57a);
 
     test('toMap and fromMap roundtrip', () {
       final restored = Category.fromMap(cat.toMap());
@@ -86,11 +87,11 @@ void main() {
     test('copyWith creates modified copy', () {
       final copy = cat.copyWith(name: 'Drink');
       expect(copy.name, 'Drink');
-      expect(copy.type, 'expense');
+      expect(copy.type, TransactionType.expense);
     });
 
     test('equality', () {
-      final same = Category(id: 1, name: 'Food', type: 'expense', icon: 0xe57a);
+      final same = Category(id: 1, name: 'Food', type: TransactionType.expense, icon: 0xe57a);
       expect(cat, same);
       expect(cat.hashCode, same.hashCode);
     });
