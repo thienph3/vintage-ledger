@@ -39,6 +39,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
   String? _error;
   bool _amountVisible = false;
+  int _dirtyCount = 0;
 
   @override
   void initState() {
@@ -56,6 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _loading = false;
         _error = null;
       });
+      _loadDirtyCount();
     } catch (e) {
       setState(() {
         _loading = false;
@@ -67,6 +69,14 @@ class _HomeScreenState extends State<HomeScreen> {
   int get _monthIncome => _dashboard?.monthIncome ?? 0;
 
   int get _monthExpense => _dashboard?.monthExpense ?? 0;
+
+  Future<void> _loadDirtyCount() async {
+    if (!sl.appState.isLoggedIn) return;
+    try {
+      final count = await sl.syncService.getDirtyCount(sl.appState.currentAccountId);
+      setState(() => _dirtyCount = count);
+    } catch (_) {}
+  }
 
   Future<void> _addTransaction() async {
     if (wallets.isEmpty) {
@@ -89,14 +99,31 @@ class _HomeScreenState extends State<HomeScreen> {
       showBackButton: sl.appState.isLoggedIn,
       actions: [
         if (sl.appState.isLoggedIn)
-          IconButton(
-            icon: const Icon(Icons.swap_horiz),
-            onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (_) => const AccountPickerScreen()),
-              );
-            },
+          Stack(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.swap_horiz),
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AccountPickerScreen()),
+                  );
+                },
+              ),
+              if (_dirtyCount > 0)
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: AppColors.expense,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
           ),
         IconButton(
           icon: const Icon(Icons.settings),

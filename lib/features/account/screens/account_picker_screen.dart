@@ -24,6 +24,7 @@ class AccountPickerScreen extends StatefulWidget {
 class _AccountPickerScreenState extends State<AccountPickerScreen> {
   List<Account> _accounts = [];
   bool _loading = true;
+  bool _syncing = false;
   String? _error;
 
   @override
@@ -46,6 +47,31 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
         _loading = false;
         _error = e.toString();
       });
+    }
+  }
+
+  Future<void> _sync() async {
+    setState(() => _syncing = true);
+    try {
+      final errors = await sl.syncService.syncAll();
+      if (!mounted) return;
+      if (errors.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(S.of(context, 'syncSuccess'))),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${S.of(context, 'syncFailed')}: ${errors.join(', ')}')),
+        );
+      }
+      _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _syncing = false);
     }
   }
 
@@ -145,6 +171,16 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
                       icon: const Icon(Icons.settings, size: 18),
                       label: Text(S.of(context, 'settings')),
                     ),
+                    _syncing
+                        ? const SizedBox(
+                            width: 20, height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : TextButton.icon(
+                            onPressed: _sync,
+                            icon: const Icon(Icons.sync, size: 18),
+                            label: Text(S.of(context, 'sync')),
+                          ),
                   ],
                 ),
               ],

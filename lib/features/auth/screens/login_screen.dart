@@ -58,12 +58,28 @@ class _LoginScreenState extends State<LoginScreen> {
       // Migrate local data
       await AppDatabase.instance.migrateLocalDataToAccount(accountId);
 
+      // Import from cloud if available
+      if (mounted) await _maybeImportFromCloud(accountId);
+
       _goAccountPicker();
     } catch (e) {
       setState(() {
         _loading = false;
         _error = e.toString();
       });
+    }
+  }
+
+  Future<void> _maybeImportFromCloud(String accountId) async {
+    try {
+      // Check if cloud has data by trying a pull
+      final dirtyCount = await sl.syncService.getDirtyCount(accountId);
+      // If local is empty (fresh login), offer import
+      if (dirtyCount == 0) {
+        await sl.syncService.syncAccount(accountId);
+      }
+    } catch (_) {
+      // Offline or error — skip silently, user can sync later
     }
   }
 

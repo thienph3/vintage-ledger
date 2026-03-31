@@ -48,8 +48,8 @@
 
 | # | Task | Mô tả | Status |
 |---|---|---|---|
-| 22 | Thêm nút "🔄 Đồng bộ" trên Account Picker | Tap → sync tất cả accounts. Hiển thị progress. | ⬜ |
-| 23 | Thêm section Sync trong Settings | Hiển thị last sync time. Nút "Sync now". | ⬜ |
-| 24 | Badge dot trên AppBar khi có dirty data | Đếm records có `is_synced = 0`. Nếu > 0 → hiển thị dot trên icon sync. | ⬜ |
-| 25 | Thêm l10n keys cho Sync | `sync`, `syncNow`, `lastSync`, `syncing`, `syncSuccess`, `syncFailed`, `noInternet` — cả vi và en. | ⬜ |
-| 26 | Import data từ cloud khi login lần đầu | Sau login + tạo personal account → hỏi "Import data từ cloud?" nếu Firestore có data. | ⬜ |
+| 22 | Thêm nút "🔄 Đồng bộ" trên Account Picker | Tap → sync tất cả accounts. Hiển thị progress. | ✅ |
+| 23 | Thêm section Sync trong Settings | Hiển thị last sync time. Nút "Sync now". | ✅ |
+| 24 | Badge dot trên AppBar khi có dirty data | Đếm records có `is_synced = 0`. Nếu > 0 → hiển thị dot trên icon sync. | ✅ |
+| 25 | Thêm l10n keys cho Sync | `sync`, `syncNow`, `lastSync`, `syncing`, `syncSuccess`, `syncFailed`, `noInternet` — cả vi và en. | ✅ |
+| 26 | Import data từ cloud khi login lần đầu | Sau login + tạo personal account → hỏi "Import data từ cloud?" nếu Firestore có data. | ✅ |

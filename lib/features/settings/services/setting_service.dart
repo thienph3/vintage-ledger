@@ -21,4 +21,8 @@ class SettingService {
   Future<void> markSetupDone() async {
     await _repo.set(_setupDoneKey, 'true');
   }
+
+  Future<String?> getSetting(String key) async {
+    return await _repo.get(key);
+  }
 }

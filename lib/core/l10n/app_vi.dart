@@ -128,6 +128,16 @@ const Map<String, String> vi = {
   'owner': 'Chủ sở hữu',
   'member': 'Thành viên',
 
+  // Sync
+  'sync': 'Đồng bộ',
+  'syncNow': 'Đồng bộ ngay',
+  'lastSync': 'Lần đồng bộ cuối',
+  'syncing': 'Đang đồng bộ...',
+  'syncSuccess': 'Đồng bộ thành công',
+  'syncFailed': 'Đồng bộ thất bại',
+  'noInternet': 'Không có kết nối mạng',
+  'importFromCloud': 'Nhập dữ liệu từ đám mây?',
+
   // Onboarding
   'welcomeTitle': 'Chào mừng đến Sổ Thu Chi',
   'welcomeSubtitle': 'Bạn có muốn tạo dữ liệu mẫu để khám phá ứng dụng không?',

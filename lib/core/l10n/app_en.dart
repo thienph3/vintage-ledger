@@ -129,6 +129,16 @@ const Map<String, String> en = {
   'owner': 'Owner',
   'member': 'Member',
 
+  // Sync
+  'sync': 'Sync',
+  'syncNow': 'Sync now',
+  'lastSync': 'Last sync',
+  'syncing': 'Syncing...',
+  'syncSuccess': 'Sync successful',
+  'syncFailed': 'Sync failed',
+  'noInternet': 'No internet connection',
+  'importFromCloud': 'Import data from cloud?',
+
   // Onboarding
   'welcomeTitle': 'Welcome to Vintage Ledger',
   'welcomeSubtitle': 'Would you like to create sample data to explore the app?',
