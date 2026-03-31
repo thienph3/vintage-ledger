@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class AmountText extends StatelessWidget {
   final int amount;
-  final String type;
+  final TransactionType type;
   final double? fontSize;
   final bool compact;
 
@@ -18,11 +19,26 @@ class AmountText extends StatelessWidget {
     this.compact = false,
   });
 
+  static Widget fromBalance({
+    Key? key,
+    required int balance,
+    double? fontSize,
+    bool compact = false,
+  }) {
+    return AmountText(
+      key: key,
+      amount: balance.abs(),
+      type: balance >= 0 ? TransactionType.income : TransactionType.expense,
+      fontSize: fontSize,
+      compact: compact,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).languageCode;
-    final color = type == 'income' ? AppColors.income : AppColors.expense;
-    final sign = type == 'income' ? '' : '-';
+    final color = type.isIncome ? AppColors.income : AppColors.expense;
+    final sign = type.isIncome ? '' : '-';
     final formatted = compact
         ? AmountFormatter.formatCompactCurrency(amount, locale)
         : AmountFormatter.formatCurrency(amount, locale);

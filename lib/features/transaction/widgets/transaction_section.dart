@@ -157,7 +157,7 @@ class TransactionSection extends StatelessWidget {
                     ),
                     AmountText(
                       amount: transaction.transaction.amount,
-                      type: transaction.transaction.type.value,
+                      type: transaction.transaction.type,
                       compact: true,
                     ),
                   ],

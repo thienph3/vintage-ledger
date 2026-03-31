@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
@@ -133,6 +131,7 @@ CREATE TABLE transaction_items(
     }
     if (oldVersion < 3) {
       await _migrateToV3(db);
+    }
     if (oldVersion < 4) {
       await _migrateToV4(db);
     }

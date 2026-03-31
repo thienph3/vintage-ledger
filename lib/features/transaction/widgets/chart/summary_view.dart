@@ -4,6 +4,7 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 
 class SummaryView extends StatelessWidget {
@@ -38,12 +39,12 @@ class SummaryView extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: Column(
         children: [
-          _amountRow(S.of(context, 'totalIncome'), totalIncome, 'income'),
+          _amountRow(S.of(context, 'totalIncome'), totalIncome, TransactionType.income),
           const Divider(),
-          _amountRow(S.of(context, 'totalExpense'), totalExpense, 'expense'),
+          _amountRow(S.of(context, 'totalExpense'), totalExpense, TransactionType.expense),
           const Divider(),
           _amountRow(
-              S.of(context, 'net'), net.abs(), net >= 0 ? 'income' : 'expense'),
+              S.of(context, 'net'), net.abs(), net >= 0 ? TransactionType.income : TransactionType.expense),
           const Divider(),
           _textRow(S.of(context, 'transactionCount'),
               transactionCount.toString()),
@@ -57,7 +58,7 @@ class SummaryView extends StatelessWidget {
     );
   }
 
-  Widget _amountRow(String label, int amount, String type) {
+  Widget _amountRow(String label, int amount, TransactionType type) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(

@@ -1,12 +1,14 @@
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
+
 class Category {
   final int? id;
   final String name;
-  final String? type;
+  final TransactionType? type;
   final int? icon;
 
   Category({this.id, required this.name, this.type, this.icon});
 
-  Category copyWith({int? id, String? name, String? type, int? icon}) {
+  Category copyWith({int? id, String? name, TransactionType? type, int? icon}) {
     return Category(
       id: id ?? this.id,
       name: name ?? this.name,
@@ -19,7 +21,7 @@ class Category {
     return {
       'id': id,
       'name': name,
-      'type': type,
+      'type': type?.value,
       'icon': icon,
     };
   }
@@ -28,7 +30,9 @@ class Category {
     return Category(
       id: map['id'],
       name: map['name'],
-      type: map['type'],
+      type: map['type'] != null
+          ? TransactionType.fromString(map['type'] as String)
+          : null,
       icon: map['icon'],
     );
   }

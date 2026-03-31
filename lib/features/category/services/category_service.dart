@@ -1,10 +1,11 @@
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/repositories/category_repository.dart';
 
 class CategoryService {
   final CategoryRepository _repo = CategoryRepository();
 
-  Future<int> createCategory(String name, {String? type, int? icon}) async {
+  Future<int> createCategory(String name, {TransactionType? type, int? icon}) async {
     if (name.trim().isEmpty) {
       throw Exception("Category name cannot be empty");
     }
@@ -24,7 +25,7 @@ class CategoryService {
   }
 
   Future<int> updateCategory(int id, String name,
-      {String? type, int? icon}) async {
+      {TransactionType? type, int? icon}) async {
     final category = await _repo.getById(id);
     if (category == null) throw Exception("Category not found");
     return await _repo.update(

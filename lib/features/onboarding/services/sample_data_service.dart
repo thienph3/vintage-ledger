@@ -9,8 +9,8 @@ class SampleDataService {
     final walletId = await sl.walletService.createWallet('Ví chính', 0);
 
     final cats = await sl.categoryService.getCategories();
-    final expenseCats = cats.where((c) => c.type == 'expense').toList();
-    final incomeCats = cats.where((c) => c.type == 'income').toList();
+    final expenseCats = cats.where((c) => c.type == TransactionType.expense).toList();
+    final incomeCats = cats.where((c) => c.type == TransactionType.income).toList();
 
     if (expenseCats.isEmpty || incomeCats.isEmpty) return;
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
@@ -32,7 +33,7 @@ class IncomeExpenseSummaryRow extends StatelessWidget {
                 style: AppTextStyles.caption,
               ),
               const SizedBox(height: AppSpacing.xs),
-              AmountText(amount: income, type: 'income'),
+              AmountText(amount: income, type: TransactionType.income),
             ],
           ),
         ),
@@ -45,7 +46,7 @@ class IncomeExpenseSummaryRow extends StatelessWidget {
                 style: AppTextStyles.caption,
               ),
               const SizedBox(height: AppSpacing.xs),
-              AmountText(amount: expense, type: 'expense'),
+              AmountText(amount: expense, type: TransactionType.expense),
             ],
           ),
         ),

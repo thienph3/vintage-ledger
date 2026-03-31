@@ -6,6 +6,7 @@ import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/common/mixins/crud_list_mixin.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
+import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/ledger_list_tile.dart';
@@ -48,11 +49,14 @@ class _WalletListScreenState extends State<WalletListScreen>
   Widget build(BuildContext context) {
     return AppScaffold(
       title: S.of(context, 'myWalletsTitle'),
-      body: RefreshIndicator(
-        onRefresh: loadItems,
-        child: items.isEmpty
-            ? EmptyState(message: S.of(context, 'noWalletsFound'))
-            : ListView(
+      body: AsyncContent(
+        loading: crudLoading,
+        error: crudError,
+        child: RefreshIndicator(
+          onRefresh: loadItems,
+          child: items.isEmpty
+              ? EmptyState(message: S.of(context, 'noWalletsFound'))
+              : ListView(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 children: [
                   ...items.map((w) => Padding(
@@ -71,10 +75,7 @@ class _WalletListScreenState extends State<WalletListScreen>
                             Expanded(
                               child: Text(w.name, style: AppTextStyles.bodyBold),
                             ),
-                            AmountText(
-                              amount: w.balance.abs(),
-                              type: w.balance >= 0 ? "income" : "expense",
-                            ),
+                            AmountText.fromBalance(balance: w.balance),
                           ],
                         ),
                       ),

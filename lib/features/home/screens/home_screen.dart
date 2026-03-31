@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 
@@ -144,9 +145,8 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (_amountVisible)
-                  AmountText(
-                    amount: (_dashboard?.balance ?? 0).abs(),
-                    type: (_dashboard?.balance ?? 0) >= 0 ? 'income' : 'expense',
+                  AmountText.fromBalance(
+                    balance: _dashboard?.balance ?? 0,
                     fontSize: 28,
                   )
                 else
@@ -171,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: AppColors.income,
                   label: S.of(context, 'monthIncome'),
                   amount: _monthIncome,
-                  type: 'income',
+                  type: TransactionType.income,
                 ),
               ),
               Container(width: 1, height: 40, color: AppColors.divider),
@@ -181,7 +181,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: AppColors.expense,
                   label: S.of(context, 'monthExpense'),
                   amount: _monthExpense,
-                  type: 'expense',
+                  type: TransactionType.expense,
                 ),
               ),
             ],
@@ -196,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
     required Color color,
     required String label,
     required int amount,
-    required String type,
+    required TransactionType type,
   }) {
     return Column(
       children: [
@@ -301,10 +301,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             if (_amountVisible)
-              AmountText(
-                amount: wallet.balance.abs(),
-                type: wallet.balance >= 0 ? 'income' : 'expense',
-              )
+              AmountText.fromBalance(balance: wallet.balance)
             else
               Text('••••', style: AppTextStyles.amount),
           ],

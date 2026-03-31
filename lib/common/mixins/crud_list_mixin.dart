@@ -5,6 +5,8 @@ import 'package:vintage_ledger/utils/navigator_x.dart';
 
 mixin CrudListMixin<T> on State {
   List<T> items = [];
+  bool crudLoading = true;
+  String? crudError;
 
   Future<List<T>> fetchItems();
   Future<void> removeItem(T item);
@@ -14,8 +16,19 @@ mixin CrudListMixin<T> on State {
   String get deleteContent;
 
   Future<void> loadItems() async {
-    final list = await fetchItems();
-    setState(() => items = list);
+    try {
+      final list = await fetchItems();
+      setState(() {
+        items = list;
+        crudLoading = false;
+        crudError = null;
+      });
+    } catch (e) {
+      setState(() {
+        crudLoading = false;
+        crudError = e.toString();
+      });
+    }
   }
 
   Future<void> deleteItem(T item) async {

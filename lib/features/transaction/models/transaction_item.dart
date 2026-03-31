@@ -1,8 +1,8 @@
 class TransactionItemModel {
   final int? id;
-  final int transactionId; // liên kết với TransactionModel
+  final int transactionId;
   final int amount;
-  final int? categoryId; // nếu null → fallback dùng category của parent
+  final int? categoryId;
   final String? note;
 
   TransactionItemModel({
@@ -12,6 +12,22 @@ class TransactionItemModel {
     this.categoryId,
     this.note,
   });
+
+  TransactionItemModel copyWith({
+    int? id,
+    int? transactionId,
+    int? amount,
+    int? categoryId,
+    String? note,
+  }) {
+    return TransactionItemModel(
+      id: id ?? this.id,
+      transactionId: transactionId ?? this.transactionId,
+      amount: amount ?? this.amount,
+      categoryId: categoryId ?? this.categoryId,
+      note: note ?? this.note,
+    );
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -34,4 +50,20 @@ class TransactionItemModel {
       note: map['note'] as String?,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is TransactionItemModel &&
+          id == other.id &&
+          transactionId == other.transactionId &&
+          amount == other.amount &&
+          categoryId == other.categoryId;
+
+  @override
+  int get hashCode => Object.hash(id, transactionId, amount, categoryId);
+
+  @override
+  String toString() =>
+      'TransactionItemModel(id: $id, transactionId: $transactionId, amount: $amount)';
 }

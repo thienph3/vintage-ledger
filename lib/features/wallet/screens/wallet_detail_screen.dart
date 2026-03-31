@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
-import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
+import 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
@@ -82,9 +82,8 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                       style: AppTextStyles.body,
                     ),
                     const SizedBox(width: AppSpacing.md),
-                    AmountText(
-                      amount: (_dashboard?.balance ?? 0).abs(),
-                      type: (_dashboard?.balance ?? 0) >= 0 ? "income" : "expense",
+                    AmountText.fromBalance(
+                      balance: _dashboard?.balance ?? 0,
                     ),
                   ],
                 ),

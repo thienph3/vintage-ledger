@@ -6,6 +6,7 @@ import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/common/mixins/crud_list_mixin.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
+import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/common/widgets/ledger_list_tile.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -48,9 +49,12 @@ class _CategoryListScreenState extends State<CategoryListScreen>
   Widget build(BuildContext context) {
     return AppScaffold(
       title: S.of(context, 'categories'),
-      body: RefreshIndicator(
-        onRefresh: loadItems,
-        child: ListView(
+      body: AsyncContent(
+        loading: crudLoading,
+        error: crudError,
+        child: RefreshIndicator(
+          onRefresh: loadItems,
+          child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
             const SizedBox(height: AppSpacing.sm),
@@ -88,6 +92,7 @@ class _CategoryListScreenState extends State<CategoryListScreen>
             ),
           ],
         ),
+      ),
       ),
     );
   }

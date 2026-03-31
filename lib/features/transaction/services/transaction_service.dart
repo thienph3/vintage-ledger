@@ -168,9 +168,12 @@ class TransactionService {
         whereArgs: [wallet.id],
       );
 
+      final updateMap = transaction.toMap();
+      updateMap['updated_at'] = DateTime.now().millisecondsSinceEpoch;
+
       return await txn.update(
         'transactions',
-        transaction.toMap(),
+        updateMap,
         where: 'id = ?',
         whereArgs: [transaction.id],
       );

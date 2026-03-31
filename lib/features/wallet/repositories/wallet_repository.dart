@@ -42,12 +42,14 @@ class WalletRepository {
   }
 
   /// UPDATE
-  Future<int> update(Wallet wallet) async {
+  Future<int> update(Wallet wallet, {int? updatedAt}) async {
     final db = await AppDatabase.instance.database;
+    final map = wallet.toMap();
+    if (updatedAt != null) map['updated_at'] = updatedAt;
 
     return await db.update(
       'wallets',
-      wallet.toMap(),
+      map,
       where: 'id = ?',
       whereArgs: [wallet.id],
     );

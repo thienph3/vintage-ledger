@@ -39,7 +39,7 @@ class WalletService {
       createdAt: wallet.createdAt,
     );
 
-    return await _repo.update(updated);
+    return await _repo.update(updated, updatedAt: DateTime.now().millisecondsSinceEpoch);
   }
 
   Future<int> deleteWallet(int id) async {

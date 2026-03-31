@@ -110,7 +110,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   Future<void> _loadMore() async {
-    setState(() => _loadingMore = true);
+    setState(() {
+      _loadingMore = true;
+      _error = null;
+    });
     await _loadMonth();
     setState(() => _loadingMore = false);
   }
@@ -318,11 +321,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               child: Text(group.label, style: AppTextStyles.titleSmall),
             ),
             if (group.income > 0)
-              AmountText(amount: group.income, type: 'income', compact: true),
+              AmountText(amount: group.income, type: TransactionType.income, compact: true),
             if (group.income > 0 && group.expense > 0)
               const SizedBox(width: AppSpacing.sm),
             if (group.expense > 0)
-              AmountText(amount: group.expense, type: 'expense', compact: true),
+              AmountText(amount: group.expense, type: TransactionType.expense, compact: true),
           ],
         ),
         const Divider(),
@@ -372,7 +375,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               children: [
                 AmountText(
                   amount: txn.transaction.amount,
-                  type: txn.transaction.type.value,
+                  type: txn.transaction.type,
                 ),
                 Text(
                   DateFormatter.short(txn.transaction.date),

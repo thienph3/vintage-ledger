@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -12,7 +13,7 @@ import 'package:vintage_ledger/common/widgets/type_selector.dart';
 
 class CategoryFormScreen extends StatefulWidget {
   final Category? category;
-  final String? initialType;
+  final TransactionType? initialType;
 
   const CategoryFormScreen({super.key, this.category, this.initialType});
 
@@ -25,7 +26,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
   final _formKey = GlobalKey<FormState>();
 
   bool isEdit = false;
-  String _type = 'expense';
+  TransactionType _type = TransactionType.expense;
   int? selectedCodePoint;
 
   @override
@@ -34,10 +35,10 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
     if (widget.category != null) {
       isEdit = true;
       nameController.text = widget.category!.name;
-      _type = widget.category!.type ?? 'expense';
+      _type = widget.category!.type ?? TransactionType.expense;
       selectedCodePoint = widget.category!.icon;
     } else {
-      _type = widget.initialType ?? 'expense';
+      _type = widget.initialType ?? TransactionType.expense;
     }
   }
 
@@ -77,8 +78,8 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
               const SizedBox(height: AppSpacing.md),
 
               TypeSelector(
-                value: _type,
-                onChanged: (v) => setState(() => _type = v),
+                value: _type.value,
+                onChanged: (v) => setState(() => _type = TransactionType.fromString(v)),
               ),
 
               const SizedBox(height: AppSpacing.md),
