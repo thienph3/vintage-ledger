@@ -9,6 +9,7 @@ import 'package:vintage_ledger/common/widgets/locale_toggle.dart';
 import 'package:vintage_ledger/core/database.dart';
 import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
+import 'package:vintage_ledger/features/home/screens/home_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
 class LoginScreen extends StatefulWidget {
