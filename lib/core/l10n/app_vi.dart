@@ -129,6 +129,8 @@ const Map<String, String> vi = {
   'owner': 'Chủ sở hữu',
   'member': 'Thành viên',
   'removeMemberConfirm': 'Bạn có chắc muốn xóa thành viên này?',
+  'leaveFamilyConfirm': 'Bạn có chắc muốn rời gia đình này?',
+  'deleteFamilyConfirm': 'Bạn có chắc muốn xóa gia đình này? Tất cả dữ liệu sẽ bị xóa.',
 
   // Sync
   'sync': 'Đồng bộ',

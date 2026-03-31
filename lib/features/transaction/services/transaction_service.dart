@@ -97,6 +97,7 @@ class TransactionService {
         'note': note,
         'date': date,
         'is_synced': 0,
+        'account_id': _accountId,
       });
     });
   }

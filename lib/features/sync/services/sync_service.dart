@@ -191,7 +191,6 @@ class SyncService {
         accountId: accountId,
         data: {
           'name': data['name'],
-          'balance': data['balance'] ?? 0,
           'created_at': data['created_at'] ?? 0,
           'updated_at': data['updated_at'],
         },

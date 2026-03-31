@@ -130,6 +130,8 @@ const Map<String, String> en = {
   'owner': 'Owner',
   'member': 'Member',
   'removeMemberConfirm': 'Are you sure you want to remove this member?',
+  'leaveFamilyConfirm': 'Are you sure you want to leave this family?',
+  'deleteFamilyConfirm': 'Are you sure you want to delete this family? All data will be lost.',
 
   // Sync
   'sync': 'Sync',

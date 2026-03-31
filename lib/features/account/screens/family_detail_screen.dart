@@ -112,7 +112,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
     final confirm = await showDeleteConfirmation(
       context,
       titleKey: 'leaveFamily',
-      contentKey: 'deleteWalletConfirm',
+      contentKey: 'leaveFamilyConfirm',
     );
     if (confirm != true) return;
 
@@ -128,7 +128,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
     final confirm = await showDeleteConfirmation(
       context,
       titleKey: 'deleteFamily',
-      contentKey: 'deleteWalletConfirm',
+      contentKey: 'deleteFamilyConfirm',
     );
     if (confirm != true) return;
 

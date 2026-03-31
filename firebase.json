@@ -1,1 +1,25 @@
-{"flutter":{"platforms":{"dart":{"lib/firebase_options.dart":{"projectId":"vintage-ledger","configurations":{"android":"1:1068857729867:android:bdaad9d2155659ed847ece"}}},"android":{"default":{"projectId":"vintage-ledger","appId":"1:1068857729867:android:bdaad9d2155659ed847ece","fileOutput":"android/app/google-services.json"}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "vintage-ledger",
+          "configurations": {
+            "android": "1:1068857729867:android:bdaad9d2155659ed847ece"
+          }
+        }
+      },
+      "android": {
+        "default": {
+          "projectId": "vintage-ledger",
+          "appId": "1:1068857729867:android:bdaad9d2155659ed847ece",
+          "fileOutput": "android/app/google-services.json"
+        }
+      }
+    }
+  }
+}

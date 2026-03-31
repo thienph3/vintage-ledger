@@ -36,6 +36,7 @@ class WalletService {
       name: name,
       balance: balance,
       createdAt: wallet.createdAt,
+      accountId: wallet.accountId,
     );
 
     return await _repo.update(updated, updatedAt: DateTime.now().millisecondsSinceEpoch);

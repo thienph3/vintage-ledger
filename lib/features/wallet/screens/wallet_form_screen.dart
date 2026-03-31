@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
+import 'package:vintage_ledger/core/theme/app_spacing.dart';
 
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
@@ -81,7 +82,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
           ? S.of(context, 'editWallet')
           : S.of(context, 'addNewWallet'),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
 
         child: Form(
           key: _formKey,

@@ -30,7 +30,7 @@ class CategoryService {
     final category = await _repo.getById(id);
     if (category == null) throw Exception("Category not found");
     return await _repo.update(
-        Category(id: id, name: name, type: type, icon: icon));
+        Category(id: id, name: name, type: type, icon: icon, accountId: category.accountId));
   }
 
   Future<int> deleteCategory(int id) async {
