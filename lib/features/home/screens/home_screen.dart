@@ -18,6 +18,7 @@ import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
 
+import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_detail_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
@@ -85,8 +86,18 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: S.of(context, 'homeTitle'),
-      showBackButton: false,
+      showBackButton: sl.appState.isLoggedIn,
       actions: [
+        if (sl.appState.isLoggedIn)
+          IconButton(
+            icon: const Icon(Icons.swap_horiz),
+            onPressed: () {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (_) => const AccountPickerScreen()),
+              );
+            },
+          ),
         IconButton(
           icon: const Icon(Icons.settings),
           onPressed: () async {

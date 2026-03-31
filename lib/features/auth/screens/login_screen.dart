@@ -6,9 +6,9 @@ import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/locale_toggle.dart';
+import 'package:vintage_ledger/core/database.dart';
 import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
-import 'package:vintage_ledger/features/home/screens/home_screen.dart';
-import 'package:vintage_ledger/features/onboarding/screens/welcome_screen.dart';
+import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -42,12 +42,23 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await sl.authService.loginWithEmail(
+      final user = await sl.authService.loginWithEmail(
         _emailCtrl.text.trim(),
         _passwordCtrl.text,
       );
-      if (!mounted) return;
-      _goHome();
+      if (!mounted || user == null) return;
+
+      // Set app state
+      sl.appState.currentUserId = user.uid;
+      final accountId = await sl.accountService.getOrCreatePersonalAccountId(
+        user.uid, user.email!, user.displayName ?? '',
+      );
+      sl.appState.currentAccountId = accountId;
+
+      // Migrate local data
+      await AppDatabase.instance.migrateLocalDataToAccount(accountId);
+
+      _goAccountPicker();
     } catch (e) {
       setState(() {
         _loading = false;
@@ -62,6 +73,13 @@ class _LoginScreenState extends State<LoginScreen> {
     _goHome();
   }
 
+  void _goAccountPicker() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const AccountPickerScreen()),
+    );
+  }
+
   void _goHome() {
     Navigator.pushReplacement(
       context,
@@ -71,7 +89,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _openRegister() async {
     final result = await context.pushScreen(const RegisterScreen());
-    if (result == true && mounted) _goHome();
+    if (result == true && mounted) _goAccountPicker();
   }
 
   @override

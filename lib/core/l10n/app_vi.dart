@@ -114,6 +114,14 @@ const Map<String, String> vi = {
   'delete': 'Xóa',
   'done': 'Xong',
 
+  // Account Picker
+  'chooseAccount': 'CHỌN SỔ THU CHI',
+  'personalAccount': 'Ví cá nhân',
+  'walletCount': 'ví',
+  'memberCount': 'thành viên',
+  'createFamily': 'Tạo gia đình mới',
+  'familyName': 'Tên gia đình',
+
   // Onboarding
   'welcomeTitle': 'Chào mừng đến Sổ Thu Chi',
   'welcomeSubtitle': 'Bạn có muốn tạo dữ liệu mẫu để khám phá ứng dụng không?',

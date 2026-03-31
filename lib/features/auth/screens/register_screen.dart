@@ -41,11 +41,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
     });
 
     try {
-      await sl.authService.registerWithEmail(
+      final user = await sl.authService.registerWithEmail(
         _emailCtrl.text.trim(),
         _passwordCtrl.text,
         _nameCtrl.text.trim(),
       );
+
+      // Tạo user profile + personal account trên Firestore
+      if (user != null) {
+        final accountId = await sl.accountService.createUserWithPersonalAccount(
+          userId: user.uid,
+          email: user.email!,
+          displayName: _nameCtrl.text.trim(),
+        );
+        sl.appState.currentUserId = user.uid;
+        sl.appState.currentAccountId = accountId;
+      }
+
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {

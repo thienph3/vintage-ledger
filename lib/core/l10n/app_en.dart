@@ -115,6 +115,14 @@ const Map<String, String> en = {
   'delete': 'Delete',
   'done': 'Done',
 
+  // Account Picker
+  'chooseAccount': 'CHOOSE LEDGER',
+  'personalAccount': 'Personal',
+  'walletCount': 'wallets',
+  'memberCount': 'members',
+  'createFamily': 'Create new family',
+  'familyName': 'Family name',
+
   // Onboarding
   'welcomeTitle': 'Welcome to Vintage Ledger',
   'welcomeSubtitle': 'Would you like to create sample data to explore the app?',

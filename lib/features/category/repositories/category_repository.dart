@@ -15,11 +15,10 @@ class CategoryRepository {
   }
 
   /// READ ALL
-  Future<List<Category>> getAll() async {
+  Future<List<Category>> getAll({String accountId = 'local'}) async {
     final db = await AppDatabase.instance.database;
-
-    final result = await db.query('categories', orderBy: 'name ASC');
-
+    final result = await db.query('categories',
+        where: 'account_id = ?', whereArgs: [accountId], orderBy: 'name ASC');
     return result.map((e) => Category.fromMap(e)).toList();
   }
 
@@ -42,16 +41,10 @@ class CategoryRepository {
   }
 
   /// READ BY TYPE (income / expense)
-  Future<List<Category>> getByType(String type) async {
+  Future<List<Category>> getByType(String type, {String accountId = 'local'}) async {
     final db = await AppDatabase.instance.database;
-
-    final result = await db.query(
-      'categories',
-      where: 'type = ?',
-      whereArgs: [type],
-      orderBy: 'name ASC',
-    );
-
+    final result = await db.query('categories',
+        where: 'type = ? AND account_id = ?', whereArgs: [type, accountId], orderBy: 'name ASC');
     return result.map((e) => Category.fromMap(e)).toList();
   }
 

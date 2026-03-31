@@ -12,24 +12,24 @@
 | 4 | Tạo `RegisterScreen` | Form: email + password + display name. Gọi `AuthService.registerWithEmail`. Tạo personal account trên Firestore sau register. | ✅ |
 | 5 | Tạo `LoginScreen` | Form: email + password. Link sang Register. Nút "Skip" → vào app local-only (`account_id = 'local'`). | ✅ |
 | 6 | Cập nhật `main.dart` auth flow | Check `FirebaseAuth.currentUser`: null → LoginScreen, có → Account Picker (Phase 2) hoặc Home (tạm). "Skip" → Home như cũ. | ✅ |
-| 7 | Tạo `users/{userId}` document khi register | Lưu email, display_name, created_at, account_ids (chứa personal accountId). | ⏳ Phase 2 (cần cloud_firestore) |
+| 7 | Tạo `users/{userId}` document khi register | Lưu email, display_name, created_at, account_ids (chứa personal accountId). | ✅ |
 | 8 | Thêm l10n keys cho Auth | `login`, `register`, `email`, `password`, `displayName`, `skipLogin`, `logout` — cả vi và en. | ✅ |
 
 ## Phase 2: Account System
 
 | # | Task | Mô tả | Status |
 |---|---|---|---|
-| 9 | DB migration: thêm `account_id` column | Thêm `account_id TEXT NOT NULL DEFAULT 'local'` vào wallets, transactions, categories. Bump DB version. | ⬜ |
-| 10 | Cập nhật repositories: filter by `account_id` | Mọi query trong `WalletRepository`, `TransactionRepository`, `CategoryRepository` thêm `WHERE account_id = ?`. | ⬜ |
-| 11 | Cập nhật services: truyền `accountId` | `WalletService`, `TransactionService`, `CategoryService` nhận `accountId` param hoặc đọc từ `AppState`. | ⬜ |
-| 12 | Tạo `AppState` | Class giữ `currentUserId` + `currentAccountId`. Inject qua `ServiceLocator` hoặc `InheritedWidget`. | ⬜ |
-| 13 | Tạo `Account` model | `id`, `type` (personal/family), `name`, `ownerId`, `memberIds`, `createdAt`. Có `toMap`/`fromMap`/`copyWith`. | ⬜ |
-| 14 | Tạo `AccountService` | Firestore CRUD: `createAccount`, `getAccountsForUser`, `deleteAccount`. | ⬜ |
-| 15 | Tạo `AccountPickerScreen` | Hiển thị danh sách accounts (personal + families). Tap → set `currentAccountId` → navigate Home. Nút tạo family. | ⬜ |
-| 16 | Cập nhật `main.dart` navigation | Auth → AccountPicker → Home. "Skip" → Home với `account_id = 'local'`. | ⬜ |
-| 17 | Cập nhật `HomeScreen` | Nhận `accountId`, thêm nút back về Account Picker. | ⬜ |
-| 18 | Migrate local data khi login lần đầu | Gán `account_id = personalAccountId` cho tất cả records có `account_id = 'local'`. | ⬜ |
-| 19 | Thêm l10n keys cho Account Picker | `chooseAccount`, `personalAccount`, `walletCount`, `memberCount` — cả vi và en. | ⬜ |
+| 9 | DB migration: thêm `account_id` column | Thêm `account_id TEXT NOT NULL DEFAULT 'local'` vào wallets, transactions, categories. Bump DB version. | ✅ |
+| 10 | Cập nhật repositories: filter by `account_id` | Mọi query trong `WalletRepository`, `TransactionRepository`, `CategoryRepository` thêm `WHERE account_id = ?`. | ✅ |
+| 11 | Cập nhật services: truyền `accountId` | `WalletService`, `TransactionService`, `CategoryService` nhận `accountId` param hoặc đọc từ `AppState`. | ✅ |
+| 12 | Tạo `AppState` | Class giữ `currentUserId` + `currentAccountId`. Inject qua `ServiceLocator` hoặc `InheritedWidget`. | ✅ |
+| 13 | Tạo `Account` model | `id`, `type` (personal/family), `name`, `ownerId`, `memberIds`, `createdAt`. Có `toMap`/`fromMap`/`copyWith`. | ✅ |
+| 14 | Tạo `AccountService` | Firestore CRUD: `createAccount`, `getAccountsForUser`, `deleteAccount`. | ✅ |
+| 15 | Tạo `AccountPickerScreen` | Hiển thị danh sách accounts (personal + families). Tap → set `currentAccountId` → navigate Home. Nút tạo family. | ✅ |
+| 16 | Cập nhật `main.dart` navigation | Auth → AccountPicker → Home. "Skip" → Home với `account_id = 'local'`. | ✅ |
+| 17 | Cập nhật `HomeScreen` | Nhận `accountId`, thêm nút back về Account Picker. | ✅ |
+| 18 | Migrate local data khi login lần đầu | Gán `account_id = personalAccountId` cho tất cả records có `account_id = 'local'`. | ✅ |
+| 19 | Thêm l10n keys cho Account Picker | `chooseAccount`, `personalAccount`, `walletCount`, `memberCount` — cả vi và en. | ✅ |
 
 ## Phase 3: Family
 

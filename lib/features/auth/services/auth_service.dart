@@ -24,7 +24,6 @@ class AuthService {
       password: password,
     );
     await result.user?.updateDisplayName(displayName);
-    // TODO: Phase 2 — tạo users/{userId} document + personal account trên Firestore
     return result.user;
   }
 

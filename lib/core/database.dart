@@ -22,7 +22,7 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -45,7 +45,8 @@ CREATE TABLE wallets(
   name TEXT NOT NULL,
   balance INTEGER NOT NULL DEFAULT 0,
   created_at INTEGER NOT NULL,
-  updated_at INTEGER
+  updated_at INTEGER,
+  account_id TEXT NOT NULL DEFAULT 'local'
 )
 ''');
 
@@ -54,7 +55,8 @@ CREATE TABLE categories(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   type TEXT,
-  icon INTEGER
+  icon INTEGER,
+  account_id TEXT NOT NULL DEFAULT 'local'
 )
 ''');
 
@@ -70,6 +72,7 @@ CREATE TABLE transactions(
   note TEXT,
   date INTEGER NOT NULL,
   updated_at INTEGER,
+  account_id TEXT NOT NULL DEFAULT 'local',
   FOREIGN KEY(wallet_id) REFERENCES wallets(id) ON DELETE CASCADE,
   FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE RESTRICT
 )
@@ -135,6 +138,15 @@ CREATE TABLE transaction_items(
     if (oldVersion < 4) {
       await _migrateToV4(db);
     }
+    if (oldVersion < 5) {
+      await _migrateToV5(db);
+    }
+  }
+
+  Future<void> _migrateToV5(Database db) async {
+    await db.execute("ALTER TABLE wallets ADD COLUMN account_id TEXT NOT NULL DEFAULT 'local'");
+    await db.execute("ALTER TABLE transactions ADD COLUMN account_id TEXT NOT NULL DEFAULT 'local'");
+    await db.execute("ALTER TABLE categories ADD COLUMN account_id TEXT NOT NULL DEFAULT 'local'");
   }
 
   Future<void> _migrateToV4(Database db) async {
@@ -198,6 +210,16 @@ FROM transactions_old
     });
 
     await db.execute('PRAGMA foreign_keys = ON');
+  }
+
+  /// Migrate local data sang account khi login lần đầu
+  Future<void> migrateLocalDataToAccount(String accountId) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      await txn.rawUpdate("UPDATE wallets SET account_id = ? WHERE account_id = 'local'", [accountId]);
+      await txn.rawUpdate("UPDATE transactions SET account_id = ? WHERE account_id = 'local'", [accountId]);
+      await txn.rawUpdate("UPDATE categories SET account_id = ? WHERE account_id = 'local'", [accountId]);
+    });
   }
 
   /// Tính lại balance của wallet từ tổng transactions.

@@ -15,11 +15,10 @@ class WalletRepository {
   }
 
   /// READ ALL
-  Future<List<Wallet>> getAll() async {
+  Future<List<Wallet>> getAll({String accountId = 'local'}) async {
     final db = await AppDatabase.instance.database;
-
-    final result = await db.query('wallets', orderBy: 'created_at DESC');
-
+    final result = await db.query('wallets',
+        where: 'account_id = ?', whereArgs: [accountId], orderBy: 'created_at DESC');
     return result.map((e) => Wallet.fromMap(e)).toList();
   }
 

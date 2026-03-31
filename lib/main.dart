@@ -11,6 +11,7 @@ import 'package:vintage_ledger/common/widgets/auto_lock_wrapper.dart';
 import 'package:vintage_ledger/features/home/screens/home_screen.dart';
 import 'package:vintage_ledger/features/onboarding/screens/welcome_screen.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
+import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/core/theme/app_theme.dart';
 
 void main() async {
@@ -89,15 +90,24 @@ class _MyAppState extends State<MyApp> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // Chưa login + chưa skip → LoginScreen
     final user = sl.authService.currentUser;
     final skipped = _setupDone!;
+
+    // Chưa login + chưa skip → LoginScreen
     if (user == null && !skipped) {
       return const LoginScreen();
     }
 
-    final screen = skipped ? const HomeScreen() : const WelcomeScreen();
+    // Đã login → set userId + AccountPicker
+    if (user != null) {
+      sl.appState.currentUserId = user.uid;
+      final screen = const AccountPickerScreen();
+      if (Platform.isWindows) return screen;
+      return AutoLockWrapper(child: screen);
+    }
 
+    // Skip → local mode
+    final screen = const HomeScreen();
     if (Platform.isWindows) return screen;
     return AutoLockWrapper(child: screen);
   }

@@ -33,37 +33,40 @@ class TransactionRepository {
   }
 
   /// READ RECENT (with optional wallet filter)
-  Future<List<TransactionModel>> getRecent(int limit, {int? walletId}) async {
+  Future<List<TransactionModel>> getRecent(int limit, {int? walletId, String accountId = 'local'}) async {
     final db = await AppDatabase.instance.database;
-
+    final conditions = <String>['account_id = ?'];
+    final args = <dynamic>[accountId];
+    if (walletId != null) {
+      conditions.add('wallet_id = ?');
+      args.add(walletId);
+    }
     return (await db.query(
       'transactions',
-      where: walletId != null ? 'wallet_id = ?' : null,
-      whereArgs: walletId != null ? [walletId] : null,
+      where: conditions.join(' AND '),
+      whereArgs: args,
       orderBy: 'date DESC',
       limit: limit,
     )).map((e) => TransactionModel.fromMap(e)).toList();
   }
 
-  /// READ BY DATE RANGE (with optional wallet filter)
   Future<List<TransactionModel>> getByDateRange(
     int startDate,
     int endDate, {
     int? walletId,
+    String accountId = 'local',
   }) async {
     final db = await AppDatabase.instance.database;
-
-    final where = walletId != null
-        ? 'date >= ? AND date <= ? AND wallet_id = ?'
-        : 'date >= ? AND date <= ?';
-    final whereArgs = walletId != null
-        ? [startDate, endDate, walletId]
-        : [startDate, endDate];
-
+    final conditions = <String>['account_id = ?', 'date >= ?', 'date <= ?'];
+    final args = <dynamic>[accountId, startDate, endDate];
+    if (walletId != null) {
+      conditions.add('wallet_id = ?');
+      args.add(walletId);
+    }
     return (await db.query(
       'transactions',
-      where: where,
-      whereArgs: whereArgs,
+      where: conditions.join(' AND '),
+      whereArgs: args,
       orderBy: 'date DESC',
     )).map((e) => TransactionModel.fromMap(e)).toList();
   }
