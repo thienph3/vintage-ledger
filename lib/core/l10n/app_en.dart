@@ -85,6 +85,13 @@ const Map<String, String> en = {
   'authFailed': 'Authentication failed',
   'unlock': 'Unlock',
   'exitApp': 'Exit app',
+  'login': 'LOG IN',
+  'register': 'REGISTER',
+  'email': 'Email',
+  'password': 'Password',
+  'displayName': 'Display name',
+  'skipLogin': 'Skip',
+  'logout': 'Log out',
 
   // Chart
   'noData': 'No data',

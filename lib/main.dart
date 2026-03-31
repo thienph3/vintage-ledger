@@ -3,18 +3,27 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:firebase_core/firebase_core.dart';
 
+import 'package:vintage_ledger/firebase_options.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/common/widgets/auto_lock_wrapper.dart';
 import 'package:vintage_ledger/features/home/screens/home_screen.dart';
 import 'package:vintage_ledger/features/onboarding/screens/welcome_screen.dart';
+import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
 import 'package:vintage_ledger/core/theme/app_theme.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   }
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   runApp(const MyApp());
 }
@@ -76,12 +85,18 @@ class _MyAppState extends State<MyApp> {
   }
 
   Widget _buildHome() {
-    // Still loading settings
     if (_setupDone == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final screen = _setupDone! ? const HomeScreen() : const WelcomeScreen();
+    // Chưa login + chưa skip → LoginScreen
+    final user = sl.authService.currentUser;
+    final skipped = _setupDone!;
+    if (user == null && !skipped) {
+      return const LoginScreen();
+    }
+
+    final screen = skipped ? const HomeScreen() : const WelcomeScreen();
 
     if (Platform.isWindows) return screen;
     return AutoLockWrapper(child: screen);

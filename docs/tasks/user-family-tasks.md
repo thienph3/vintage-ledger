@@ -6,14 +6,14 @@
 
 | # | Task | Mô tả | Status |
 |---|---|---|---|
-| 1 | Thêm `firebase_core` + `firebase_auth` dependencies | Thêm vào `pubspec.yaml`, chạy `flutter pub get`. | ⬜ |
-| 2 | Init Firebase trong `main.dart` | Gọi `Firebase.initializeApp()` trước `runApp()`, dùng `firebase_options.dart` đã có. | ⬜ |
-| 3 | Mở rộng `AuthService` | Thêm methods: `loginWithEmail`, `registerWithEmail`, `logout`, `currentUser` getter. Giữ `authenticate` (biometric) nguyên. | ⬜ |
-| 4 | Tạo `RegisterScreen` | Form: email + password + display name. Gọi `AuthService.registerWithEmail`. Tạo personal account trên Firestore sau register. | ⬜ |
-| 5 | Tạo `LoginScreen` | Form: email + password. Link sang Register. Nút "Skip" → vào app local-only (`account_id = 'local'`). | ⬜ |
-| 6 | Cập nhật `main.dart` auth flow | Check `FirebaseAuth.currentUser`: null → LoginScreen, có → Account Picker (Phase 2) hoặc Home (tạm). "Skip" → Home như cũ. | ⬜ |
-| 7 | Tạo `users/{userId}` document khi register | Lưu email, display_name, created_at, account_ids (chứa personal accountId). | ⬜ |
-| 8 | Thêm l10n keys cho Auth | `login`, `register`, `email`, `password`, `displayName`, `skipLogin`, `logout` — cả vi và en. | ⬜ |
+| 1 | Thêm `firebase_core` + `firebase_auth` dependencies | Thêm vào `pubspec.yaml`, chạy `flutter pub get`. | ✅ |
+| 2 | Init Firebase trong `main.dart` | Gọi `Firebase.initializeApp()` trước `runApp()`, dùng `firebase_options.dart` đã có. | ✅ |
+| 3 | Mở rộng `AuthService` | Thêm methods: `loginWithEmail`, `registerWithEmail`, `logout`, `currentUser` getter. Giữ `authenticate` (biometric) nguyên. | ✅ |
+| 4 | Tạo `RegisterScreen` | Form: email + password + display name. Gọi `AuthService.registerWithEmail`. Tạo personal account trên Firestore sau register. | ✅ |
+| 5 | Tạo `LoginScreen` | Form: email + password. Link sang Register. Nút "Skip" → vào app local-only (`account_id = 'local'`). | ✅ |
+| 6 | Cập nhật `main.dart` auth flow | Check `FirebaseAuth.currentUser`: null → LoginScreen, có → Account Picker (Phase 2) hoặc Home (tạm). "Skip" → Home như cũ. | ✅ |
+| 7 | Tạo `users/{userId}` document khi register | Lưu email, display_name, created_at, account_ids (chứa personal accountId). | ⏳ Phase 2 (cần cloud_firestore) |
+| 8 | Thêm l10n keys cho Auth | `login`, `register`, `email`, `password`, `displayName`, `skipLogin`, `logout` — cả vi và en. | ✅ |
 
 ## Phase 2: Account System
 

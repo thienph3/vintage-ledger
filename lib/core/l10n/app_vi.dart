@@ -84,6 +84,13 @@ const Map<String, String> vi = {
   'authFailed': 'Xác thực thất bại',
   'unlock': 'Mở khóa',
   'exitApp': 'Thoát ứng dụng',
+  'login': 'ĐĂNG NHẬP',
+  'register': 'ĐĂNG KÝ',
+  'email': 'Email',
+  'password': 'Mật khẩu',
+  'displayName': 'Tên hiển thị',
+  'skipLogin': 'Bỏ qua',
+  'logout': 'Đăng xuất',
 
   // Chart
   'noData': 'Không có dữ liệu',
