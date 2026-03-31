@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
-import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 
@@ -48,26 +47,13 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
     final balance = int.tryParse(balanceController.text) ?? 0;
 
     if (isEdit) {
-      final updated = Wallet(
-        id: widget.wallet!.id,
-        name: name,
-        balance: balance,
-        createdAt: widget.wallet!.createdAt,
-      );
-
       await sl.walletService.updateWallet(
-        updated.id!,
-        updated.name,
-        updated.balance,
+        widget.wallet!.id!,
+        name,
+        balance,
       );
     } else {
-      final created = Wallet(
-        name: name,
-        balance: balance,
-        createdAt: DateTime.now().millisecondsSinceEpoch,
-      );
-
-      await sl.walletService.createWallet(created.name, created.balance);
+      await sl.walletService.createWallet(name, balance);
     }
 
     if (!mounted) return;

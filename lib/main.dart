@@ -7,7 +7,6 @@ import 'package:firebase_core/firebase_core.dart';
 
 import 'package:vintage_ledger/firebase_options.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/common/widgets/auto_lock_wrapper.dart';
 import 'package:vintage_ledger/features/home/screens/home_screen.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
@@ -100,14 +99,9 @@ class _MyAppState extends State<MyApp> {
     // Đã login → set userId + AccountPicker
     if (user != null) {
       sl.appState.currentUserId = user.uid;
-      final screen = const AccountPickerScreen();
-      if (Platform.isWindows) return screen;
-      return AutoLockWrapper(child: screen);
+      return const AccountPickerScreen();
     }
 
-    // Skip → local mode
-    final screen = const HomeScreen();
-    if (Platform.isWindows) return screen;
-    return AutoLockWrapper(child: screen);
+    return const HomeScreen();
   }
 }

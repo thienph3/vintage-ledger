@@ -9,9 +9,12 @@ class AppDatabase {
 
   AppDatabase._init();
 
+  static void resetForTest() {
+    _database = null;
+  }
+
   Future<Database> get database async {
     if (_database != null) return _database!;
-
     _database = await _initDB('wallet.db');
     return _database!;
   }
@@ -22,12 +25,11 @@ class AppDatabase {
 
     return await openDatabase(
       path,
-      version: 6,
+      version: 1,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
       onCreate: _createDB,
-      onUpgrade: _onUpgrade,
     );
   }
 
@@ -96,13 +98,8 @@ CREATE TABLE transaction_items(
 )
 ''');
 
-    await _createIndexes(db);
-    await _createSyncDeletesTable(db);
-  }
-
-  Future<void> _createSyncDeletesTable(Database db) async {
     await db.execute('''
-CREATE TABLE IF NOT EXISTS sync_deletes(
+CREATE TABLE sync_deletes(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   table_name TEXT NOT NULL,
   remote_id TEXT NOT NULL,
@@ -110,26 +107,21 @@ CREATE TABLE IF NOT EXISTS sync_deletes(
   deleted_at INTEGER NOT NULL
 )
 ''');
+
+    await _createIndexes(db);
   }
 
   Future<void> _createIndexes(Database db) async {
-    await db.execute(
-        'CREATE INDEX IF NOT EXISTS idx_transactions_wallet ON transactions(wallet_id)');
-    await db.execute(
-        'CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date)');
-    await db.execute(
-        'CREATE INDEX IF NOT EXISTS idx_transaction_items_txn ON transaction_items(transaction_id)');
-    await db.execute(
-        'CREATE INDEX IF NOT EXISTS idx_wallets_account_sync ON wallets(account_id, is_synced)');
-    await db.execute(
-        'CREATE INDEX IF NOT EXISTS idx_transactions_account_sync ON transactions(account_id, is_synced)');
-    await db.execute(
-        'CREATE INDEX IF NOT EXISTS idx_categories_account_sync ON categories(account_id, is_synced)');
+    await db.execute('CREATE INDEX idx_transactions_wallet ON transactions(wallet_id)');
+    await db.execute('CREATE INDEX idx_transactions_date ON transactions(date)');
+    await db.execute('CREATE INDEX idx_transaction_items_txn ON transaction_items(transaction_id)');
+    await db.execute('CREATE INDEX idx_wallets_account_sync ON wallets(account_id, is_synced)');
+    await db.execute('CREATE INDEX idx_transactions_account_sync ON transactions(account_id, is_synced)');
+    await db.execute('CREATE INDEX idx_categories_account_sync ON categories(account_id, is_synced)');
   }
 
   Future<void> _seedCategories(Database db) async {
     final categories = [
-      // Expense
       {'name': 'Ăn uống', 'type': 'expense', 'icon': kCategoryIcons[0].codePoint},
       {'name': 'Di chuyển', 'type': 'expense', 'icon': kCategoryIcons[1].codePoint},
       {'name': 'Mua sắm', 'type': 'expense', 'icon': kCategoryIcons[2].codePoint},
@@ -140,7 +132,6 @@ CREATE TABLE IF NOT EXISTS sync_deletes(
       {'name': 'Cà phê', 'type': 'expense', 'icon': kCategoryIcons[7].codePoint},
       {'name': 'Hóa đơn', 'type': 'expense', 'icon': kCategoryIcons[8].codePoint},
       {'name': 'Khác', 'type': 'expense', 'icon': kCategoryIcons[9].codePoint},
-      // Income
       {'name': 'Lương', 'type': 'income', 'icon': kCategoryIcons[10].codePoint},
       {'name': 'Thưởng', 'type': 'income', 'icon': kCategoryIcons[11].codePoint},
       {'name': 'Đầu tư', 'type': 'income', 'icon': kCategoryIcons[12].codePoint},
@@ -154,105 +145,6 @@ CREATE TABLE IF NOT EXISTS sync_deletes(
     await batch.commit(noResult: true);
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
-    if (oldVersion < 2) {
-      await _createIndexes(db);
-    }
-    if (oldVersion < 3) {
-      await _migrateToV3(db);
-    }
-    if (oldVersion < 4) {
-      await _migrateToV4(db);
-    }
-    if (oldVersion < 5) {
-      await _migrateToV5(db);
-    }
-    if (oldVersion < 6) {
-      await _migrateToV6(db);
-    }
-  }
-
-  Future<void> _migrateToV6(Database db) async {
-    await db.execute('ALTER TABLE wallets ADD COLUMN is_synced INTEGER NOT NULL DEFAULT 1');
-    await db.execute('ALTER TABLE wallets ADD COLUMN remote_id TEXT');
-    await db.execute('ALTER TABLE transactions ADD COLUMN is_synced INTEGER NOT NULL DEFAULT 1');
-    await db.execute('ALTER TABLE transactions ADD COLUMN remote_id TEXT');
-    await db.execute('ALTER TABLE transactions ADD COLUMN created_by TEXT');
-    await db.execute('ALTER TABLE categories ADD COLUMN is_synced INTEGER NOT NULL DEFAULT 1');
-    await db.execute('ALTER TABLE categories ADD COLUMN remote_id TEXT');
-    await _createSyncDeletesTable(db);
-  }
-
-  Future<void> _migrateToV5(Database db) async {
-    await db.execute("ALTER TABLE wallets ADD COLUMN account_id TEXT NOT NULL DEFAULT 'local'");
-    await db.execute("ALTER TABLE transactions ADD COLUMN account_id TEXT NOT NULL DEFAULT 'local'");
-    await db.execute("ALTER TABLE categories ADD COLUMN account_id TEXT NOT NULL DEFAULT 'local'");
-  }
-
-  Future<void> _migrateToV4(Database db) async {
-    await db.execute('ALTER TABLE wallets ADD COLUMN updated_at INTEGER');
-    await db.execute('ALTER TABLE transactions ADD COLUMN updated_at INTEGER');
-  }
-
-  /// V3 migration: recreate wallets (created_at → INTEGER) and transactions
-  /// (ON DELETE CASCADE/RESTRICT, CHECK constraints).
-  Future<void> _migrateToV3(Database db) async {
-    await db.execute('PRAGMA foreign_keys = OFF');
-
-    await db.transaction((txn) async {
-      // ── Migrate wallets: created_at TEXT → INTEGER ──
-      await txn.execute('ALTER TABLE wallets RENAME TO wallets_old');
-      await txn.execute('''
-CREATE TABLE wallets(
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL,
-  balance INTEGER NOT NULL DEFAULT 0,
-  created_at INTEGER NOT NULL
-)
-''');
-      // Convert ISO string to epoch, fallback to 0
-      await txn.execute('''
-INSERT INTO wallets(id, name, balance, created_at)
-SELECT id, name, balance,
-  CASE
-    WHEN created_at IS NOT NULL AND created_at != ''
-    THEN CAST(strftime('%s', created_at) AS INTEGER) * 1000
-    ELSE 0
-  END
-FROM wallets_old
-''');
-      await txn.execute('DROP TABLE wallets_old');
-
-      // ── Migrate transactions: add FK actions + CHECK constraints ──
-      await txn.execute('ALTER TABLE transactions RENAME TO transactions_old');
-      await txn.execute('''
-CREATE TABLE transactions(
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  wallet_id INTEGER NOT NULL,
-  category_id INTEGER NOT NULL,
-  type TEXT NOT NULL CHECK(type IN ('income', 'expense')),
-  amount INTEGER NOT NULL CHECK(amount > 0),
-  note TEXT,
-  date INTEGER NOT NULL,
-  FOREIGN KEY(wallet_id) REFERENCES wallets(id) ON DELETE CASCADE,
-  FOREIGN KEY(category_id) REFERENCES categories(id) ON DELETE RESTRICT
-)
-''');
-      await txn.execute('''
-INSERT INTO transactions(id, wallet_id, category_id, type, amount, note, date)
-SELECT id, wallet_id, category_id, type, amount, note, date
-FROM transactions_old
-''');
-      await txn.execute('DROP TABLE transactions_old');
-
-      // Recreate indexes
-      await _createIndexes(txn as Database);
-    });
-
-    await db.execute('PRAGMA foreign_keys = ON');
-  }
-
-  /// Migrate local data sang account khi login lần đầu
   Future<void> migrateLocalDataToAccount(String accountId) async {
     final db = await database;
     await db.transaction((txn) async {
@@ -262,7 +154,6 @@ FROM transactions_old
     });
   }
 
-  /// Tính lại balance của wallet từ tổng transactions.
   Future<void> recalculateBalance(int walletId) async {
     final db = await database;
     await db.transaction((txn) async {

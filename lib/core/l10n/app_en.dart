@@ -80,11 +80,6 @@ const Map<String, String> en = {
   'noCategoriesFound': 'No categories found',
 
   // Auth
-  'appLocked': 'App is locked',
-  'authenticateToContinue': 'Authenticate to continue',
-  'authFailed': 'Authentication failed',
-  'unlock': 'Unlock',
-  'exitApp': 'Exit app',
   'login': 'LOG IN',
   'register': 'REGISTER',
   'email': 'Email',

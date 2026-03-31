@@ -37,12 +37,7 @@ class SyncService {
   Future<void> syncAccount(String accountId) async {
     if (!await _hasNetwork) throw Exception('No internet connection');
 
-    try {
-      await _pushAccount(accountId);
-    } catch (e) {
-      rethrow;
-    }
-
+    await _pushAccount(accountId);
     await _pullAccount(accountId);
     await _maybeCleanupTombstones(accountId);
   }
@@ -77,8 +72,9 @@ class SyncService {
       // Convert local IDs → remote IDs for cross-device compatibility
       final walletRemoteId = await _syncRepo.getWalletRemoteId(data['wallet_id'] as int);
       final categoryRemoteId = await _syncRepo.getCategoryRemoteId(data['category_id'] as int);
-      data['wallet_id'] = walletRemoteId ?? data['wallet_id'];
-      data['category_id'] = categoryRemoteId ?? data['category_id'];
+      if (walletRemoteId == null || categoryRemoteId == null) continue;
+      data['wallet_id'] = walletRemoteId;
+      data['category_id'] = categoryRemoteId;
 
       // Embed transaction_items via repository
       final items = await _syncRepo.getTransactionItems(localId);
