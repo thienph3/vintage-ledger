@@ -7,6 +7,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
+import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 
 class WalletFormScreen extends StatefulWidget {
   final Wallet? wallet;
