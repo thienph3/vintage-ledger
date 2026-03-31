@@ -82,6 +82,38 @@ class TransactionItemRepository {
     return result.map((e) => TransactionItemModel.fromMap(e)).toList();
   }
 
+  /// READ BY MULTIPLE TRANSACTIONS (batch load)
+  Future<Map<int, List<TransactionItemModel>>> getByTransactionIds(
+      List<int> transactionIds) async {
+    if (transactionIds.isEmpty) return {};
+
+    final db = await AppDatabase.instance.database;
+    final placeholders = List.filled(transactionIds.length, '?').join(',');
+    final result = await db.query(
+      'transaction_items',
+      where: 'transaction_id IN ($placeholders)',
+      whereArgs: transactionIds,
+      orderBy: 'id ASC',
+    );
+
+    final map = <int, List<TransactionItemModel>>{};
+    for (final row in result) {
+      final item = TransactionItemModel.fromMap(row);
+      map.putIfAbsent(item.transactionId, () => []).add(item);
+    }
+    return map;
+  }
+
+  /// DELETE ALL ITEMS BY TRANSACTION
+  Future<int> deleteByTransaction(int transactionId) async {
+    final db = await AppDatabase.instance.database;
+    return await db.delete(
+      'transaction_items',
+      where: 'transaction_id = ?',
+      whereArgs: [transactionId],
+    );
+  }
+
   /// UPDATE
   Future<int> update(TransactionItemModel item) async {
     final db = await AppDatabase.instance.database;

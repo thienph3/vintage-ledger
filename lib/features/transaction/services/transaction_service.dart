@@ -1,3 +1,4 @@
+import 'package:vintage_ledger/core/database.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_item.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
@@ -12,7 +13,7 @@ class TransactionService {
   final TransactionItemRepository _itemRepo = TransactionItemRepository();
   final WalletRepository _walletRepo = WalletRepository();
 
-  /// CREATE TRANSACTION
+  /// CREATE TRANSACTION (atomic: update balance + insert in one DB transaction)
   Future<int> createTransaction({
     required int walletId,
     required int categoryId,
@@ -29,37 +30,38 @@ class TransactionService {
       throw Exception("Invalid transaction type");
     }
 
-    final wallet = await _walletRepo.getById(walletId);
-    if (wallet == null) {
-      throw Exception("Wallet not found");
-    }
+    final db = await AppDatabase.instance.database;
 
-    int newBalance = wallet.balance;
-    if (type == "income") {
-      newBalance += amount;
-    } else {
-      newBalance -= amount;
-    }
+    return await db.transaction((txn) async {
+      final walletResult = await txn.query(
+        'wallets',
+        where: 'id = ?',
+        whereArgs: [walletId],
+        limit: 1,
+      );
+      if (walletResult.isEmpty) throw Exception("Wallet not found");
 
-    await _walletRepo.update(
-      Wallet(
-        id: wallet.id,
-        name: wallet.name,
-        balance: newBalance,
-        createdAt: wallet.createdAt,
-      ),
-    );
+      final wallet = Wallet.fromMap(walletResult.first);
+      final newBalance = type == "income"
+          ? wallet.balance + amount
+          : wallet.balance - amount;
 
-    final transaction = TransactionModel(
-      walletId: walletId,
-      categoryId: categoryId,
-      type: type,
-      amount: amount,
-      note: note,
-      date: date,
-    );
+      await txn.update(
+        'wallets',
+        {'balance': newBalance},
+        where: 'id = ?',
+        whereArgs: [walletId],
+      );
 
-    return await _repo.create(transaction);
+      return await txn.insert('transactions', {
+        'wallet_id': walletId,
+        'category_id': categoryId,
+        'type': type,
+        'amount': amount,
+        'note': note,
+        'date': date,
+      });
+    });
   }
 
   /// READ RECENT (with optional wallet filter)
@@ -93,72 +95,103 @@ class TransactionService {
     return TransactionWithItems(transaction: transaction, items: items);
   }
 
-  /// UPDATE TRANSACTION
+  /// UPDATE TRANSACTION (atomic: revert old balance + apply new balance + update row)
   Future<int> updateTransaction(TransactionModel transaction) async {
-    final existing = await _repo.getById(transaction.id!);
-    if (existing == null) {
-      throw Exception("Transaction not found");
-    }
+    final db = await AppDatabase.instance.database;
 
-    final wallet = await _walletRepo.getById(existing.walletId);
-    if (wallet == null) {
-      throw Exception("Wallet not found");
-    }
+    return await db.transaction((txn) async {
+      final existingResult = await txn.query(
+        'transactions',
+        where: 'id = ?',
+        whereArgs: [transaction.id],
+        limit: 1,
+      );
+      if (existingResult.isEmpty) throw Exception("Transaction not found");
 
-    int newBalance = wallet.balance;
-    if (existing.type == "income") {
-      newBalance -= existing.amount;
-    } else {
-      newBalance += existing.amount;
-    }
+      final existing = TransactionModel.fromMap(existingResult.first);
 
-    if (transaction.type == "income") {
-      newBalance += transaction.amount;
-    } else {
-      newBalance -= transaction.amount;
-    }
+      final walletResult = await txn.query(
+        'wallets',
+        where: 'id = ?',
+        whereArgs: [existing.walletId],
+        limit: 1,
+      );
+      if (walletResult.isEmpty) throw Exception("Wallet not found");
 
-    await _walletRepo.update(
-      Wallet(
-        id: wallet.id,
-        name: wallet.name,
-        balance: newBalance,
-        createdAt: wallet.createdAt,
-      ),
-    );
+      final wallet = Wallet.fromMap(walletResult.first);
 
-    return await _repo.update(transaction);
+      // Revert old transaction effect
+      int newBalance = wallet.balance;
+      newBalance += existing.type == "income" ? -existing.amount : existing.amount;
+
+      // Apply new transaction effect
+      newBalance += transaction.type == "income" ? transaction.amount : -transaction.amount;
+
+      await txn.update(
+        'wallets',
+        {'balance': newBalance},
+        where: 'id = ?',
+        whereArgs: [wallet.id],
+      );
+
+      return await txn.update(
+        'transactions',
+        transaction.toMap(),
+        where: 'id = ?',
+        whereArgs: [transaction.id],
+      );
+    });
   }
 
-  /// DELETE TRANSACTION (and its items)
+  /// DELETE TRANSACTION (atomic: revert balance + batch delete items + delete row)
   Future<int> deleteTransaction(int id) async {
-    final transaction = await _repo.getById(id);
-    if (transaction == null) throw Exception("Transaction not found");
+    final db = await AppDatabase.instance.database;
 
-    final wallet = await _walletRepo.getById(transaction.walletId);
-    if (wallet != null) {
-      int newBalance = wallet.balance;
-      if (transaction.type == "income") {
-        newBalance -= transaction.amount;
-      } else {
-        newBalance += transaction.amount;
-      }
-      await _walletRepo.update(
-        Wallet(
-          id: wallet.id,
-          name: wallet.name,
-          balance: newBalance,
-          createdAt: wallet.createdAt,
-        ),
+    return await db.transaction((txn) async {
+      final txnResult = await txn.query(
+        'transactions',
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
       );
-    }
+      if (txnResult.isEmpty) throw Exception("Transaction not found");
 
-    final items = await _itemRepo.getByTransaction(id);
-    for (var item in items) {
-      await _itemRepo.delete(item.id!);
-    }
+      final transaction = TransactionModel.fromMap(txnResult.first);
 
-    return await _repo.delete(id);
+      final walletResult = await txn.query(
+        'wallets',
+        where: 'id = ?',
+        whereArgs: [transaction.walletId],
+        limit: 1,
+      );
+
+      if (walletResult.isNotEmpty) {
+        final wallet = Wallet.fromMap(walletResult.first);
+        final newBalance = transaction.type == "income"
+            ? wallet.balance - transaction.amount
+            : wallet.balance + transaction.amount;
+
+        await txn.update(
+          'wallets',
+          {'balance': newBalance},
+          where: 'id = ?',
+          whereArgs: [wallet.id],
+        );
+      }
+
+      // Batch delete items instead of loop
+      await txn.delete(
+        'transaction_items',
+        where: 'transaction_id = ?',
+        whereArgs: [id],
+      );
+
+      return await txn.delete(
+        'transactions',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    });
   }
 
   /// DELETE ALL TRANSACTIONS FOR A WALLET
@@ -192,14 +225,20 @@ class TransactionService {
   // PRIVATE HELPERS
   // ========================
 
+  /// Batch load items for multiple transactions (fixes N+1 query)
   Future<List<TransactionWithItems>> _attachItems(
     List<TransactionModel> transactions,
   ) async {
-    final result = <TransactionWithItems>[];
-    for (var t in transactions) {
-      final items = await _itemRepo.getByTransaction(t.id!);
-      result.add(TransactionWithItems(transaction: t, items: items));
-    }
-    return result;
+    if (transactions.isEmpty) return [];
+
+    final ids = transactions.map((t) => t.id!).toList();
+    final itemsMap = await _itemRepo.getByTransactionIds(ids);
+
+    return transactions.map((t) {
+      return TransactionWithItems(
+        transaction: t,
+        items: itemsMap[t.id!] ?? [],
+      );
+    }).toList();
   }
 }

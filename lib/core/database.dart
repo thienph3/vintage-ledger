@@ -2,12 +2,10 @@ import 'dart:io';
 
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'package:vintage_ledger/core/constants/category_icons.dart';
 
 class AppDatabase {
   static final AppDatabase instance = AppDatabase._init();
-
-  /// Set to true to wipe and recreate DB on next launch.
-  static const _resetOnInit = false;
 
   static Database? _database;
 
@@ -24,14 +22,12 @@ class AppDatabase {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    if (_resetOnInit) {
-      final file = File(path);
-      if (file.existsSync()) file.deleteSync();
-    }
-
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
+      onConfigure: (db) async {
+        await db.execute('PRAGMA foreign_keys = ON');
+      },
       onCreate: _createDB,
       onUpgrade: _onUpgrade,
     );
@@ -68,12 +64,14 @@ CREATE TABLE categories(
     await db.execute('''
 CREATE TABLE transactions(
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  wallet_id INTEGER,
-  category_id INTEGER,
+  wallet_id INTEGER NOT NULL,
+  category_id INTEGER NOT NULL,
   type TEXT,
   amount INTEGER,
   note TEXT,
-  date TEXT
+  date INTEGER,
+  FOREIGN KEY(wallet_id) REFERENCES wallets(id),
+  FOREIGN KEY(category_id) REFERENCES categories(id)
 )
 ''');
 
@@ -87,26 +85,37 @@ CREATE TABLE transaction_items(
   FOREIGN KEY(transaction_id) REFERENCES transactions(id) ON DELETE CASCADE
 )
 ''');
+
+    await _createIndexes(db);
+  }
+
+  Future<void> _createIndexes(Database db) async {
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_transactions_wallet ON transactions(wallet_id)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(date)');
+    await db.execute(
+        'CREATE INDEX IF NOT EXISTS idx_transaction_items_txn ON transaction_items(transaction_id)');
   }
 
   Future<void> _seedCategories(Database db) async {
-    const categories = [
+    final categories = [
       // Expense
-      {'name': 'Ăn uống', 'type': 'expense', 'icon': 0xe25a},      // fastfood
-      {'name': 'Di chuyển', 'type': 'expense', 'icon': 0xe1d7},    // directions_car
-      {'name': 'Mua sắm', 'type': 'expense', 'icon': 0xe8cc},      // shopping_cart
-      {'name': 'Nhà ở', 'type': 'expense', 'icon': 0xe318},        // home
-      {'name': 'Sức khỏe', 'type': 'expense', 'icon': 0xe8e8},     // health_and_safety
-      {'name': 'Giáo dục', 'type': 'expense', 'icon': 0xe80c},     // school
-      {'name': 'Giải trí', 'type': 'expense', 'icon': 0xe02c},     // movie
-      {'name': 'Cà phê', 'type': 'expense', 'icon': 0xe541},       // local_cafe
-      {'name': 'Hóa đơn', 'type': 'expense', 'icon': 0xe873},      // receipt_long
-      {'name': 'Khác', 'type': 'expense', 'icon': 0xe5d3},         // more_horiz
+      {'name': 'Ăn uống', 'type': 'expense', 'icon': kCategoryIcons[0].codePoint},
+      {'name': 'Di chuyển', 'type': 'expense', 'icon': kCategoryIcons[1].codePoint},
+      {'name': 'Mua sắm', 'type': 'expense', 'icon': kCategoryIcons[2].codePoint},
+      {'name': 'Nhà ở', 'type': 'expense', 'icon': kCategoryIcons[3].codePoint},
+      {'name': 'Sức khỏe', 'type': 'expense', 'icon': kCategoryIcons[4].codePoint},
+      {'name': 'Giáo dục', 'type': 'expense', 'icon': kCategoryIcons[5].codePoint},
+      {'name': 'Giải trí', 'type': 'expense', 'icon': kCategoryIcons[6].codePoint},
+      {'name': 'Cà phê', 'type': 'expense', 'icon': kCategoryIcons[7].codePoint},
+      {'name': 'Hóa đơn', 'type': 'expense', 'icon': kCategoryIcons[8].codePoint},
+      {'name': 'Khác', 'type': 'expense', 'icon': kCategoryIcons[9].codePoint},
       // Income
-      {'name': 'Lương', 'type': 'income', 'icon': 0xe850},         // account_balance_wallet
-      {'name': 'Thưởng', 'type': 'income', 'icon': 0xe8f6},        // star
-      {'name': 'Đầu tư', 'type': 'income', 'icon': 0xe8e5},        // trending_up
-      {'name': 'Khác', 'type': 'income', 'icon': 0xe5d3},          // more_horiz
+      {'name': 'Lương', 'type': 'income', 'icon': kCategoryIcons[10].codePoint},
+      {'name': 'Thưởng', 'type': 'income', 'icon': kCategoryIcons[11].codePoint},
+      {'name': 'Đầu tư', 'type': 'income', 'icon': kCategoryIcons[12].codePoint},
+      {'name': 'Khác', 'type': 'income', 'icon': kCategoryIcons[9].codePoint},
     ];
 
     final batch = db.batch();
@@ -116,5 +125,32 @@ CREATE TABLE transaction_items(
     await batch.commit(noResult: true);
   }
 
-  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {}
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await _createIndexes(db);
+    }
+  }
+
+  /// Tính lại balance của wallet từ tổng transactions.
+  Future<void> recalculateBalance(int walletId) async {
+    final db = await database;
+    await db.transaction((txn) async {
+      final result = await txn.rawQuery('''
+        SELECT
+          COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as income,
+          COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as expense
+        FROM transactions WHERE wallet_id = ?
+      ''', [walletId]);
+
+      final income = result.first['income'] as int;
+      final expense = result.first['expense'] as int;
+
+      await txn.update(
+        'wallets',
+        {'balance': income - expense},
+        where: 'id = ?',
+        whereArgs: [walletId],
+      );
+    });
+  }
 }

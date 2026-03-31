@@ -22,26 +22,8 @@ const kCategoryIcons = [
   Icons.local_hospital,
 ];
 
-const Map<int, IconData> kCategoryIconMap = {
-  0xe57a: Icons.fastfood,
-  0xe530: Icons.directions_car,
-  0xe8cc: Icons.shopping_cart,
-  0xe88a: Icons.home,
-  0xe575: Icons.health_and_safety,
-  0xe80c: Icons.school,
-  0xe02c: Icons.movie,
-  0xe261: Icons.local_cafe,
-  0xe8b3: Icons.receipt_long,
-  0xe5d2: Icons.more_horiz,
-  0xe0b0: Icons.account_balance_wallet,
-  0xe838: Icons.star,
-  0xe8dc: Icons.trending_up,
-  0xe1e3: Icons.sports_soccer,
-  0xe324: Icons.phone_iphone,
-  0xe91d: Icons.pets,
-  0xe539: Icons.flight,
-  0xe405: Icons.music_note,
-  0xe574: Icons.local_hospital,
+final Map<int, IconData> kCategoryIconMap = {
+  for (final icon in kCategoryIcons) icon.codePoint: icon,
 };
 
 const IconData kDefaultCategoryIcon = Icons.help_outline;
