@@ -226,15 +226,15 @@ class AccountService {
 
     final now = DateTime.now().millisecondsSinceEpoch;
     final seeds = [
-      {'name': 'Ăn uống', 'type': 'expense', 'icon': kCategoryIcons[0].codePoint, 'updated_at': now},
-      {'name': 'Di chuyển', 'type': 'expense', 'icon': kCategoryIcons[1].codePoint, 'updated_at': now},
-      {'name': 'Mua sắm', 'type': 'expense', 'icon': kCategoryIcons[2].codePoint, 'updated_at': now},
-      {'name': 'Nhà ở', 'type': 'expense', 'icon': kCategoryIcons[3].codePoint, 'updated_at': now},
-      {'name': 'Hóa đơn', 'type': 'expense', 'icon': kCategoryIcons[8].codePoint, 'updated_at': now},
-      {'name': 'Khác', 'type': 'expense', 'icon': kCategoryIcons[9].codePoint, 'updated_at': now},
-      {'name': 'Lương', 'type': 'income', 'icon': kCategoryIcons[10].codePoint, 'updated_at': now},
-      {'name': 'Thưởng', 'type': 'income', 'icon': kCategoryIcons[11].codePoint, 'updated_at': now},
-      {'name': 'Khác', 'type': 'income', 'icon': kCategoryIcons[9].codePoint, 'updated_at': now},
+      {'name': 'Ăn uống', 'type': 'expense', 'icon': kCategoryIcons[0].codePoint, 'created_at': now, 'updated_at': now},
+      {'name': 'Di chuyển', 'type': 'expense', 'icon': kCategoryIcons[1].codePoint, 'created_at': now, 'updated_at': now},
+      {'name': 'Mua sắm', 'type': 'expense', 'icon': kCategoryIcons[2].codePoint, 'created_at': now, 'updated_at': now},
+      {'name': 'Nhà ở', 'type': 'expense', 'icon': kCategoryIcons[3].codePoint, 'created_at': now, 'updated_at': now},
+      {'name': 'Hóa đơn', 'type': 'expense', 'icon': kCategoryIcons[8].codePoint, 'created_at': now, 'updated_at': now},
+      {'name': 'Khác', 'type': 'expense', 'icon': kCategoryIcons[9].codePoint, 'created_at': now, 'updated_at': now},
+      {'name': 'Lương', 'type': 'income', 'icon': kCategoryIcons[10].codePoint, 'created_at': now, 'updated_at': now},
+      {'name': 'Thưởng', 'type': 'income', 'icon': kCategoryIcons[11].codePoint, 'created_at': now, 'updated_at': now},
+      {'name': 'Khác', 'type': 'income', 'icon': kCategoryIcons[9].codePoint, 'created_at': now, 'updated_at': now},
     ];
 
     for (final seed in seeds) {

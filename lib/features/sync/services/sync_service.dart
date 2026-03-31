@@ -300,6 +300,7 @@ class SyncService {
           'name': data['name'],
           'type': data['type'],
           'icon': data['icon'],
+          'created_at': data['created_at'] ?? 0,
           'updated_at': data['updated_at'],
         },
       );

@@ -50,6 +50,7 @@ class CategoryRepository {
     final db = await AppDatabase.instance.database;
     final map = category.toMap();
     map['is_synced'] = 0;
+    map['updated_at'] = DateTime.now().millisecondsSinceEpoch;
     return await db.update('categories', map, where: 'id = ?', whereArgs: [category.id]);
   }
 

@@ -60,6 +60,8 @@ CREATE TABLE categories(
   name TEXT NOT NULL,
   type TEXT,
   icon INTEGER,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER,
   account_id TEXT NOT NULL DEFAULT 'local',
   is_synced INTEGER NOT NULL DEFAULT 1,
   remote_id TEXT
@@ -121,21 +123,22 @@ CREATE TABLE sync_deletes(
   }
 
   Future<void> _seedCategories(Database db) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
     final categories = [
-      {'name': 'Ăn uống', 'type': 'expense', 'icon': kCategoryIcons[0].codePoint},
-      {'name': 'Di chuyển', 'type': 'expense', 'icon': kCategoryIcons[1].codePoint},
-      {'name': 'Mua sắm', 'type': 'expense', 'icon': kCategoryIcons[2].codePoint},
-      {'name': 'Nhà ở', 'type': 'expense', 'icon': kCategoryIcons[3].codePoint},
-      {'name': 'Sức khỏe', 'type': 'expense', 'icon': kCategoryIcons[4].codePoint},
-      {'name': 'Giáo dục', 'type': 'expense', 'icon': kCategoryIcons[5].codePoint},
-      {'name': 'Giải trí', 'type': 'expense', 'icon': kCategoryIcons[6].codePoint},
-      {'name': 'Cà phê', 'type': 'expense', 'icon': kCategoryIcons[7].codePoint},
-      {'name': 'Hóa đơn', 'type': 'expense', 'icon': kCategoryIcons[8].codePoint},
-      {'name': 'Khác', 'type': 'expense', 'icon': kCategoryIcons[9].codePoint},
-      {'name': 'Lương', 'type': 'income', 'icon': kCategoryIcons[10].codePoint},
-      {'name': 'Thưởng', 'type': 'income', 'icon': kCategoryIcons[11].codePoint},
-      {'name': 'Đầu tư', 'type': 'income', 'icon': kCategoryIcons[12].codePoint},
-      {'name': 'Khác', 'type': 'income', 'icon': kCategoryIcons[9].codePoint},
+      {'name': 'Ăn uống', 'type': 'expense', 'icon': kCategoryIcons[0].codePoint, 'created_at': now},
+      {'name': 'Di chuyển', 'type': 'expense', 'icon': kCategoryIcons[1].codePoint, 'created_at': now},
+      {'name': 'Mua sắm', 'type': 'expense', 'icon': kCategoryIcons[2].codePoint, 'created_at': now},
+      {'name': 'Nhà ở', 'type': 'expense', 'icon': kCategoryIcons[3].codePoint, 'created_at': now},
+      {'name': 'Sức khỏe', 'type': 'expense', 'icon': kCategoryIcons[4].codePoint, 'created_at': now},
+      {'name': 'Giáo dục', 'type': 'expense', 'icon': kCategoryIcons[5].codePoint, 'created_at': now},
+      {'name': 'Giải trí', 'type': 'expense', 'icon': kCategoryIcons[6].codePoint, 'created_at': now},
+      {'name': 'Cà phê', 'type': 'expense', 'icon': kCategoryIcons[7].codePoint, 'created_at': now},
+      {'name': 'Hóa đơn', 'type': 'expense', 'icon': kCategoryIcons[8].codePoint, 'created_at': now},
+      {'name': 'Khác', 'type': 'expense', 'icon': kCategoryIcons[9].codePoint, 'created_at': now},
+      {'name': 'Lương', 'type': 'income', 'icon': kCategoryIcons[10].codePoint, 'created_at': now},
+      {'name': 'Thưởng', 'type': 'income', 'icon': kCategoryIcons[11].codePoint, 'created_at': now},
+      {'name': 'Đầu tư', 'type': 'income', 'icon': kCategoryIcons[12].codePoint, 'created_at': now},
+      {'name': 'Khác', 'type': 'income', 'icon': kCategoryIcons[9].codePoint, 'created_at': now},
     ];
 
     final batch = db.batch();
