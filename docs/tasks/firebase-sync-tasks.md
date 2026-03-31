@@ -39,10 +39,10 @@
 
 | # | Task | Mô tả | Status |
 |---|---|---|---|
-| 18 | Implement last-write-wins | Khi pull: nếu local `updated_at` > remote `updated_at` → giữ local, ngược lại → overwrite. | ⬜ |
-| 19 | Handle network errors | Check `connectivity_plus` trước sync. Nếu offline → show message, không crash. | ⬜ |
-| 20 | Handle partial sync failure | Nếu push batch fail giữa chừng → rollback `is_synced` flags. Retry lần sau. | ⬜ |
-| 21 | Cleanup old soft deletes | Records có `deleted_at` > 30 ngày → xóa thật trên Firestore (tiết kiệm storage). | ⬜ |
+| 18 | Implement last-write-wins | Khi pull: nếu local `updated_at` > remote `updated_at` → giữ local, ngược lại → overwrite. | ✅ |
+| 19 | Handle network errors | Check `connectivity_plus` trước sync. Nếu offline → show message, không crash. | ✅ |
+| 20 | Handle partial sync failure | Nếu push batch fail giữa chừng → rollback `is_synced` flags. Retry lần sau. | ✅ |
+| 21 | Cleanup old soft deletes | Records có `deleted_at` > 30 ngày → xóa thật trên Firestore (tiết kiệm storage). | ✅ |
 
 ## Phase 4E: UI
 

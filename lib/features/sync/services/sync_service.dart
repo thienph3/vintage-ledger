@@ -14,25 +14,37 @@ class SyncService {
     return !result.contains(ConnectivityResult.none);
   }
 
-  /// Sync tất cả accounts của user hiện tại
-  Future<void> syncAll() async {
+  /// Sync tất cả accounts của user hiện tại. Returns list of errors (empty = success).
+  Future<List<String>> syncAll() async {
     if (!await _hasNetwork) throw Exception('No internet connection');
 
     final userId = sl.appState.currentUserId;
-    if (userId == null) return;
+    if (userId == null) return [];
 
     final accounts = await sl.accountService.getAccountsForUser(userId);
+    final errors = <String>[];
     for (final account in accounts) {
-      await syncAccount(account.id);
+      try {
+        await syncAccount(account.id);
+      } catch (e) {
+        errors.add('${account.name}: $e');
+      }
     }
+    return errors;
   }
 
-  /// Sync 1 account: push dirty → pull new
+  /// Sync 1 account: push dirty → pull new → cleanup tombstones (1 lần/ngày)
   Future<void> syncAccount(String accountId) async {
     if (!await _hasNetwork) throw Exception('No internet connection');
 
-    await _pushAccount(accountId);
+    try {
+      await _pushAccount(accountId);
+    } catch (e) {
+      rethrow;
+    }
+
     await _pullAccount(accountId);
+    await _maybeCleanupTombstones(accountId);
   }
 
   // ── Push ──
@@ -168,7 +180,6 @@ class SyncService {
         continue;
       }
 
-      // #18 placeholder — last-write-wins check sẽ ở Phase 4D
       final localId = await _syncRepo.upsertByRemoteId(
         table: 'wallets',
         remoteId: doc.id,
@@ -180,7 +191,7 @@ class SyncService {
           'updated_at': data['updated_at'],
         },
       );
-      changedWalletIds.add(localId);
+      if (localId >= 0) changedWalletIds.add(localId);
     }
 
     // #16 — Recalculate balances
@@ -232,6 +243,8 @@ class SyncService {
           'updated_at': data['updated_at'],
         },
       );
+
+      if (localId < 0) continue; // skipped — local is newer
 
       // Extract embedded items → transaction_items table
       await _syncRepo.upsertTransactionItems(localId, items);
@@ -304,5 +317,45 @@ class SyncService {
   /// Đếm records chưa sync
   Future<int> getDirtyCount(String accountId) async {
     return await _syncRepo.getDirtyCount(accountId);
+  }
+
+  /// Cleanup tombstones tối đa 1 lần/ngày per account
+  Future<void> _maybeCleanupTombstones(String accountId) async {
+    final key = 'sync_cleanup_$accountId';
+    final lastStr = await _settingRepo.get(key);
+    final lastCleanup = lastStr != null ? int.parse(lastStr) : 0;
+    final oneDayAgo = DateTime.now()
+        .subtract(const Duration(days: 1))
+        .millisecondsSinceEpoch;
+
+    if (lastCleanup > oneDayAgo) return; // đã cleanup hôm nay rồi
+
+    await cleanupTombstones(accountId);
+    await _settingRepo.set(key, DateTime.now().millisecondsSinceEpoch.toString());
+  }
+
+  /// #21 — Cleanup tombstones > 30 ngày trên Firestore
+  Future<void> cleanupTombstones(String accountId) async {
+    if (!await _hasNetwork) return;
+
+    final cutoff = DateTime.now()
+        .subtract(const Duration(days: 30))
+        .millisecondsSinceEpoch;
+
+    final firestore = FirebaseFirestore.instance;
+    final accountDoc = firestore.collection('accounts').doc(accountId);
+
+    for (final collection in ['wallets', 'transactions', 'categories']) {
+      final query = accountDoc.collection(collection)
+          .where('deleted_at', isLessThan: cutoff);
+      final snapshot = await query.get();
+      if (snapshot.docs.isEmpty) continue;
+
+      final batch = firestore.batch();
+      for (final doc in snapshot.docs) {
+        batch.delete(doc.reference);
+      }
+      await batch.commit();
+    }
   }
 }

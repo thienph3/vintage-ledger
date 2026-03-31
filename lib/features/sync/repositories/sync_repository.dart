@@ -108,7 +108,7 @@ class SyncRepository {
 
   // ── Upsert helpers (Pull) ──
 
-  /// Upsert 1 record vào SQLite by remote_id. Returns local id.
+  /// Upsert 1 record vào SQLite by remote_id. Returns local id, or -1 if skipped (local newer).
   Future<int> upsertByRemoteId({
     required String table,
     required String remoteId,
@@ -117,7 +117,6 @@ class SyncRepository {
   }) async {
     final db = await AppDatabase.instance.database;
 
-    // Tìm existing by remote_id
     final existing = await db.query(table,
         where: 'remote_id = ? AND account_id = ?',
         whereArgs: [remoteId, accountId],
@@ -130,6 +129,14 @@ class SyncRepository {
 
     if (existing.isNotEmpty) {
       final localId = existing.first['id'] as int;
+      final localUpdatedAt = existing.first['updated_at'] as int? ?? 0;
+      final remoteUpdatedAt = data['updated_at'] as int? ?? 0;
+
+      // #18 Last-write-wins: local newer → skip, keep local dirty
+      if (localUpdatedAt > remoteUpdatedAt && existing.first['is_synced'] == 0) {
+        return -1;
+      }
+
       await db.update(table, row, where: 'id = ?', whereArgs: [localId]);
       return localId;
     } else {
