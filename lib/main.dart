@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import 'package:vintage_ledger/features/settings/services/setting_service.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/common/widgets/auto_lock_wrapper.dart';
 import 'package:vintage_ledger/features/home_screen.dart';
 import 'package:vintage_ledger/features/onboarding/welcome_screen.dart';
@@ -32,7 +32,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final _settingService = SettingService();
   Locale _locale = const Locale('vi', 'VN');
   bool? _setupDone;
 
@@ -43,8 +42,8 @@ class _MyAppState extends State<MyApp> {
   }
 
   Future<void> _loadSettings() async {
-    final code = await _settingService.getLocale();
-    final done = await _settingService.isSetupDone();
+    final code = await sl.settingService.getLocale();
+    final done = await sl.settingService.isSetupDone();
     setState(() {
       _locale = Locale(code);
       _setupDone = done;

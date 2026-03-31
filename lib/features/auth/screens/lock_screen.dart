@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/locale_toggle.dart';
-import 'package:vintage_ledger/features/auth/services/auth_service.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 
 class LockScreen extends StatefulWidget {
   const LockScreen({super.key});
@@ -14,8 +14,6 @@ class LockScreen extends StatefulWidget {
 }
 
 class _LockScreenState extends State<LockScreen> {
-  final AuthService _authService = AuthService();
-
   bool _loading = false;
   String? _error;
 
@@ -27,7 +25,7 @@ class _LockScreenState extends State<LockScreen> {
       _error = null;
     });
 
-    final ok = await _authService.authenticate(
+    final ok = await sl.authService.authenticate(
       localizedReason: S.of(context, 'authenticateToContinue'),
     );
 

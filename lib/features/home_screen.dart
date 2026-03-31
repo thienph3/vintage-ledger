@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
-import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
-import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 
@@ -32,9 +31,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final WalletService walletService = WalletService();
-  final TransactionService transactionService = TransactionService();
-
   List<Wallet> wallets = [];
   DashboardData? _dashboard;
   bool _loading = true;
@@ -49,8 +45,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> loadData() async {
     try {
-      final w = await walletService.getWallets();
-      final dashboard = await transactionService.getDashboard();
+      final w = await sl.walletService.getWallets();
+      final dashboard = await sl.transactionService.getDashboard();
       setState(() {
         wallets = w;
         _dashboard = dashboard;
@@ -122,20 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: TransactionSection(
                   transactions: _dashboard?.recent ?? [],
                   categoryMap: _dashboard?.categoryMap ?? {},
-                  onAddTransaction: _addTransaction,
-                  onTapTransaction: (txn) async {
-                    await context.pushScreen(TransactionFormScreen(
-                      walletId: txn.transaction.walletId,
-                      transaction: txn.transaction,
-                    ));
-                    loadData();
-                  },
-                  onDeleteTransaction: (txn) async {
-                    await transactionService.deleteTransaction(
-                      txn.transaction.id!,
-                    );
-                    loadData();
-                  },
+                  onDataChanged: loadData,
                 ),
               ),
               const SizedBox(height: 80),

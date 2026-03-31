@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
-import 'package:vintage_ledger/features/category/services/category_service.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -21,7 +21,6 @@ class CategoryFormScreen extends StatefulWidget {
 }
 
 class _CategoryFormScreenState extends State<CategoryFormScreen> {
-  final CategoryService categoryService = CategoryService();
   final TextEditingController nameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
@@ -47,14 +46,14 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
     final name = nameController.text.trim();
 
     if (isEdit) {
-      await categoryService.updateCategory(
+      await sl.categoryService.updateCategory(
         widget.category!.id!,
         name,
         type: _type,
         icon: selectedCodePoint,
       );
     } else {
-      await categoryService.createCategory(name,
+      await sl.categoryService.createCategory(name,
           type: _type, icon: selectedCodePoint);
     }
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
-import 'package:vintage_ledger/features/settings/services/setting_service.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
@@ -15,7 +15,6 @@ class SettingScreen extends StatefulWidget {
 }
 
 class _SettingScreenState extends State<SettingScreen> {
-  final SettingService _settingService = SettingService();
   String _currentLocale = 'vi';
 
   @override
@@ -25,12 +24,12 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Future<void> _load() async {
-    final locale = await _settingService.getLocale();
+    final locale = await sl.settingService.getLocale();
     setState(() => _currentLocale = locale);
   }
 
   Future<void> _changeLocale(String locale) async {
-    await _settingService.setLocale(locale);
+    await sl.settingService.setLocale(locale);
     if (!mounted) return;
     setState(() => _currentLocale = locale);
     MyApp.setLocale(context, Locale(locale));

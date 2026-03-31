@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
-import 'package:vintage_ledger/features/category/services/category_service.dart';
+import 'package:vintage_ledger/common/mixins/crud_list_mixin.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/common/widgets/ledger_list_tile.dart';
-import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
-import 'package:vintage_ledger/utils/navigator_x.dart';
 
 import 'category_form_screen.dart';
 
@@ -23,29 +22,26 @@ class CategoryListScreen extends StatefulWidget {
   State<CategoryListScreen> createState() => _CategoryListScreenState();
 }
 
-class _CategoryListScreenState extends State<CategoryListScreen> {
-  final CategoryService categoryService = CategoryService();
-  List<Category> categories = [];
+class _CategoryListScreenState extends State<CategoryListScreen>
+    with CrudListMixin<Category> {
+  @override
+  String get deleteTitle => 'deleteCategory';
+  @override
+  String get deleteContent => 'deleteCategoryConfirm';
+
+  @override
+  Future<List<Category>> fetchItems() => sl.categoryService.getCategories();
+  @override
+  Future<void> removeItem(Category item) => sl.categoryService.deleteCategory(item.id!);
+  @override
+  int itemId(Category item) => item.id!;
+  @override
+  Widget formScreen({Category? item}) => CategoryFormScreen(category: item);
 
   @override
   void initState() {
     super.initState();
-    loadCategories();
-  }
-
-  Future<void> loadCategories() async {
-    final list = await categoryService.getCategories();
-    setState(() => categories = list);
-  }
-
-  Future<void> deleteCategory(int id) async {
-    await categoryService.deleteCategory(id);
-    loadCategories();
-  }
-
-  Future<void> openForm({Category? category}) async {
-    final result = await context.pushScreen(CategoryFormScreen(category: category));
-    if (result == true) loadCategories();
+    loadItems();
   }
 
   @override
@@ -53,43 +49,34 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
     return AppScaffold(
       title: S.of(context, 'categories'),
       body: RefreshIndicator(
-        onRefresh: loadCategories,
+        onRefresh: loadItems,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(AppSpacing.md),
           children: [
             const SizedBox(height: AppSpacing.sm),
-            if (categories.isEmpty)
+            if (items.isEmpty)
               EmptyState(message: S.of(context, 'noCategories')),
-            ...categories.map(
-              (c) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: SwipeListItem(
-                  itemKey: Key(c.id.toString()),
-                  onTap: () => openForm(category: c),
-                  confirmDelete: () => showDeleteConfirmation(
-                    context,
-                    titleKey: 'deleteCategory',
-                    contentKey: 'deleteCategoryConfirm',
-                  ),
-                  onDelete: () => deleteCategory(c.id!),
-                  child: LedgerListTile(
-                    child: Row(
-                      children: [
-                        Icon(
-                          getCategoryIcon(c.icon),
-                          size: 28,
-                          color: AppColors.inkBlue,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(c.name, style: AppTextStyles.bodyBold),
-                        ),
-                      ],
-                    ),
+            ...items.map((c) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: SwipeListItem(
+                itemKey: Key(c.id.toString()),
+                onTap: () => openForm(item: c),
+                confirmDelete: confirmDelete,
+                onDelete: () => deleteItem(c),
+                child: LedgerListTile(
+                  child: Row(
+                    children: [
+                      Icon(getCategoryIcon(c.icon),
+                          size: 28, color: AppColors.inkBlue),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Text(c.name, style: AppTextStyles.bodyBold),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ),
+            )),
             const SizedBox(height: AppSpacing.md),
             SizedBox(
               width: double.infinity,

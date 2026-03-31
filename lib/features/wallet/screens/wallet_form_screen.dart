@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
-import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
@@ -18,8 +18,6 @@ class WalletFormScreen extends StatefulWidget {
 }
 
 class _WalletFormScreenState extends State<WalletFormScreen> {
-  final WalletService walletService = WalletService();
-
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController nameController = TextEditingController();
@@ -56,7 +54,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
         createdAt: widget.wallet!.createdAt,
       );
 
-      await walletService.updateWallet(
+      await sl.walletService.updateWallet(
         updated.id!,
         updated.name,
         updated.balance,
@@ -68,7 +66,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
         createdAt: DateTime.now().toIso8601String(),
       );
 
-      await walletService.createWallet(created.name, created.balance);
+      await sl.walletService.createWallet(created.name, created.balance);
     }
 
     if (!mounted) return;

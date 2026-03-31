@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
@@ -27,8 +28,6 @@ class WalletDetailScreen extends StatefulWidget {
 }
 
 class _WalletDetailScreenState extends State<WalletDetailScreen> {
-  final TransactionService _txnService = TransactionService();
-
   DashboardData? _dashboard;
   bool _loading = true;
   String? _error;
@@ -41,7 +40,7 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
 
   Future<void> loadData() async {
     try {
-      final dashboard = await _txnService.getDashboard(
+      final dashboard = await sl.transactionService.getDashboard(
         walletId: widget.wallet.id!,
       );
       setState(() {
@@ -103,18 +102,7 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                   walletId: widget.wallet.id!,
                   transactions: _dashboard?.recent ?? [],
                   categoryMap: _dashboard?.categoryMap ?? {},
-                  onAddTransaction: _openForm,
-                  onTapTransaction: (txn) async {
-                    final result = await context.pushScreen(TransactionFormScreen(
-                      walletId: txn.transaction.walletId,
-                      transaction: txn.transaction,
-                    ));
-                    if (result == true) await loadData();
-                  },
-                  onDeleteTransaction: (txn) async {
-                    await _txnService.deleteTransaction(txn.transaction.id!);
-                    await loadData();
-                  },
+                  onDataChanged: loadData,
                 ),
               ),
             ],

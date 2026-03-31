@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
-import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
+import 'package:vintage_ledger/common/mixins/crud_list_mixin.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/ledger_list_tile.dart';
-import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/utils/navigator_x.dart';
 
 import 'wallet_form_screen.dart';
 
@@ -23,29 +22,26 @@ class WalletListScreen extends StatefulWidget {
   State<WalletListScreen> createState() => _WalletListScreenState();
 }
 
-class _WalletListScreenState extends State<WalletListScreen> {
-  final WalletService walletService = WalletService();
-  List<Wallet> wallets = [];
+class _WalletListScreenState extends State<WalletListScreen>
+    with CrudListMixin<Wallet> {
+  @override
+  String get deleteTitle => 'deleteWallet';
+  @override
+  String get deleteContent => 'deleteWalletConfirm';
+
+  @override
+  Future<List<Wallet>> fetchItems() => sl.walletService.getWallets();
+  @override
+  Future<void> removeItem(Wallet item) => sl.walletService.deleteWallet(item.id!);
+  @override
+  int itemId(Wallet item) => item.id!;
+  @override
+  Widget formScreen({Wallet? item}) => WalletFormScreen(wallet: item);
 
   @override
   void initState() {
     super.initState();
-    loadWallets();
-  }
-
-  Future<void> loadWallets() async {
-    final list = await walletService.getWallets();
-    setState(() => wallets = list);
-  }
-
-  Future<void> deleteWallet(int id) async {
-    await walletService.deleteWallet(id);
-    loadWallets();
-  }
-
-  Future<void> openForm({Wallet? wallet}) async {
-    final result = await context.pushScreen(WalletFormScreen(wallet: wallet));
-    if (result == true) loadWallets();
+    loadItems();
   }
 
   @override
@@ -53,46 +49,37 @@ class _WalletListScreenState extends State<WalletListScreen> {
     return AppScaffold(
       title: S.of(context, 'myWalletsTitle'),
       body: RefreshIndicator(
-        onRefresh: loadWallets,
-        child: wallets.isEmpty
+        onRefresh: loadItems,
+        child: items.isEmpty
             ? EmptyState(message: S.of(context, 'noWalletsFound'))
             : ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 children: [
-                  ...wallets.map((w) {
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: SwipeListItem(
-                        itemKey: Key(w.id.toString()),
-                        onTap: () => openForm(wallet: w),
-                        confirmDelete: () => showDeleteConfirmation(
-                          context,
-                          titleKey: 'deleteWallet',
-                          contentKey: 'deleteWalletConfirm',
-                        ),
-                        onDelete: () => deleteWallet(w.id!),
-                        child: LedgerListTile(
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.account_balance_wallet,
-                                size: 28,
-                                color: AppColors.inkBlue,
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Text(w.name, style: AppTextStyles.bodyBold),
-                              ),
-                              AmountText(
-                                amount: w.balance.abs(),
-                                type: w.balance >= 0 ? "income" : "expense",
-                              ),
-                            ],
-                          ),
+                  ...items.map((w) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: SwipeListItem(
+                      itemKey: Key(w.id.toString()),
+                      onTap: () => openForm(item: w),
+                      confirmDelete: confirmDelete,
+                      onDelete: () => deleteItem(w),
+                      child: LedgerListTile(
+                        child: Row(
+                          children: [
+                            const Icon(Icons.account_balance_wallet,
+                                size: 28, color: AppColors.inkBlue),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(w.name, style: AppTextStyles.bodyBold),
+                            ),
+                            AmountText(
+                              amount: w.balance.abs(),
+                              type: w.balance >= 0 ? "income" : "expense",
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  }),
+                    ),
+                  )),
                   const SizedBox(height: AppSpacing.md),
                   SizedBox(
                     width: double.infinity,

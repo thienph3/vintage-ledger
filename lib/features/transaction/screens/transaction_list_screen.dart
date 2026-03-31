@@ -8,9 +8,10 @@ import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 
-import 'package:vintage_ledger/features/category/services/category_service.dart';
 import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
+import 'package:vintage_ledger/utils/navigator_x.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
@@ -29,8 +30,6 @@ class TransactionListScreen extends StatefulWidget {
 }
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
-  final TransactionService _txnService = TransactionService();
-  final CategoryService _catService = CategoryService();
   final ScrollController _scrollController = ScrollController();
 
   final List<TransactionWithItems> _transactions = [];
@@ -76,7 +75,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
   Future<void> _loadCategories() async {
     if (_categoriesLoaded) return;
-    final cats = await _catService.getCategories();
+    final cats = await sl.categoryService.getCategories();
     _categoryNameMap = {for (var c in cats) if (c.id != null) c.id!: c.name};
     _categoryIconMap = {for (var c in cats) if (c.id != null) c.id!: c.icon};
     _categoriesLoaded = true;
@@ -87,7 +86,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     final start = _cursor;
     final end = DateTime(start.year, start.month + 1, 0, 23, 59, 59, 999);
 
-    final txns = await _txnService.getByDateRangeWithItems(
+    final txns = await sl.transactionService.getByDateRangeWithItems(
       start.millisecondsSinceEpoch,
       end.millisecondsSinceEpoch,
       walletId: widget.walletId,
@@ -166,13 +165,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   // ========================
 
   Future<void> _openForm({TransactionWithItems? txn}) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => TransactionFormScreen(
-          walletId: txn?.transaction.walletId ?? widget.walletId,
-          transaction: txn?.transaction,
-        ),
+    final result = await context.pushScreen(
+      TransactionFormScreen(
+        walletId: txn?.transaction.walletId ?? widget.walletId,
+        transaction: txn?.transaction,
       ),
     );
     if (result == true) _refresh();
@@ -187,7 +183,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   Future<void> _deleteTransaction(int id) async {
-    await _txnService.deleteTransaction(id);
+    await sl.transactionService.deleteTransaction(id);
     _refresh();
   }
 

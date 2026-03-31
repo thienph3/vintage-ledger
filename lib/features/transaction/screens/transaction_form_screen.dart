@@ -16,12 +16,11 @@ import 'package:vintage_ledger/features/transaction/widgets/category_dropdown.da
 import 'package:vintage_ledger/features/transaction/widgets/transaction_item_list.dart';
 
 import 'package:vintage_ledger/features/category/models/category.dart';
-import 'package:vintage_ledger/features/category/services/category_service.dart';
 import 'package:vintage_ledger/features/category/screens/category_form_screen.dart';
 
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
-import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 
 class TransactionFormScreen extends StatefulWidget {
   final int? walletId;
@@ -37,9 +36,6 @@ class TransactionFormScreen extends StatefulWidget {
 
 class _TransactionFormScreenState extends State<TransactionFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _txnService = TransactionService();
-  final _catService = CategoryService();
-  final _walletService = WalletService();
 
   final _amountCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
@@ -95,7 +91,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   // ── Data loading ──
 
   Future<void> _loadCategories() async {
-    final list = await _catService.getCategoriesByType(_type);
+    final list = await sl.categoryService.getCategoriesByType(_type);
     setState(() {
       _categories = list;
       if (_categoryId != null && !_categories.any((c) => c.id == _categoryId)) {
@@ -106,7 +102,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Future<void> _loadWallets() async {
-    final list = await _walletService.getWallets();
+    final list = await sl.walletService.getWallets();
     setState(() {
       _wallets = list;
       _walletId ??= _wallets.isNotEmpty ? _wallets.first.id : null;
@@ -115,7 +111,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   Future<void> _loadItems() async {
     if (!widget.isEdit) return;
-    final loaded = await _txnService.getTransactionItems(widget.transaction!.id!);
+    final loaded = await sl.transactionService.getTransactionItems(widget.transaction!.id!);
     setState(() {
       _items = loaded
           .map((item) => TransactionItemEntry(
@@ -231,10 +227,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     );
 
     if (widget.isEdit) {
-      await _txnService.updateTransaction(txn);
+      await sl.transactionService.updateTransaction(txn);
       txnId = txn.id!;
     } else {
-      txnId = await _txnService.createTransaction(
+      txnId = await sl.transactionService.createTransaction(
         walletId: txn.walletId,
         categoryId: txn.categoryId,
         type: txn.type,
@@ -260,9 +256,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         note: e.noteController.text.isEmpty ? null : e.noteController.text,
       );
       if (item.id == null) {
-        await _txnService.addTransactionItem(item);
+        await sl.transactionService.addTransactionItem(item);
       } else {
-        await _txnService.updateTransactionItem(item);
+        await sl.transactionService.updateTransactionItem(item);
       }
     }
   }

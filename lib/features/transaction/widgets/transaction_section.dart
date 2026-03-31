@@ -6,35 +6,58 @@ import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
+import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_list_screen.dart';
+import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 
 import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 
 class TransactionSection extends StatelessWidget {
   final int? walletId;
   final List<TransactionWithItems> transactions;
   final Map<int, Category> categoryMap;
-
-  final Future<void> Function() onAddTransaction;
-  final Future<void> Function(TransactionWithItems transaction)
-  onTapTransaction;
-  final Future<void> Function(TransactionWithItems transaction)
-  onDeleteTransaction;
+  final VoidCallback onDataChanged;
 
   const TransactionSection({
     super.key,
     this.walletId,
     required this.transactions,
     required this.categoryMap,
-    required this.onAddTransaction,
-    required this.onTapTransaction,
-    required this.onDeleteTransaction,
+    required this.onDataChanged,
   });
+
+  Future<void> _addTransaction(BuildContext context) async {
+    final result = await context.pushScreen(
+      TransactionFormScreen(walletId: walletId),
+    );
+    if (result == true) onDataChanged();
+  }
+
+  Future<void> _editTransaction(BuildContext context, TransactionWithItems txn) async {
+    final result = await context.pushScreen(TransactionFormScreen(
+      walletId: txn.transaction.walletId,
+      transaction: txn.transaction,
+    ));
+    if (result == true) onDataChanged();
+  }
+
+  Future<void> _deleteTransaction(BuildContext context, TransactionWithItems txn) async {
+    final confirm = await showDeleteConfirmation(
+      context,
+      titleKey: 'deleteTransaction',
+      contentKey: 'deleteTransactionConfirm',
+    );
+    if (confirm == true) {
+      await sl.transactionService.deleteTransaction(txn.transaction.id!);
+      onDataChanged();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,14 +72,9 @@ class TransactionSection extends StatelessWidget {
               style: AppTextStyles.title,
             ),
             InkWell(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => TransactionListScreen(walletId: walletId),
-                  ),
-                );
-              },
+              onTap: () => context.pushScreen(
+                TransactionListScreen(walletId: walletId),
+              ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -78,14 +96,7 @@ class TransactionSection extends StatelessWidget {
             ),
             Expanded(
               child: InkWell(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const CategoryListScreen(),
-                    ),
-                  );
-                },
+                onTap: () => context.pushScreen(const CategoryListScreen()),
                 child: Row(
                   children: [
                     Text(
@@ -98,12 +109,10 @@ class TransactionSection extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(
-              child: Text(
-                S.of(context, 'amount'),
-                textAlign: TextAlign.right,
-                style: AppTextStyles.body,
-              ),
+            Text(
+              S.of(context, 'amount'),
+              textAlign: TextAlign.right,
+              style: AppTextStyles.body,
             ),
           ],
         ),
@@ -115,17 +124,8 @@ class TransactionSection extends StatelessWidget {
           ...transactions.map((transaction) {
             final category = categoryMap[transaction.transaction.categoryId];
             return InkWell(
-              onTap: () async => await onTapTransaction(transaction),
-              onLongPress: () async {
-                final confirm = await showDeleteConfirmation(
-                  context,
-                  titleKey: 'deleteTransaction',
-                  contentKey: 'deleteTransactionConfirm',
-                );
-                if (confirm == true) {
-                  await onDeleteTransaction(transaction);
-                }
-              },
+              onTap: () => _editTransaction(context, transaction),
+              onLongPress: () => _deleteTransaction(context, transaction),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                 child: Row(
@@ -155,12 +155,10 @@ class TransactionSection extends StatelessWidget {
                         ],
                       ),
                     ),
-                    SizedBox(
-                      child: AmountText(
-                        amount: transaction.transaction.amount,
-                        type: transaction.transaction.type,
-                        compact: true,
-                      ),
+                    AmountText(
+                      amount: transaction.transaction.amount,
+                      type: transaction.transaction.type,
+                      compact: true,
                     ),
                   ],
                 ),
@@ -172,7 +170,7 @@ class TransactionSection extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
-            onPressed: onAddTransaction,
+            onPressed: () => _addTransaction(context),
             icon: const Icon(Icons.add, size: 16),
             label: Text(S.of(context, 'addTransaction')),
           ),
