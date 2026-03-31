@@ -18,11 +18,11 @@
 
 | # | Task | Mô tả | Status |
 |---|---|---|---|
-| 7 | Implement push wallets | Query `WHERE account_id = ? AND is_synced = 0` → `WriteBatch` → `accounts/{id}/wallets/`. Set `is_synced = 1` sau push. | ⬜ |
-| 8 | Implement push transactions | Tương tự wallets. Embed `transaction_items` trong document (không tạo subcollection). | ⬜ |
-| 9 | Implement push categories | Tương tự wallets. | ⬜ |
-| 10 | Implement push soft deletes | Records có `deleted_at` → push lên Firestore với `deleted_at` field. | ⬜ |
-| 11 | Lưu `last_push_at` per account | Lưu trong SQLite `settings` table: key = `sync_push_{accountId}`. | ⬜ |
+| 7 | Implement push wallets | Query `WHERE account_id = ? AND is_synced = 0` → `WriteBatch` → `accounts/{id}/wallets/`. Set `is_synced = 1` sau push. | ✅ |
+| 8 | Implement push transactions | Tương tự wallets. Embed `transaction_items` trong document (không tạo subcollection). | ✅ |
+| 9 | Implement push categories | Tương tự wallets. | ✅ |
+| 10 | Implement push soft deletes | Records có `deleted_at` → push lên Firestore với `deleted_at` field. | ✅ |
+| 11 | Lưu `last_push_at` per account | Lưu trong SQLite `settings` table: key = `sync_push_{accountId}`. | ✅ |
 
 ## Phase 4C: Pull (Cloud → Local)
 

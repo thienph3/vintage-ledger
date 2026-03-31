@@ -7,28 +7,55 @@ class SyncRepository {
   DocumentReference _accountDoc(String accountId) =>
       _firestore.collection('accounts').doc(accountId);
 
-  // ── Push helpers ──
+  // ── Push ──
 
-  Future<void> pushRecords({
+  /// Push dirty records. Returns list of {localId, remoteId} for new records.
+  Future<List<Map<String, dynamic>>> pushRecords({
     required String accountId,
     required String collection,
     required List<Map<String, dynamic>> records,
   }) async {
-    final batch = _firestore.batch();
     final col = _accountDoc(accountId).collection(collection);
+    final newMappings = <Map<String, dynamic>>[];
+
+    // Separate new vs existing
+    final toUpdate = <Map<String, dynamic>>[];
+    final toCreate = <Map<String, dynamic>>[];
 
     for (final record in records) {
       final remoteId = record['remote_id'] as String?;
       if (remoteId != null && remoteId.isNotEmpty) {
-        batch.update(col.doc(remoteId), record['data'] as Map<String, dynamic>);
+        toUpdate.add(record);
       } else {
-        batch.set(col.doc(), record['data'] as Map<String, dynamic>);
+        toCreate.add(record);
       }
     }
-    await batch.commit();
+
+    // Batch update existing records
+    if (toUpdate.isNotEmpty) {
+      final batch = _firestore.batch();
+      for (final record in toUpdate) {
+        batch.update(
+          col.doc(record['remote_id'] as String),
+          record['data'] as Map<String, dynamic>,
+        );
+      }
+      await batch.commit();
+    }
+
+    // Individual add for new records (need doc ID back)
+    for (final record in toCreate) {
+      final docRef = await col.add(record['data'] as Map<String, dynamic>);
+      newMappings.add({
+        'local_id': record['local_id'],
+        'remote_id': docRef.id,
+      });
+    }
+
+    return newMappings;
   }
 
-  // ── Pull helpers ──
+  // ── Pull ──
 
   Future<List<QueryDocumentSnapshot>> pullRecords({
     required String accountId,
@@ -73,11 +100,9 @@ class SyncRepository {
     );
   }
 
-  // ── Update remote_id after first push ──
-
   Future<void> setRemoteId(String table, int localId, String remoteId) async {
     final db = await AppDatabase.instance.database;
-    await db.update(table, {'remote_id': remoteId},
+    await db.update(table, {'remote_id': remoteId, 'is_synced': 1},
         where: 'id = ?', whereArgs: [localId]);
   }
 

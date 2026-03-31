@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
+import 'package:vintage_ledger/core/database.dart';
 import 'package:vintage_ledger/features/sync/repositories/sync_repository.dart';
 import 'package:vintage_ledger/features/settings/repositories/setting_repository.dart';
 
@@ -38,12 +39,61 @@ class SyncService {
 
   Future<void> _pushAccount(String accountId) async {
     await _pushCollection(accountId, 'wallets', await _syncRepo.getDirtyWallets(accountId));
-    await _pushCollection(accountId, 'transactions', await _syncRepo.getDirtyTransactions(accountId));
+    await _pushTransactions(accountId);
     await _pushCollection(accountId, 'categories', await _syncRepo.getDirtyCategories(accountId));
     await _pushDeletes(accountId);
 
     await _settingRepo.set('sync_push_$accountId',
         DateTime.now().millisecondsSinceEpoch.toString());
+  }
+
+  /// Push transactions with embedded items
+  Future<void> _pushTransactions(String accountId) async {
+    final dirtyRecords = await _syncRepo.getDirtyTransactions(accountId);
+    if (dirtyRecords.isEmpty) return;
+
+    final db = await AppDatabase.instance.database;
+    final records = <Map<String, dynamic>>[];
+
+    for (final r in dirtyRecords) {
+      final data = Map<String, dynamic>.from(r);
+      final localId = data.remove('id') as int;
+      final remoteId = data.remove('remote_id') as String?;
+      data.remove('is_synced');
+      data.remove('account_id');
+      data['updated_at'] = DateTime.now().millisecondsSinceEpoch;
+
+      // Embed transaction_items
+      final items = await db.query('transaction_items',
+          where: 'transaction_id = ?', whereArgs: [localId]);
+      data['items'] = items.map((i) => {
+        'amount': i['amount'],
+        'note': i['note'],
+        'category_id': i['category_id'],
+      }).toList();
+
+      records.add({'local_id': localId, 'remote_id': remoteId, 'data': data});
+    }
+
+    final newMappings = await _syncRepo.pushRecords(
+      accountId: accountId,
+      collection: 'transactions',
+      records: records,
+    );
+
+    for (final mapping in newMappings) {
+      await _syncRepo.setRemoteId(
+        'transactions',
+        mapping['local_id'] as int,
+        mapping['remote_id'] as String,
+      );
+    }
+
+    final existingIds = records
+        .where((r) => r['remote_id'] != null && (r['remote_id'] as String).isNotEmpty)
+        .map((r) => r['local_id'] as int)
+        .toList();
+    await _syncRepo.markSynced('transactions', existingIds);
   }
 
   Future<void> _pushCollection(
@@ -60,14 +110,28 @@ class SyncService {
       return {'local_id': localId, 'remote_id': remoteId, 'data': data};
     }).toList();
 
-    await _syncRepo.pushRecords(
+    // Push to Firestore, get remote_id mappings for new records
+    final newMappings = await _syncRepo.pushRecords(
       accountId: accountId,
       collection: collection,
       records: records,
     );
 
-    final ids = records.map((r) => r['local_id'] as int).toList();
-    await _syncRepo.markSynced(collection, ids);
+    // Save remote_id for newly created records
+    for (final mapping in newMappings) {
+      await _syncRepo.setRemoteId(
+        collection,
+        mapping['local_id'] as int,
+        mapping['remote_id'] as String,
+      );
+    }
+
+    // Mark existing (already had remote_id) as synced
+    final existingIds = records
+        .where((r) => r['remote_id'] != null && (r['remote_id'] as String).isNotEmpty)
+        .map((r) => r['local_id'] as int)
+        .toList();
+    await _syncRepo.markSynced(collection, existingIds);
   }
 
   // ── Pull ──
