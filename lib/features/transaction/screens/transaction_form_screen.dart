@@ -7,6 +7,7 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/type_selector.dart';
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
+import 'package:vintage_ledger/common/widgets/form_save_button.dart';
 
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_item.dart';
@@ -20,6 +21,7 @@ import 'package:vintage_ledger/features/category/screens/category_form_screen.da
 
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
+import 'package:vintage_ledger/utils/navigator_x.dart';
 
 class TransactionFormScreen extends StatefulWidget {
   final int? walletId;
@@ -136,11 +138,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Future<void> _onAddCategory() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => CategoryFormScreen(initialType: _type),
-      ),
+    final result = await context.pushScreen(
+      CategoryFormScreen(initialType: _type),
     );
     if (result == true) await _loadCategories();
   }
@@ -340,15 +339,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             ),
             const SizedBox(height: AppSpacing.lg),
 
-            // Save
-            ElevatedButton(
-              onPressed: _save,
-              child: Text(
-                widget.isEdit
-                    ? S.of(context, 'update')
-                    : S.of(context, 'save'),
-              ),
-            ),
+            FormSaveButton(isEdit: widget.isEdit, onPressed: _save),
             const SizedBox(height: AppSpacing.xl),
           ],
         ),
@@ -358,7 +349,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   Widget _buildWalletDropdown() {
     return DropdownButtonFormField<int>(
-      initialValue: _walletId,
+      value: _walletId,
       decoration: InputDecoration(
         labelText: S.of(context, 'selectWallet'),
       ),

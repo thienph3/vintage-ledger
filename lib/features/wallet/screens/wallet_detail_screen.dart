@@ -17,6 +17,7 @@ import 'package:vintage_ledger/features/transaction/widgets/transaction_section.
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
+import 'package:vintage_ledger/utils/navigator_x.dart';
 
 class WalletDetailScreen extends StatefulWidget {
   final Wallet wallet;
@@ -70,16 +71,10 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
   }
 
   Future<void> openForm() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => TransactionFormScreen(walletId: widget.wallet.id!),
-      ),
+    final result = await context.pushScreen(
+      TransactionFormScreen(walletId: widget.wallet.id!),
     );
-
-    if (result == true) {
-      await loadData();
-    }
+    if (result == true) await loadData();
   }
 
   @override
@@ -117,18 +112,11 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                 categoryMap: categoryMap,
                 onAddTransaction: openForm,
                 onTapTransaction: (txn) async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => TransactionFormScreen(
-                        walletId: txn.transaction.walletId,
-                        transaction: txn.transaction,
-                      ),
-                    ),
-                  );
-                  if (result == true) {
-                    await loadData();
-                  }
+                  final result = await context.pushScreen(TransactionFormScreen(
+                    walletId: txn.transaction.walletId,
+                    transaction: txn.transaction,
+                  ));
+                  if (result == true) await loadData();
                 },
                 onDeleteTransaction: (txn) async {
                   await transactionService.deleteTransaction(

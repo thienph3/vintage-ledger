@@ -4,6 +4,7 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/category/screens/category_list_screen.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
+import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
@@ -116,22 +117,10 @@ class TransactionSection extends StatelessWidget {
             return InkWell(
               onTap: () async => await onTapTransaction(transaction),
               onLongPress: () async {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (_) => AlertDialog(
-                    title: Text(S.of(context, 'deleteTransaction')),
-                    content: Text(S.of(context, 'deleteTransactionConfirm')),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: Text(S.of(context, 'cancel')),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: Text(S.of(context, 'delete')),
-                      ),
-                    ],
-                  ),
+                final confirm = await showDeleteConfirmation(
+                  context,
+                  titleKey: 'deleteTransaction',
+                  contentKey: 'deleteTransactionConfirm',
                 );
                 if (confirm == true) {
                   await onDeleteTransaction(transaction);

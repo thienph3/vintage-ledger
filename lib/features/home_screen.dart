@@ -15,6 +15,7 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
+import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
 
@@ -23,6 +24,7 @@ import 'package:vintage_ledger/features/wallet/screens/wallet_detail_screen.dart
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
+import 'package:vintage_ledger/utils/navigator_x.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -90,10 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       return;
     }
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const TransactionFormScreen()),
-    );
+    final result = await context.pushScreen(const TransactionFormScreen());
     if (result == true) loadData();
   }
 
@@ -106,10 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
         IconButton(
           icon: const Icon(Icons.settings),
           onPressed: () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const SettingScreen()),
-            );
+            await context.pushScreen(const SettingScreen());
             loadData();
           },
         ),
@@ -131,15 +127,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 categoryMap: categoryMap,
                 onAddTransaction: _addTransaction,
                 onTapTransaction: (txn) async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => TransactionFormScreen(
-                        walletId: txn.transaction.walletId,
-                        transaction: txn.transaction,
-                      ),
-                    ),
-                  );
+                  await context.pushScreen(TransactionFormScreen(
+                    walletId: txn.transaction.walletId,
+                    transaction: txn.transaction,
+                  ));
                   loadData();
                 },
                 onDeleteTransaction: (txn) async {
@@ -265,10 +256,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(S.of(context, 'myWallets'), style: AppTextStyles.title),
             InkWell(
               onTap: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const WalletListScreen()),
-                );
+                await context.pushScreen(const WalletListScreen());
                 loadData();
               },
               child: Row(
@@ -305,12 +293,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildWalletCard(Wallet wallet) {
     return GestureDetector(
       onTap: () async {
-        await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => WalletDetailScreen(wallet: wallet),
-          ),
-        );
+        await context.pushScreen(WalletDetailScreen(wallet: wallet));
         loadData();
       },
       child: Container(
@@ -358,10 +341,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildAddWalletCard() {
     return GestureDetector(
       onTap: () async {
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const WalletFormScreen()),
-        );
+        final result = await context.pushScreen(const WalletFormScreen());
         if (result == true) loadData();
       },
       child: Container(

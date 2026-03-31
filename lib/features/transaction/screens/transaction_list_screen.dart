@@ -5,6 +5,8 @@ import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
+import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
+import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 
 import 'package:vintage_ledger/features/category/services/category_service.dart';
 import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
@@ -177,22 +179,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   Future<bool?> _confirmDelete() {
-    return showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(S.of(ctx, 'deleteTransaction')),
-        content: Text(S.of(ctx, 'deleteTransactionConfirm')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(S.of(ctx, 'cancel')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(S.of(ctx, 'delete')),
-          ),
-        ],
-      ),
+    return showDeleteConfirmation(
+      context,
+      titleKey: 'deleteTransaction',
+      contentKey: 'deleteTransactionConfirm',
     );
   }
 
@@ -277,28 +267,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
   Widget _buildSummaryCard() {
     return LedgerCard(
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                Text(S.of(context, 'totalIncome'), style: AppTextStyles.caption),
-                const SizedBox(height: AppSpacing.xs),
-                AmountText(amount: _totalIncome, type: 'income'),
-              ],
-            ),
-          ),
-          Container(width: 1, height: 40, color: AppColors.divider),
-          Expanded(
-            child: Column(
-              children: [
-                Text(S.of(context, 'totalExpense'), style: AppTextStyles.caption),
-                const SizedBox(height: AppSpacing.xs),
-                AmountText(amount: _totalExpense, type: 'expense'),
-              ],
-            ),
-          ),
-        ],
+      child: IncomeExpenseSummaryRow(
+        income: _totalIncome,
+        expense: _totalExpense,
       ),
     );
   }

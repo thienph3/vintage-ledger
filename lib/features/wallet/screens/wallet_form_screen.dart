@@ -6,6 +6,7 @@ import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
 
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/form_save_button.dart';
 
 class WalletFormScreen extends StatefulWidget {
   final Wallet? wallet;
@@ -109,14 +110,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
               AmountInputField(controller: balanceController),
               const SizedBox(height: 24),
 
-              SizedBox(
-                width: double.infinity,
-
-                child: ElevatedButton(
-                  onPressed: save,
-                  child: Text(S.of(context, 'save')),
-                ),
-              ),
+              FormSaveButton(isEdit: isEdit, onPressed: save),
             ],
           ),
         ),

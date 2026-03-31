@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/services/category_service.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
+import 'package:vintage_ledger/common/widgets/ledger_list_tile.dart';
+import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
+import 'package:vintage_ledger/utils/navigator_x.dart';
 
 import 'category_form_screen.dart';
 
@@ -38,31 +43,8 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
     loadCategories();
   }
 
-  Future<bool?> confirmDelete() {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(S.of(context, 'deleteCategory')),
-        content: Text(S.of(context, 'deleteCategoryConfirm')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(S.of(context, 'cancel')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(S.of(context, 'delete')),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> openForm({Category? category}) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => CategoryFormScreen(category: category)),
-    );
+    final result = await context.pushScreen(CategoryFormScreen(category: category));
     if (result == true) loadCategories();
   }
 
@@ -77,32 +59,20 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
           children: [
             const SizedBox(height: AppSpacing.sm),
             if (categories.isEmpty)
-              Center(child: Text(S.of(context, 'noCategories'))),
+              EmptyState(message: S.of(context, 'noCategories')),
             ...categories.map(
               (c) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: SwipeListItem(
                   itemKey: Key(c.id.toString()),
                   onTap: () => openForm(category: c),
-                  confirmDelete: confirmDelete,
+                  confirmDelete: () => showDeleteConfirmation(
+                    context,
+                    titleKey: 'deleteCategory',
+                    contentKey: 'deleteCategoryConfirm',
+                  ),
                   onDelete: () => deleteCategory(c.id!),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Colors.black12,
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
+                  child: LedgerListTile(
                     child: Row(
                       children: [
                         Icon(
