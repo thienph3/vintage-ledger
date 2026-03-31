@@ -96,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: S.of(context, 'homeTitle'),
-      showBackButton: sl.appState.isLoggedIn,
+      showBackButton: false,
       actions: [
         if (sl.appState.isLoggedIn)
           Stack(
