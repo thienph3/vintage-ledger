@@ -44,6 +44,8 @@ dependencies:
     sdk: flutter
   local_auth: ^3.0.1
   fl_chart: ^1.2.0
+  firebase_core: ^4.6.0
+  firebase_auth: ^6.3.0
 
 dev_dependencies:
   flutter_test:
