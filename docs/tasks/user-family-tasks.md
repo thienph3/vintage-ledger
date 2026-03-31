@@ -35,12 +35,12 @@
 
 | # | Task | Mô tả | Status |
 |---|---|---|---|
-| 20 | Tạo `FamilyFormScreen` | Form nhập tên family. Gọi `AccountService.createAccount(type: family)`. | ⬜ |
-| 21 | Tạo `FamilyDetailScreen` | Hiển thị members, nút mời thành viên, nút rời/xóa family. | ⬜ |
-| 22 | Implement mời thành viên | Nhập email → tìm user trên Firestore → thêm vào `member_ids` + `account_ids`. | ⬜ |
-| 23 | Implement rời family | Remove userId từ `member_ids` + `account_ids`. Nếu owner rời → chuyển owner hoặc xóa. | ⬜ |
-| 24 | Implement xóa family | Xóa account document + subcollections. Remove accountId từ tất cả members. | ⬜ |
-| 25 | Seed default categories cho family account | Khi tạo family account → copy default categories vào `accounts/{id}/categories/`. | ⬜ |
-| 26 | Cập nhật `SettingScreen` | Thêm section Account: hiển thị email, nút logout. Link sang FamilyDetail nếu đang trong family account. | ⬜ |
-| 27 | Thêm l10n keys cho Family | `createFamily`, `familyName`, `members`, `inviteMember`, `leaveFamily`, `deleteFamily`, `owner`, `member` — cả vi và en. | ⬜ |
-| 28 | Firestore security rules | Deploy rules: `accounts/{accountId}/**` chỉ cho phép users trong `member_ids`. | ⬜ |
+| 20 | Tạo `FamilyFormScreen` | Form nhập tên family. Gọi `AccountService.createAccount(type: family)`. | ✅ |
+| 21 | Tạo `FamilyDetailScreen` | Hiển thị members, nút mời thành viên, nút rời/xóa family. | ✅ |
+| 22 | Implement mời thành viên | Nhập email → tìm user trên Firestore → thêm vào `member_ids` + `account_ids`. | ✅ |
+| 23 | Implement rời family | Remove userId từ `member_ids` + `account_ids`. Nếu owner rời → chuyển owner hoặc xóa. | ✅ |
+| 24 | Implement xóa family | Xóa account document + subcollections. Remove accountId từ tất cả members. | ✅ |
+| 25 | Seed default categories cho family account | Khi tạo family account → copy default categories vào `accounts/{id}/categories/`. | ✅ |
+| 26 | Cập nhật `SettingScreen` | Thêm section Account: hiển thị email, nút logout. Link sang FamilyDetail nếu đang trong family account. | ✅ |
+| 27 | Thêm l10n keys cho Family | `createFamily`, `familyName`, `members`, `inviteMember`, `leaveFamily`, `deleteFamily`, `owner`, `member` — cả vi và en. | ✅ |
+| 28 | Firestore security rules | Deploy rules: `accounts/{accountId}/**` chỉ cho phép users trong `member_ids`. | ✅ |

@@ -10,6 +10,7 @@ import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/features/account/models/account.dart';
 import 'package:vintage_ledger/features/home/screens/home_screen.dart';
 import 'package:vintage_ledger/features/account/screens/family_form_screen.dart';
+import 'package:vintage_ledger/features/account/screens/family_detail_screen.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
@@ -79,6 +80,12 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
                         padding: const EdgeInsets.only(bottom: AppSpacing.md),
                         child: GestureDetector(
                           onTap: () => _selectAccount(a),
+                          onLongPress: a.isFamily ? () async {
+                            final result = await context.pushScreen(
+                              FamilyDetailScreen(account: a),
+                            );
+                            if (result == true) _load();
+                          } : null,
                           child: LedgerCard(
                             child: Row(
                               children: [

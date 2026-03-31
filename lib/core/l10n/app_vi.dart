@@ -121,6 +121,12 @@ const Map<String, String> vi = {
   'memberCount': 'thành viên',
   'createFamily': 'Tạo gia đình mới',
   'familyName': 'Tên gia đình',
+  'members': 'Thành viên',
+  'inviteMember': 'Mời thành viên',
+  'leaveFamily': 'Rời gia đình',
+  'deleteFamily': 'Xóa gia đình',
+  'owner': 'Chủ sở hữu',
+  'member': 'Thành viên',
 
   // Onboarding
   'welcomeTitle': 'Chào mừng đến Sổ Thu Chi',

@@ -122,6 +122,12 @@ const Map<String, String> en = {
   'memberCount': 'members',
   'createFamily': 'Create new family',
   'familyName': 'Family name',
+  'members': 'Members',
+  'inviteMember': 'Invite member',
+  'leaveFamily': 'Leave family',
+  'deleteFamily': 'Delete family',
+  'owner': 'Owner',
+  'member': 'Member',
 
   // Onboarding
   'welcomeTitle': 'Welcome to Vintage Ledger',
