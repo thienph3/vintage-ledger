@@ -8,6 +8,7 @@ import 'package:vintage_ledger/common/widgets/empty_state.dart';
 
 import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
 import 'package:vintage_ledger/features/transaction/widgets/chart/chart_view.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart/trend_chart.dart';
@@ -40,20 +41,20 @@ class _ChartSectionState extends State<ChartSection> {
       final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
       final day = DateTime(dt.year, dt.month, dt.day);
       map.putIfAbsent(day, () => {'income': 0, 'expense': 0});
-      map[day]![t.transaction.type] =
-          map[day]![t.transaction.type]! + t.transaction.amount;
+      map[day]![t.transaction.type.value] =
+          map[day]![t.transaction.type.value]! + t.transaction.amount;
     }
     return map;
   }
 
-  int _totalByType(String type) => widget.transactions
+  int _totalByType(TransactionType type) => widget.transactions
       .where((t) => t.transaction.type == type)
       .fold(0, (s, t) => s + t.transaction.amount);
 
   Map<String, int> get _expenseByCategory {
     final map = <String, int>{};
     for (var t in widget.transactions) {
-      if (t.transaction.type != 'expense') continue;
+      if (t.transaction.type != TransactionType.expense) continue;
       final name = widget.categoryMap[t.transaction.categoryId]?.name ??
           S.of(context, 'uncategorized');
       map[name] = (map[name] ?? 0) + t.transaction.amount;
@@ -192,8 +193,8 @@ class _ChartSectionState extends State<ChartSection> {
       case ChartView.summary:
         return SummaryView(
           key: const ValueKey('summary'),
-          totalIncome: _totalByType('income'),
-          totalExpense: _totalByType('expense'),
+          totalIncome: _totalByType(TransactionType.income),
+          totalExpense: _totalByType(TransactionType.expense),
           transactionCount: widget.transactions.length,
           dailyData: daily,
         );

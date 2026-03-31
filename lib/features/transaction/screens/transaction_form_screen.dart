@@ -14,6 +14,7 @@ import 'package:vintage_ledger/features/transaction/models/transaction_item.dart
 import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
 import 'package:vintage_ledger/features/transaction/widgets/category_dropdown.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_item_list.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/screens/category_form_screen.dart';
@@ -47,7 +48,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   int? _walletId;
   int? _categoryId;
-  String _type = 'expense';
+  TransactionType _type = TransactionType.expense;
   DateTime _date = DateTime.now();
 
   @override
@@ -91,7 +92,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   // ── Data loading ──
 
   Future<void> _loadCategories() async {
-    final list = await sl.categoryService.getCategoriesByType(_type);
+    final list = await sl.categoryService.getCategoriesByType(_type.value);
     setState(() {
       _categories = list;
       if (_categoryId != null && !_categories.any((c) => c.id == _categoryId)) {
@@ -128,8 +129,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   // ── Actions ──
 
   void _onTypeChanged(String type) {
-    if (_type == type) return;
-    setState(() => _type = type);
+    final parsed = TransactionType.fromString(type);
+    if (_type == parsed) return;
+    setState(() => _type = parsed);
     _loadCategories();
   }
 
@@ -280,7 +282,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            TypeSelector(value: _type, onChanged: _onTypeChanged),
+            TypeSelector(value: _type.value, onChanged: _onTypeChanged),
             const SizedBox(height: AppSpacing.lg),
 
             // Amount

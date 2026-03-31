@@ -1,28 +1,17 @@
 import 'package:vintage_ledger/core/database.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_item.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 export 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
+import 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
+export 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_item_repository.dart';
 import 'package:vintage_ledger/features/wallet/repositories/wallet_repository.dart';
 import 'package:vintage_ledger/features/category/repositories/category_repository.dart';
-
-class DashboardData {
-  final List<TransactionWithItems> recent;
-  final List<TransactionWithItems> monthly;
-  final Map<int, Category> categoryMap;
-  final int balance;
-
-  const DashboardData({
-    required this.recent,
-    required this.monthly,
-    required this.categoryMap,
-    required this.balance,
-  });
-}
 
 class TransactionService {
   final TransactionRepository _repo = TransactionRepository();
@@ -66,17 +55,13 @@ class TransactionService {
   Future<int> createTransaction({
     required int walletId,
     required int categoryId,
-    required String type,
+    required TransactionType type,
     required int amount,
     String? note,
     required int date,
   }) async {
     if (amount <= 0) {
       throw Exception("Amount must be greater than 0");
-    }
-
-    if (type != "income" && type != "expense") {
-      throw Exception("Invalid transaction type");
     }
 
     final db = await AppDatabase.instance.database;
@@ -91,7 +76,7 @@ class TransactionService {
       if (walletResult.isEmpty) throw Exception("Wallet not found");
 
       final wallet = Wallet.fromMap(walletResult.first);
-      final newBalance = type == "income"
+      final newBalance = type.isIncome
           ? wallet.balance + amount
           : wallet.balance - amount;
 
@@ -105,7 +90,7 @@ class TransactionService {
       return await txn.insert('transactions', {
         'wallet_id': walletId,
         'category_id': categoryId,
-        'type': type,
+        'type': type.value,
         'amount': amount,
         'note': note,
         'date': date,
@@ -171,10 +156,10 @@ class TransactionService {
 
       // Revert old transaction effect
       int newBalance = wallet.balance;
-      newBalance += existing.type == "income" ? -existing.amount : existing.amount;
+      newBalance += existing.type.isIncome ? -existing.amount : existing.amount;
 
       // Apply new transaction effect
-      newBalance += transaction.type == "income" ? transaction.amount : -transaction.amount;
+      newBalance += transaction.type.isIncome ? transaction.amount : -transaction.amount;
 
       await txn.update(
         'wallets',
@@ -216,7 +201,7 @@ class TransactionService {
 
       if (walletResult.isNotEmpty) {
         final wallet = Wallet.fromMap(walletResult.first);
-        final newBalance = transaction.type == "income"
+        final newBalance = transaction.type.isIncome
             ? wallet.balance - transaction.amount
             : wallet.balance + transaction.amount;
 

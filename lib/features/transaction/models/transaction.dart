@@ -1,8 +1,10 @@
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
+
 class TransactionModel {
   final int? id;
   final int walletId;
   final int categoryId;
-  final String type;
+  final TransactionType type;
   final int amount;
   final String? note;
   final int date;
@@ -22,7 +24,7 @@ class TransactionModel {
       'id': id,
       'wallet_id': walletId,
       'category_id': categoryId,
-      'type': type,
+      'type': type.value,
       'amount': amount,
       'note': note,
       'date': date,
@@ -34,7 +36,7 @@ class TransactionModel {
       id: map['id'] as int?,
       walletId: map['wallet_id'] as int,
       categoryId: map['category_id'] as int,
-      type: map['type'] as String,
+      type: TransactionType.fromString(map['type'] as String),
       amount: map['amount'] is int
           ? map['amount']
           : int.parse(map['amount'].toString()),

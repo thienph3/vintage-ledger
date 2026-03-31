@@ -12,6 +12,7 @@ import 'package:vintage_ledger/features/transaction/services/transaction_service
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
@@ -153,11 +154,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   int get _totalIncome => _transactions
-      .where((t) => t.transaction.type == 'income')
+      .where((t) => t.transaction.type.isIncome)
       .fold(0, (sum, t) => sum + t.transaction.amount);
 
   int get _totalExpense => _transactions
-      .where((t) => t.transaction.type == 'expense')
+      .where((t) => t.transaction.type.isExpense)
       .fold(0, (sum, t) => sum + t.transaction.amount);
 
   // ========================
@@ -360,7 +361,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               children: [
                 AmountText(
                   amount: txn.transaction.amount,
-                  type: txn.transaction.type,
+                  type: txn.transaction.type.value,
                 ),
                 Text(
                   DateFormatter.short(txn.transaction.date),
@@ -383,10 +384,10 @@ class _Group {
   _Group(this.label, this.items);
 
   int get income => items
-      .where((t) => t.transaction.type == 'income')
+      .where((t) => t.transaction.type.isIncome)
       .fold(0, (sum, t) => sum + t.transaction.amount);
 
   int get expense => items
-      .where((t) => t.transaction.type == 'expense')
+      .where((t) => t.transaction.type.isExpense)
       .fold(0, (sum, t) => sum + t.transaction.amount);
 }
