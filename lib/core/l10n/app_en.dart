@@ -217,6 +217,7 @@ const Map<String, String> en = {
 
   // Account
   'registerToSync': 'Register to sync data across devices',
+  'userNotFoundByEmail': 'No account found with this email',
   'enterEmail': 'Enter member email',
   'send': 'Send',
   'inviteSent': 'Invite sent',

@@ -69,6 +69,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       if (user != null) {
         sl.appState.currentUserId = user.uid;
         if (!user.isAnonymous) {
+          // Backfill email index for users created before this feature
+          sl.accountService.ensureEmailIndex(user.uid, user.email ?? '');
           // Load settings with timeout to avoid infinite loading
           final locale = await sl.settingService.getLocale()
               .timeout(const Duration(seconds: 5), onTimeout: () => 'vi');

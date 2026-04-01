@@ -216,6 +216,7 @@ const Map<String, String> vi = {
 
   // Account
   'registerToSync': 'Đăng ký để đồng bộ dữ liệu giữa các thiết bị',
+  'userNotFoundByEmail': 'Không tìm thấy tài khoản với email này',
   'enterEmail': 'Nhập email thành viên',
   'send': 'Gửi',
   'inviteSent': 'Đã gửi lời mời',

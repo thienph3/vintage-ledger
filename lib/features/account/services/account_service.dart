@@ -28,14 +28,17 @@ class AccountService {
       'created_at': now,
     });
 
-    await _users.doc(userId).set({
+    final batch = _firestore.batch();
+    batch.set(_users.doc(userId), {
       'email': email,
       'display_name': displayName,
       'account_ids': [accountRef.id],
       'created_at': now,
     });
-
-    await _userEmails.doc(email.toLowerCase()).set({'user_id': userId});
+    if (email.isNotEmpty) {
+      batch.set(_userEmails.doc(email.toLowerCase()), {'user_id': userId});
+    }
+    await batch.commit();
 
     await _seedCategories(accountRef.id);
 
@@ -122,13 +125,15 @@ class AccountService {
     required String email,
     required String displayName,
   }) async {
-    // Update user doc
-    await _users.doc(userId).set({
+    final batch = _firestore.batch();
+    batch.set(_users.doc(userId), {
       'email': email,
       'display_name': displayName,
     }, SetOptions(merge: true));
-
-    await _userEmails.doc(email.toLowerCase()).set({'user_id': userId});
+    if (email.isNotEmpty) {
+      batch.set(_userEmails.doc(email.toLowerCase()), {'user_id': userId});
+    }
+    await batch.commit();
 
     // Update personal account name
     final userDoc = await _users.doc(userId).get();
@@ -138,7 +143,6 @@ class AccountService {
     );
     if (accountIds.isEmpty) return;
 
-    // Update first account (personal) name
     final accountDoc = await _accounts.doc(accountIds.first).get();
     if (accountDoc.exists) {
       final data = accountDoc.data() as Map<String, dynamic>;
@@ -214,12 +218,23 @@ class AccountService {
     return (doc.data() as Map<String, dynamic>)['user_id'] as String?;
   }
 
+  /// Backfill user_emails index for current user (for accounts created before this feature)
+  Future<void> ensureEmailIndex(String userId, String email) async {
+    if (email.isEmpty) return;
+    final doc = await _userEmails.doc(email.toLowerCase()).get();
+    if (!doc.exists) {
+      await _userEmails.doc(email.toLowerCase()).set({'user_id': userId});
+    }
+  }
+
   Future<void> sendInviteByEmail({
     required String accountId,
     required String email,
   }) async {
     final targetUserId = await _findUserIdByEmail(email);
-    if (targetUserId == null) throw Exception('userNotFound');
+    if (targetUserId == null) {
+      throw Exception('userNotFoundByEmail');
+    }
     if (targetUserId == sl.appState.currentUserId) throw Exception('cannotInviteSelf');
 
     final account = await getAccount(accountId);
