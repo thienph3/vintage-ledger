@@ -126,5 +126,12 @@ service cloud.firestore {
       // No update or delete
       allow update, delete: if false;
     }
+
+    // ── Config (FCM server key) ──
+
+    match /config/{docId} {
+      allow read: if isAuthenticated();
+      allow write: if false;
+    }
   }
 }

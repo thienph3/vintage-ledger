@@ -55,6 +55,10 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
       final link = sl.accountService.buildInviteLink(tokenId);
 
       await Clipboard.setData(ClipboardData(text: link));
+
+      // Notify family members
+      sl.notificationService.notifyInvite(accountId: widget.account.id, tokenId: tokenId);
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(S.of(context, 'inviteCopied'))),

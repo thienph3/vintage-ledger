@@ -90,6 +90,12 @@ class TransactionService {
     });
 
     _logActivity(type.value, amount, note);
+
+    // Notify family members
+    sl.notificationService.notifyTransaction(
+      accountId: sl.appState.currentAccountId, amount: amount, type: type.value,
+    );
+
     return newDocRef.id;
   }
 
