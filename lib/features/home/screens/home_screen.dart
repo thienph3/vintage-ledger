@@ -25,6 +25,7 @@ import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/budget/widgets/budget_summary_card.dart';
+import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/common/widgets/login_prompt_card.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -121,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: ListView(
                       padding: const EdgeInsets.all(AppSpacing.md),
                       children: [
-                        _buildBalanceCard(),
+                        _buildBalanceCard(wallets),
                         const SizedBox(height: AppSpacing.lg),
                         _buildWalletRow(wallets),
                         const SizedBox(height: AppSpacing.lg),
@@ -129,6 +130,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           LedgerCard(child: ChartSection(dashboard: _dashboard!)),
                         const SizedBox(height: AppSpacing.lg),
                         const BudgetSummaryCard(),
+                        _buildSavingsHighlight(),
                         const SizedBox(height: AppSpacing.lg),
                         LoginPromptCard(transactionCount: _dashboard?.recent.length ?? 0),
                         const SizedBox(height: AppSpacing.lg),
@@ -171,67 +173,61 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBalanceCard() {
-    return StreamBuilder<List<Wallet>>(
-      stream: sl.walletService.watchWallets(),
-      builder: (context, snap) {
-        final wallets = snap.data ?? [];
-        final currencies = wallets.map((w) => w.currency).toSet();
-        final isMixed = currencies.length > 1;
-        final currency = isMixed ? 'VND' : (currencies.firstOrNull ?? 'VND');
+  Widget _buildBalanceCard(List<Wallet> wallets) {
+    final currencies = wallets.map((w) => w.currency).toSet();
+    final isMixed = currencies.length > 1;
+    final currency = isMixed ? 'VND' : (currencies.firstOrNull ?? 'VND');
 
-        return LedgerCard(
-          child: Column(
+    return LedgerCard(
+      child: Column(
+        children: [
+          Text(S.of(context, 'totalBalance'), style: AppTextStyles.caption),
+          const SizedBox(height: AppSpacing.xs),
+          GestureDetector(
+            onTap: () => setState(() => _amountVisible = !_amountVisible),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (_amountVisible)
+                  isMixed
+                      ? Text(S.of(context, 'mixedCurrencies'), style: AppTextStyles.title.copyWith(fontSize: 20))
+                      : AmountText.fromBalance(balance: _dashboard?.balance ?? 0, currency: currency, fontSize: 28)
+                else
+                  Text('••••••', style: AppTextStyles.title.copyWith(fontSize: 28)),
+                const SizedBox(width: AppSpacing.sm),
+                Icon(
+                  _amountVisible ? Icons.visibility : Icons.visibility_off,
+                  size: 20, color: AppColors.inkBlue,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          const Divider(),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
             children: [
-              Text(S.of(context, 'totalBalance'), style: AppTextStyles.caption),
-              const SizedBox(height: AppSpacing.xs),
-              GestureDetector(
-                onTap: () => setState(() => _amountVisible = !_amountVisible),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (_amountVisible)
-                      isMixed
-                          ? Text(S.of(context, 'mixedCurrencies'), style: AppTextStyles.title.copyWith(fontSize: 20))
-                          : AmountText.fromBalance(balance: _dashboard?.balance ?? 0, currency: currency, fontSize: 28)
-                    else
-                      Text('••••••', style: AppTextStyles.title.copyWith(fontSize: 28)),
-                    const SizedBox(width: AppSpacing.sm),
-                    Icon(
-                      _amountVisible ? Icons.visibility : Icons.visibility_off,
-                      size: 20, color: AppColors.inkBlue,
-                    ),
-                  ],
+              Expanded(
+                child: _buildMiniStat(
+                  icon: Icons.arrow_downward, color: AppColors.income,
+                  label: S.of(context, 'monthIncome'),
+                  amount: _dashboard?.monthIncome ?? 0,
+                  type: TransactionType.income,
                 ),
               ),
-              const SizedBox(height: AppSpacing.md),
-              const Divider(),
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildMiniStat(
-                      icon: Icons.arrow_downward, color: AppColors.income,
-                      label: S.of(context, 'monthIncome'),
-                      amount: _dashboard?.monthIncome ?? 0,
-                      type: TransactionType.income,
-                    ),
-                  ),
-                  Container(width: 1, height: 40, color: AppColors.divider),
-                  Expanded(
-                    child: _buildMiniStat(
-                      icon: Icons.arrow_upward, color: AppColors.expense,
-                      label: S.of(context, 'monthExpense'),
-                      amount: _dashboard?.monthExpense ?? 0,
-                      type: TransactionType.expense,
-                    ),
-                  ),
-                ],
+              Container(width: 1, height: 40, color: AppColors.divider),
+              Expanded(
+                child: _buildMiniStat(
+                  icon: Icons.arrow_upward, color: AppColors.expense,
+                  label: S.of(context, 'monthExpense'),
+                  amount: _dashboard?.monthExpense ?? 0,
+                  type: TransactionType.expense,
+                ),
               ),
             ],
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -261,8 +257,31 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildWalletRow(List<Wallet> wallets) {
-    return Column(
+  Widget _buildSavingsHighlight() {
+    final net = (_dashboard?.monthIncome ?? 0) - (_dashboard?.monthExpense ?? 0);
+    if (net <= 0 || _dashboard == null) return const SizedBox.shrink();
+
+    final locale = Localizations.localeOf(context).languageCode;
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: LedgerCard(
+        child: Row(
+          children: [
+            const Text('\uD83C\uDF89', style: TextStyle(fontSize: 20)),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                '${S.of(context, 'savedThisMonth')} ${AmountFormatter.formatCompactCurrency(net, locale)}',
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.income),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWalletRow(List<Wallet> wallets) {    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(

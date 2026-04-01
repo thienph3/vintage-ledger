@@ -11,14 +11,17 @@ import 'package:vintage_ledger/utils/navigator_x.dart';
 
 class LoginPromptCard extends StatelessWidget {
   final int transactionCount;
+  final int? firstUseDayCount;
 
-  const LoginPromptCard({super.key, required this.transactionCount});
+  const LoginPromptCard({super.key, required this.transactionCount, this.firstUseDayCount});
 
   @override
   Widget build(BuildContext context) {
-    if (!sl.authService.isAnonymous || transactionCount < 3) {
-      return const SizedBox.shrink();
-    }
+    if (!sl.authService.isAnonymous) return const SizedBox.shrink();
+
+    // Smart trigger: ≥5 transactions OR ≥3 days usage
+    final shouldShow = transactionCount >= 5 || (firstUseDayCount != null && firstUseDayCount! >= 3);
+    if (!shouldShow) return const SizedBox.shrink();
 
     return LedgerCard(
       child: Row(
@@ -26,12 +29,7 @@ class LoginPromptCard extends StatelessWidget {
           const Icon(Icons.cloud_upload_outlined, color: AppColors.inkBlue, size: 24),
           const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(S.of(context, 'registerToSync'), style: AppTextStyles.bodySmall),
-              ],
-            ),
+            child: Text(S.of(context, 'anonymousExplanation'), style: AppTextStyles.bodySmall),
           ),
           TextButton(
             onPressed: () => context.pushScreen(const RegisterScreen()),

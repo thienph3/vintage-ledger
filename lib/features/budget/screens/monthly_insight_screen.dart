@@ -81,6 +81,8 @@ class _MonthlyInsightScreenState extends State<MonthlyInsightScreen> {
               children: [
                 _buildSummaryCard(),
                 const SizedBox(height: AppSpacing.md),
+                _buildHighlight(),
+                const SizedBox(height: AppSpacing.md),
                 _buildVsLastMonth(),
                 const SizedBox(height: AppSpacing.md),
                 _buildTopSpending(),
@@ -106,6 +108,38 @@ class _MonthlyInsightScreenState extends State<MonthlyInsightScreen> {
               Text(S.of(context, 'net'), style: AppTextStyles.body),
               AmountText.fromBalance(balance: (_current?.monthIncome ?? 0) - (_current?.monthExpense ?? 0)),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHighlight() {
+    final currentExp = _current?.monthExpense ?? 0;
+    final diff = currentExp - _lastMonthExpense;
+    if (_lastMonthExpense == 0) return const SizedBox.shrink();
+
+    final locale = Localizations.localeOf(context).languageCode;
+    final saved = diff < 0;
+
+    return LedgerCard(
+      child: Row(
+        children: [
+          Icon(
+            saved ? Icons.celebration : Icons.trending_up,
+            color: saved ? AppColors.income : AppColors.expense,
+            size: 24,
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Text(
+              saved
+                  ? '${S.of(context, 'savedThisMonth')} ${AmountFormatter.formatCompactCurrency(diff.abs(), locale)} \uD83C\uDF89'
+                  : '${S.of(context, 'spentMoreThisMonth')} ${AmountFormatter.formatCompactCurrency(diff.abs(), locale)}',
+              style: AppTextStyles.body.copyWith(
+                color: saved ? AppColors.income : AppColors.expense,
+              ),
+            ),
           ),
         ],
       ),

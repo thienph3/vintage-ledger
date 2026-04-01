@@ -161,6 +161,12 @@ const Map<String, String> en = {
   'memberEarned': 'just earned',
   'multipleTransactions': 'new transactions',
   'undo': 'Undo',
+  'anonymousExplanation': 'Use now — register to save your data safely',
+  'familyPromo': 'Share expenses with your family 👨👩👧',
+  'joinByLink': 'Join by link',
+  'pasteInviteLink': 'Paste invite link here',
+  'savedThisMonth': 'You saved this month',
+  'spentMoreThisMonth': 'You spent more this month',
 
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',

@@ -148,7 +148,8 @@ class _SettingScreenState extends State<SettingScreen> {
           ListTile(
             leading: const Icon(Icons.bug_report_outlined),
             title: const Text('Firestore reads'),
-            subtitle: Text('${ReadCounter.count} reads this session'),
+            subtitle: Text('${ReadCounter.count} reads\n${ReadCounter.breakdown}'),
+            isThreeLine: true,
             trailing: IconButton(
               icon: const Icon(Icons.refresh, size: 18),
               onPressed: () { ReadCounter.reset(); setState(() {}); },

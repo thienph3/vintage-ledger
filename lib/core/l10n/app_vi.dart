@@ -160,6 +160,12 @@ const Map<String, String> vi = {
   'memberEarned': 'vừa thu',
   'multipleTransactions': 'giao dịch mới',
   'undo': 'Hoàn tác',
+  'anonymousExplanation': 'Dùng ngay — đăng ký để lưu dữ liệu an toàn',
+  'familyPromo': 'Chia sẻ chi tiêu với người thân 👨‍👩‍👧',
+  'joinByLink': 'Tham gia bằng link',
+  'pasteInviteLink': 'Dán link mời vào đây',
+  'savedThisMonth': 'Tháng này bạn tiết kiệm được',
+  'spentMoreThisMonth': 'Tháng này bạn chi nhiều hơn',
 
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',

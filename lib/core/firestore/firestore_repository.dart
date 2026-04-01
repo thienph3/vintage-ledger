@@ -62,14 +62,16 @@ abstract class FirestoreRepository<T> {
   Stream<List<T>> watchAll({Query<Map<String, dynamic>> Function(CollectionReference<Map<String, dynamic>>)? queryBuilder}) {
     final ref = _collection(_accountId);
     final query = queryBuilder != null ? queryBuilder(ref) : ref;
-    return query.snapshots().map(
-      (snap) => snap.docs.map((d) => fromFirestore(d.id, d.data())).toList(),
-    );
+    return query.snapshots().map((snap) {
+      ReadCounter.increment(snap.docs.length);
+      return snap.docs.map((d) => fromFirestore(d.id, d.data())).toList();
+    });
   }
 
   Stream<T?> watchById(String id) {
-    return _collection(_accountId).doc(id).snapshots().map(
-      (doc) => doc.exists && doc.data() != null ? fromFirestore(doc.id, doc.data()!) : null,
-    );
+    return _collection(_accountId).doc(id).snapshots().map((doc) {
+      ReadCounter.increment();
+      return doc.exists && doc.data() != null ? fromFirestore(doc.id, doc.data()!) : null;
+    });
   }
 }

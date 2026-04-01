@@ -11,6 +11,7 @@ import 'package:vintage_ledger/features/account/models/account.dart';
 import 'package:vintage_ledger/features/home/screens/home_screen.dart';
 import 'package:vintage_ledger/features/account/screens/family_form_screen.dart';
 import 'package:vintage_ledger/features/account/screens/family_detail_screen.dart';
+import 'package:vintage_ledger/features/account/screens/join_family_screen.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
@@ -50,6 +51,32 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
       context,
       MaterialPageRoute(builder: (_) => const HomeScreen()),
     );
+  }
+
+  Future<void> _joinByLink() async {
+    final ctrl = TextEditingController();
+    final link = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(S.of(ctx, 'joinByLink')),
+        content: TextField(
+          controller: ctrl,
+          decoration: InputDecoration(hintText: S.of(ctx, 'pasteInviteLink')),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.of(ctx, 'cancel'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: Text(S.of(ctx, 'done'))),
+        ],
+      ),
+    );
+    if (link == null || link.isEmpty) return;
+
+    // Extract tokenId from link: https://vintage-ledger.web.app/invite/{tokenId}
+    final tokenId = link.contains('/invite/') ? link.split('/invite/').last : link;
+    if (tokenId.isEmpty) return;
+
+    final result = await context.pushScreen(JoinFamilyScreen(tokenId: tokenId));
+    if (result == true) _load();
   }
 
   @override
@@ -118,6 +145,29 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: AppSpacing.sm),
+                      GestureDetector(
+                        onTap: _joinByLink,
+                        child: LedgerCard(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.link, color: AppColors.inkBlue),
+                              const SizedBox(width: AppSpacing.sm),
+                              Text(S.of(context, 'joinByLink'), style: AppTextStyles.body),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // Family promo for users with only personal account
+                      if (_accounts.length <= 1) ...[
+                        const SizedBox(height: AppSpacing.lg),
+                        Text(
+                          S.of(context, 'familyPromo'),
+                          style: AppTextStyles.hint,
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ],
                   ),
                 ),
