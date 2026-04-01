@@ -86,6 +86,7 @@ const Map<String, String> vi = {
   'displayName': 'Tên hiển thị',
   'skipLogin': 'Bỏ qua',
   'logout': 'Đăng xuất',
+  'loginExisting': 'Đăng nhập tài khoản đã có',
   'account': 'Tài khoản',
 
   // Chart

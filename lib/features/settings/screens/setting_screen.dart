@@ -92,6 +92,19 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
+  Future<void> _loginExisting() async {
+    // Sign out anonymous → go to login screen
+    await sl.authService.logout();
+    sl.appState.currentUserId = null;
+    sl.appState.currentAccountId = '';
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (_) => false,
+    );
+  }
+
   Future<void> _logout() async {    await sl.notificationService.removeToken();
     await sl.authService.logout();
     sl.appState.currentUserId = null;
@@ -124,7 +137,17 @@ class _SettingScreenState extends State<SettingScreen> {
               leading: const Icon(Icons.person_add, color: AppColors.inkBlue),
               title: Text(S.of(context, 'register')),
               subtitle: Text(S.of(context, 'registerToSync')),
-              onTap: () => context.pushScreen(const RegisterScreen()),
+              onTap: () async {
+                final result = await context.pushScreen(const RegisterScreen());
+                if (result == true && mounted) setState(() {});
+              },
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.login, color: AppColors.inkBlue),
+              title: Text(S.of(context, 'login')),
+              subtitle: Text(S.of(context, 'loginExisting')),
+              onTap: _loginExisting,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ] else if (user != null) ...[

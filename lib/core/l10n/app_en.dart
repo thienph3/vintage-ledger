@@ -87,6 +87,7 @@ const Map<String, String> en = {
   'displayName': 'Display name',
   'skipLogin': 'Skip',
   'logout': 'Log out',
+  'loginExisting': 'Log in to existing account',
   'account': 'Account',
 
   // Chart
