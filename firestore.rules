@@ -3,24 +3,125 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // User profiles: chỉ owner đọc/ghi
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    // ── Helper functions ──
+
+    // #1: Check if authenticated user is a member of the account
+    function isMember(accountId) {
+      return request.auth != null &&
+        request.auth.uid in get(/databases/$(database)/documents/accounts/$(accountId)).data.member_ids;
     }
 
-    // Accounts + subcollections: chỉ members đọc/ghi
-    match /accounts/{accountId} {
-      allow read, write: if request.auth != null &&
-        request.auth.uid in resource.data.member_ids;
+    function isOwner(accountId) {
+      return request.auth != null &&
+        request.auth.uid == get(/databases/$(database)/documents/accounts/$(accountId)).data.owner_id;
+    }
 
-      // Cho phép tạo account mới (chưa có resource.data)
-      allow create: if request.auth != null &&
-        request.auth.uid in request.resource.data.member_ids;
+    function isAuthenticated() {
+      return request.auth != null;
+    }
 
-      match /{subcollection}/{docId} {
-        allow read, write: if request.auth != null &&
-          request.auth.uid in get(/databases/$(database)/documents/accounts/$(accountId)).data.member_ids;
+    function isCurrentUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ── #6: User profiles ──
+
+    match /users/{userId} {
+      allow read, write: if isCurrentUser(userId);
+
+      // Settings subcollection
+      match /settings/{docId} {
+        allow read, write: if isCurrentUser(userId);
       }
+    }
+
+    // ── #2: Accounts ──
+
+    match /accounts/{accountId} {
+      // Any member can read
+      allow read: if isMember(accountId);
+
+      // Create: user must be in member_ids of new doc
+      allow create: if isAuthenticated() &&
+        request.auth.uid in request.resource.data.member_ids &&
+        request.resource.data.owner_id == request.auth.uid;
+
+      // Update: only owner can update account-level fields (member_ids, name, owner_id)
+      allow update: if isOwner(accountId);
+
+      // Delete: only owner
+      allow delete: if isOwner(accountId);
+
+      // ── #3: Data subcollections (wallets, transactions, categories, budgets) ──
+
+      match /wallets/{docId} {
+        allow read: if isMember(accountId);
+        allow create: if isMember(accountId) &&
+          request.resource.data.name is string &&
+          request.resource.data.name.size() > 0;
+        allow update: if isMember(accountId);
+        allow delete: if isMember(accountId);
+      }
+
+      match /transactions/{docId} {
+        allow read: if isMember(accountId);
+        allow create: if isMember(accountId) &&
+          request.resource.data.amount is int &&
+          request.resource.data.amount > 0 &&
+          request.resource.data.type in ['income', 'expense'];
+        allow update: if isMember(accountId) &&
+          request.resource.data.amount is int &&
+          request.resource.data.amount > 0 &&
+          request.resource.data.type in ['income', 'expense'];
+        allow delete: if isMember(accountId);
+      }
+
+      match /categories/{docId} {
+        allow read: if isMember(accountId);
+        allow create: if isMember(accountId) &&
+          request.resource.data.name is string &&
+          request.resource.data.name.size() > 0;
+        allow update: if isMember(accountId);
+        allow delete: if isMember(accountId);
+      }
+
+      match /budgets/{docId} {
+        allow read: if isMember(accountId);
+        allow create: if isMember(accountId) &&
+          request.resource.data.amount_limit is int &&
+          request.resource.data.amount_limit > 0;
+        allow update: if isMember(accountId) &&
+          request.resource.data.amount_limit is int &&
+          request.resource.data.amount_limit > 0;
+        allow delete: if isMember(accountId);
+      }
+
+      // ── #4: Activities ──
+
+      match /activities/{docId} {
+        allow read: if isMember(accountId);
+        // Create: must be member + user_id must match auth uid
+        allow create: if isMember(accountId) &&
+          request.resource.data.user_id == request.auth.uid;
+        // No update or delete
+        allow update, delete: if false;
+      }
+    }
+
+    // ── #5: Invites (top-level collection) ──
+
+    match /invites/{tokenId} {
+      // Any authenticated user can read (needed to join by link)
+      allow read: if isAuthenticated();
+
+      // Create: must be member of the account referenced in invite
+      allow create: if isAuthenticated() &&
+        request.resource.data.account_id is string &&
+        request.resource.data.created_by == request.auth.uid &&
+        request.auth.uid in get(/databases/$(database)/documents/accounts/$(request.resource.data.account_id)).data.member_ids;
+
+      // No update or delete
+      allow update, delete: if false;
     }
   }
 }
