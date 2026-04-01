@@ -6,7 +6,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.vintageledger"
+    namespace = "com.thienph3.vintageledger"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 

@@ -8,7 +8,7 @@
 PRODUCT_NAME = vintageledger
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.example.vintageledger
+PRODUCT_BUNDLE_IDENTIFIER = com.thienph3.vintageledger
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.example. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.thienph3. All rights reserved.
