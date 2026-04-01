@@ -16,5 +16,6 @@ void showAppSnackBar(
     duration: _kDuration,
     action: action,
     backgroundColor: backgroundColor,
+    persist: false,
   ));
 }
