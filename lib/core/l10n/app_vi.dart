@@ -112,6 +112,9 @@ const Map<String, String> vi = {
   'dismiss': 'Bỏ qua',
   'saveFailed': 'Lưu thất bại',
   'offline': 'Ngoại tuyến',
+  'currency': 'Loại tiền',
+  'selectCurrency': 'Chọn loại tiền',
+  'mixedCurrencies': 'Nhiều loại tiền',
 
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',

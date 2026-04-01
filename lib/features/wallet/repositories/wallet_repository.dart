@@ -10,12 +10,14 @@ class WalletRepository extends FirestoreRepository<Wallet> {
     id: id,
     name: data['name'] ?? '',
     balance: data['balance'] ?? 0,
+    currency: data['currency'] ?? 'VND',
   );
 
   @override
   Map<String, dynamic> toFirestore(Wallet item) => {
     'name': item.name,
     'balance': item.balance,
+    'currency': item.currency,
   };
 
   Stream<List<Wallet>> watchWallets() => watchAll();

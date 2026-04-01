@@ -8,6 +8,7 @@ import 'package:vintage_ledger/utils/amount_formatter.dart';
 class AmountText extends StatelessWidget {
   final int amount;
   final TransactionType type;
+  final String currency;
   final double? fontSize;
   final bool compact;
 
@@ -15,6 +16,7 @@ class AmountText extends StatelessWidget {
     super.key,
     required this.amount,
     required this.type,
+    this.currency = 'VND',
     this.fontSize,
     this.compact = false,
   });
@@ -22,6 +24,7 @@ class AmountText extends StatelessWidget {
   static Widget fromBalance({
     Key? key,
     required int balance,
+    String currency = 'VND',
     double? fontSize,
     bool compact = false,
   }) {
@@ -29,6 +32,7 @@ class AmountText extends StatelessWidget {
       key: key,
       amount: balance.abs(),
       type: balance >= 0 ? TransactionType.income : TransactionType.expense,
+      currency: currency,
       fontSize: fontSize,
       compact: compact,
     );
@@ -40,8 +44,8 @@ class AmountText extends StatelessWidget {
     final color = type.isIncome ? AppColors.income : AppColors.expense;
     final sign = type.isIncome ? '' : '-';
     final formatted = compact
-        ? AmountFormatter.formatCompactCurrency(amount, locale)
-        : AmountFormatter.formatCurrency(amount, locale);
+        ? AmountFormatter.formatCompactCurrency(amount, locale, currencyCode: currency)
+        : AmountFormatter.formatCurrency(amount, locale, currencyCode: currency);
 
     return Text(
       '$sign$formatted',

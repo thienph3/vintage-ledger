@@ -6,6 +6,7 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
+import 'package:vintage_ledger/core/constants/currency.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
 import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -20,6 +21,7 @@ class SettingScreen extends StatefulWidget {
 
 class _SettingScreenState extends State<SettingScreen> {
   String _currentLocale = 'vi';
+  String _defaultCurrency = 'VND';
 
   @override
   void initState() {
@@ -29,7 +31,11 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _load() async {
     final locale = await sl.settingService.getLocale();
-    setState(() => _currentLocale = locale);
+    final currency = await sl.settingService.getDefaultCurrency();
+    setState(() {
+      _currentLocale = locale;
+      _defaultCurrency = currency;
+    });
   }
 
   Future<void> _changeLocale(String locale) async {
@@ -89,6 +95,26 @@ class _SettingScreenState extends State<SettingScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ],
+          const Divider(),
+
+          // Currency section
+          const SizedBox(height: AppSpacing.md),
+          Text(S.of(context, 'currency'), style: AppTextStyles.title),
+          const SizedBox(height: AppSpacing.sm),
+          ...Currency.all.map((c) {
+            final isSelected = _defaultCurrency == c.code;
+            return ListTile(
+              leading: Text(c.symbol, style: AppTextStyles.emoji),
+              title: Text(c.code),
+              trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.inkBlue) : null,
+              onTap: () async {
+                await sl.settingService.setDefaultCurrency(c.code);
+                setState(() => _defaultCurrency = c.code);
+              },
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              tileColor: isSelected ? AppColors.inkBlue.withValues(alpha: 0.1) : null,
+            );
+          }),
           const Divider(),
 
           // Language section

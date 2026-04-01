@@ -78,7 +78,7 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                       children: [
                         Text("${S.of(context, 'balance')}:", style: AppTextStyles.body),
                         const SizedBox(width: AppSpacing.md),
-                        AmountText.fromBalance(balance: balance),
+                        AmountText.fromBalance(balance: balance, currency: snap.data?.currency ?? widget.wallet.currency),
                       ],
                     ),
                   );

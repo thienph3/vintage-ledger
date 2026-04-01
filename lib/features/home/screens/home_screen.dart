@@ -151,60 +151,66 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildBalanceCard() {
-    return LedgerCard(
-      child: Column(
-        children: [
-          Text(S.of(context, 'totalBalance'), style: AppTextStyles.caption),
-          const SizedBox(height: AppSpacing.xs),
-          GestureDetector(
-            onTap: () => setState(() => _amountVisible = !_amountVisible),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (_amountVisible)
-                  AmountText.fromBalance(
-                    balance: _dashboard?.balance ?? 0,
-                    fontSize: 28,
-                  )
-                else
-                  Text('••••••', style: AppTextStyles.title.copyWith(fontSize: 28)),
-                const SizedBox(width: AppSpacing.sm),
-                Icon(
-                  _amountVisible ? Icons.visibility : Icons.visibility_off,
-                  size: 20,
-                  color: AppColors.inkBlue,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          const Divider(),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
+    return StreamBuilder<List<Wallet>>(
+      stream: sl.walletService.watchWallets(),
+      builder: (context, snap) {
+        final wallets = snap.data ?? [];
+        final currencies = wallets.map((w) => w.currency).toSet();
+        final isMixed = currencies.length > 1;
+        final currency = isMixed ? 'VND' : (currencies.firstOrNull ?? 'VND');
+
+        return LedgerCard(
+          child: Column(
             children: [
-              Expanded(
-                child: _buildMiniStat(
-                  icon: Icons.arrow_downward,
-                  color: AppColors.income,
-                  label: S.of(context, 'monthIncome'),
-                  amount: _dashboard?.monthIncome ?? 0,
-                  type: TransactionType.income,
+              Text(S.of(context, 'totalBalance'), style: AppTextStyles.caption),
+              const SizedBox(height: AppSpacing.xs),
+              GestureDetector(
+                onTap: () => setState(() => _amountVisible = !_amountVisible),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    if (_amountVisible)
+                      isMixed
+                          ? Text(S.of(context, 'mixedCurrencies'), style: AppTextStyles.title.copyWith(fontSize: 20))
+                          : AmountText.fromBalance(balance: _dashboard?.balance ?? 0, currency: currency, fontSize: 28)
+                    else
+                      Text('••••••', style: AppTextStyles.title.copyWith(fontSize: 28)),
+                    const SizedBox(width: AppSpacing.sm),
+                    Icon(
+                      _amountVisible ? Icons.visibility : Icons.visibility_off,
+                      size: 20, color: AppColors.inkBlue,
+                    ),
+                  ],
                 ),
               ),
-              Container(width: 1, height: 40, color: AppColors.divider),
-              Expanded(
-                child: _buildMiniStat(
-                  icon: Icons.arrow_upward,
-                  color: AppColors.expense,
-                  label: S.of(context, 'monthExpense'),
-                  amount: _dashboard?.monthExpense ?? 0,
-                  type: TransactionType.expense,
-                ),
+              const SizedBox(height: AppSpacing.md),
+              const Divider(),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildMiniStat(
+                      icon: Icons.arrow_downward, color: AppColors.income,
+                      label: S.of(context, 'monthIncome'),
+                      amount: _dashboard?.monthIncome ?? 0,
+                      type: TransactionType.income,
+                    ),
+                  ),
+                  Container(width: 1, height: 40, color: AppColors.divider),
+                  Expanded(
+                    child: _buildMiniStat(
+                      icon: Icons.arrow_upward, color: AppColors.expense,
+                      label: S.of(context, 'monthExpense'),
+                      amount: _dashboard?.monthExpense ?? 0,
+                      type: TransactionType.expense,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -305,7 +311,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             if (_amountVisible)
-              AmountText.fromBalance(balance: wallet.balance)
+              AmountText.fromBalance(balance: wallet.balance, currency: wallet.currency)
             else
               Text('••••', style: AppTextStyles.amount),
           ],

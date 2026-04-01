@@ -10,13 +10,15 @@ class WalletService {
 
   Future<Wallet?> getWallet(String id) => _repo.getById(id);
 
-  Future<String> createWallet(String name, int balance) async {
+  Future<String> createWallet(String name, int balance, {String currency = 'VND'}) async {
     if (name.trim().isEmpty) throw Exception("Wallet name cannot be empty");
-    return await _repo.add(Wallet(name: name, balance: balance));
+    return await _repo.add(Wallet(name: name, balance: balance, currency: currency));
   }
 
-  Future<void> updateWallet(String id, String name, int balance) async {
-    await _repo.update(id, {'name': name, 'balance': balance});
+  Future<void> updateWallet(String id, String name, int balance, {String? currency}) async {
+    final data = <String, dynamic>{'name': name, 'balance': balance};
+    if (currency != null) data['currency'] = currency;
+    await _repo.update(id, data);
   }
 
   Future<void> deleteWallet(String id) async {

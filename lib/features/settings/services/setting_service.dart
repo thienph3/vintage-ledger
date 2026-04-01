@@ -25,6 +25,21 @@ class SettingService {
     await _userSettings.set({'locale': locale}, SetOptions(merge: true));
   }
 
+  Future<String> getDefaultCurrency() async {
+    try {
+      final doc = await _userSettings.get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>?;
+        return data?['default_currency'] ?? 'VND';
+      }
+    } catch (_) {}
+    return 'VND';
+  }
+
+  Future<void> setDefaultCurrency(String currency) async {
+    await _userSettings.set({'default_currency': currency}, SetOptions(merge: true));
+  }
+
   Future<String?> getSetting(String key) async {
     try {
       final doc = await _userSettings.get();

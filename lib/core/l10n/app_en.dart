@@ -113,6 +113,9 @@ const Map<String, String> en = {
   'dismiss': 'Dismiss',
   'saveFailed': 'Save failed',
   'offline': 'Offline',
+  'currency': 'Currency',
+  'selectCurrency': 'Select currency',
+  'mixedCurrencies': 'Mixed currencies',
 
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',

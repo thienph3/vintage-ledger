@@ -65,7 +65,7 @@ class WalletListScreen extends StatelessWidget {
                               const Icon(Icons.account_balance_wallet, size: 28, color: AppColors.inkBlue),
                               const SizedBox(width: 16),
                               Expanded(child: Text(w.name, style: AppTextStyles.bodyBold)),
-                              AmountText.fromBalance(balance: w.balance),
+                              AmountText.fromBalance(balance: w.balance, currency: w.currency),
                             ],
                           ),
                         ),
