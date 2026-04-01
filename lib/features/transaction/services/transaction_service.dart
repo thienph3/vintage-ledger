@@ -94,6 +94,7 @@ class TransactionService {
     // Notify family members
     sl.notificationService.notifyTransaction(
       accountId: sl.appState.currentAccountId, amount: amount, type: type.value,
+      transactionId: newDocRef.id,
     );
 
     return newDocRef.id;
