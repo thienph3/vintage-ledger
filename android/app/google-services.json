@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "1068857729867-g1u2rn5aph51btj6ka1dca2o1dt5r8lp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.thienph3.vintageledger",
+            "certificate_hash": "7b070f69f9558c15055868017b744451871c2a10"
+          }
+        },
+        {
           "client_id": "1068857729867-2gkpgcgqao57gjbucu8b4bitbv8b3s9p.apps.googleusercontent.com",
           "client_type": 3
         }

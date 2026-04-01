@@ -1,4 +1,4 @@
-package com.example.vintageledger
+package com.thienph3.vintageledger
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 
