@@ -64,44 +64,49 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   Future<void> _init() async {
-    // Auto sign-in anonymously if no user
-    final user = sl.authService.currentUser;
-    if (user != null) {
-      sl.appState.currentUserId = user.uid;
-      if (!user.isAnonymous) {
-        final locale = await sl.settingService.getLocale();
-        // Restore last account
-        final lastAccountId = await sl.settingService.getLastAccountId();
-        if (lastAccountId != null) sl.appState.currentAccountId = lastAccountId;
-        await QuickAddParser.init();
-        await sl.notificationService.init();
-        setState(() { _locale = Locale(locale); _ready = true; });
-        return;
+    try {
+      final user = sl.authService.currentUser;
+      if (user != null) {
+        sl.appState.currentUserId = user.uid;
+        if (!user.isAnonymous) {
+          // Load settings with timeout to avoid infinite loading
+          final locale = await sl.settingService.getLocale()
+              .timeout(const Duration(seconds: 5), onTimeout: () => 'vi');
+          final lastAccountId = await sl.settingService.getLastAccountId()
+              .timeout(const Duration(seconds: 5), onTimeout: () => null);
+          if (lastAccountId != null) sl.appState.currentAccountId = lastAccountId;
+          setState(() { _locale = Locale(locale); _ready = true; });
+          // Non-blocking init
+          QuickAddParser.init();
+          sl.notificationService.init();
+          return;
+        }
       }
-    }
 
-    if (user == null) {
-      final anon = await sl.authService.signInAnonymously();
-      if (anon != null) {
-        sl.appState.currentUserId = anon.uid;
+      if (user == null) {
+        final anon = await sl.authService.signInAnonymously()
+            .timeout(const Duration(seconds: 10));
+        if (anon != null) {
+          sl.appState.currentUserId = anon.uid;
+          final accountId = await sl.accountService.getOrCreatePersonalAccountId(
+            anon.uid, '', 'Anonymous',
+          );
+          sl.appState.currentAccountId = accountId;
+          await _ensureDefaultWallet();
+        }
+      } else {
         final accountId = await sl.accountService.getOrCreatePersonalAccountId(
-          anon.uid, '', 'Anonymous',
+          user.uid, '', 'Anonymous',
         );
         sl.appState.currentAccountId = accountId;
-        // Auto-create default wallet for first-time user
-        await _ensureDefaultWallet();
       }
-    } else {
-      // Anonymous user already exists
-      final accountId = await sl.accountService.getOrCreatePersonalAccountId(
-        user.uid, '', 'Anonymous',
-      );
-      sl.appState.currentAccountId = accountId;
+    } catch (e) {
+      debugPrint('[Init] Error: $e');
     }
 
-    setState(() => _ready = true);
-    await QuickAddParser.init();
-    await sl.notificationService.init();
+    if (mounted) setState(() => _ready = true);
+    QuickAddParser.init();
+    sl.notificationService.init();
   }
 
   Future<void> _ensureDefaultWallet() async {
