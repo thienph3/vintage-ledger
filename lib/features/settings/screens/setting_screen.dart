@@ -12,6 +12,7 @@ import 'package:vintage_ledger/core/debug/read_counter.dart';
 import 'package:vintage_ledger/features/export/export_service.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
+import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/main.dart';
@@ -93,14 +94,32 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Future<void> _loginExisting() async {
-    // Sign out anonymous → go to login screen
+    final anonAccountId = sl.appState.currentAccountId;
+
+    // Confirm: data sẽ được chuyển sang account mới
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(S.of(ctx, 'login')),
+        content: Text(S.of(ctx, 'loginMigrateWarning')),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text(S.of(ctx, 'cancel'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text(S.of(ctx, 'done'))),
+        ],
+      ),
+    );
+    if (confirm != true || !mounted) return;
+
+    // Logout anonymous
     await sl.authService.logout();
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
     if (!mounted) return;
+
+    // Navigate to login, pass anonAccountId for migration
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => LoginScreen(anonAccountIdToMigrate: anonAccountId)),
       (_) => false,
     );
   }

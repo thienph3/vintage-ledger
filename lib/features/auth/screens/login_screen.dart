@@ -12,7 +12,9 @@ import 'package:vintage_ledger/features/account/screens/account_picker_screen.da
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String? anonAccountIdToMigrate;
+
+  const LoginScreen({super.key, this.anonAccountIdToMigrate});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -48,6 +50,12 @@ class _LoginScreenState extends State<LoginScreen> {
         user.uid, user.email!, user.displayName ?? '',
       );
       sl.appState.currentAccountId = accountId;
+
+      // Migrate anonymous data if coming from anonymous → login flow
+      if (widget.anonAccountIdToMigrate != null && widget.anonAccountIdToMigrate!.isNotEmpty) {
+        await sl.accountService.migrateAccount(widget.anonAccountIdToMigrate!, accountId);
+        await sl.accountService.deleteAccount(widget.anonAccountIdToMigrate!);
+      }
 
       _goAccountPicker();
     } catch (e) {

@@ -88,6 +88,7 @@ const Map<String, String> en = {
   'skipLogin': 'Skip',
   'logout': 'Log out',
   'loginExisting': 'Log in to existing account',
+  'loginMigrateWarning': 'Your current data will be transferred to the account you log in to.',
   'account': 'Account',
 
   // Chart

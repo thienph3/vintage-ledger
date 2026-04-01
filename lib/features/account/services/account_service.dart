@@ -143,6 +143,34 @@ class AccountService {
     }
   }
 
+  /// Migrate all data from source account to target account (anonymous → email)
+  Future<void> migrateAccount(String sourceAccountId, String targetAccountId) async {
+    for (final sub in ['wallets', 'transactions', 'categories', 'budgets']) {
+      final docs = await _accounts.doc(sourceAccountId).collection(sub).get();
+      if (docs.docs.isEmpty) continue;
+      final batch = _firestore.batch();
+      for (final doc in docs.docs) {
+        batch.set(
+          _accounts.doc(targetAccountId).collection(sub).doc(),
+          doc.data(),
+        );
+      }
+      await batch.commit();
+    }
+  }
+
+  /// Delete an account and all its subcollections
+  Future<void> deleteAccount(String accountId) async {
+    for (final sub in ['wallets', 'transactions', 'categories', 'budgets', 'activities', 'notification_events']) {
+      final docs = await _accounts.doc(accountId).collection(sub).get();
+      if (docs.docs.isEmpty) continue;
+      final batch = _firestore.batch();
+      for (final doc in docs.docs) { batch.delete(doc.reference); }
+      await batch.commit();
+    }
+    await _accounts.doc(accountId).delete();
+  }
+
   Future<List<Map<String, String>>> getMemberProfiles(List<String> memberIds) async {
     final results = <Map<String, String>>[];
     for (final id in memberIds) {

@@ -87,6 +87,7 @@ const Map<String, String> vi = {
   'skipLogin': 'Bỏ qua',
   'logout': 'Đăng xuất',
   'loginExisting': 'Đăng nhập tài khoản đã có',
+  'loginMigrateWarning': 'Dữ liệu hiện tại sẽ được chuyển sang tài khoản bạn đăng nhập.',
   'account': 'Tài khoản',
 
   // Chart
