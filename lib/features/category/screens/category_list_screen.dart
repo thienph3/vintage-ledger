@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
@@ -40,6 +41,12 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
     setState(() { _items = items; _loading = false; });
   }
 
+  List<Category> get _expenseCategories =>
+      _items.where((c) => c.type == TransactionType.expense).toList();
+
+  List<Category> get _incomeCategories =>
+      _items.where((c) => c.type == TransactionType.income).toList();
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
@@ -51,39 +58,31 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
               child: ListView(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 children: [
-                  const SizedBox(height: AppSpacing.sm),
                   if (_items.isEmpty)
                     EmptyState(message: S.of(context, 'noCategories')),
-                  ..._items.map((c) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
-                    child: SwipeListItem(
-                      itemKey: Key(c.id!),
-                      onTap: () async {
-                        await context.pushScreen(CategoryFormScreen(category: c));
-                        _load();
-                      },
-                      confirmDelete: () => showDeleteConfirmation(context, titleKey: 'deleteCategory', contentKey: 'deleteCategoryConfirm'),
-                      onDelete: () async {
-                        try {
-                          await sl.categoryService.deleteCategory(c.id!);
-                          _load();
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          showErrorSnackBar(context, e);
-                        }
-                      },
-                      child: LedgerListTile(
-                        child: Row(
-                          children: [
-                            Icon(getCategoryIcon(c.icon), size: 28, color: AppColors.inkBlue),
-                            const SizedBox(width: 16),
-                            Expanded(child: Text(c.name, style: AppTextStyles.bodyBold)),
-                          ],
-                        ),
-                      ),
+
+                  // Expense section
+                  if (_expenseCategories.isNotEmpty) ...[
+                    _buildSectionHeader(
+                      S.of(context, 'expense'),
+                      Icons.arrow_upward,
+                      AppColors.expense,
                     ),
-                  )),
-                  const SizedBox(height: AppSpacing.md),
+                    ..._expenseCategories.map(_buildCategoryTile),
+                  ],
+
+                  // Income section
+                  if (_incomeCategories.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    _buildSectionHeader(
+                      S.of(context, 'income'),
+                      Icons.arrow_downward,
+                      AppColors.income,
+                    ),
+                    ..._incomeCategories.map(_buildCategoryTile),
+                  ],
+
+                  const SizedBox(height: AppSpacing.lg),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
@@ -98,6 +97,55 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                 ],
               ),
             ),
+    );
+  }
+
+  Widget _buildSectionHeader(String label, IconData icon, Color color) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: AppSpacing.sm),
+          Text(label, style: AppTextStyles.titleSmall.copyWith(color: color)),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(child: Divider(color: color.withValues(alpha: 0.3))),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryTile(Category c) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: SwipeListItem(
+        itemKey: Key(c.id!),
+        onTap: () async {
+          await context.pushScreen(CategoryFormScreen(category: c));
+          _load();
+        },
+        confirmDelete: () => showDeleteConfirmation(
+          context, titleKey: 'deleteCategory', contentKey: 'deleteCategoryConfirm',
+        ),
+        onDelete: () async {
+          try {
+            await sl.categoryService.deleteCategory(c.id!);
+            _load();
+          } catch (e) {
+            if (!context.mounted) return;
+            showErrorSnackBar(context, e);
+          }
+        },
+        child: LedgerListTile(
+          child: Row(
+            children: [
+              Icon(getCategoryIcon(c.icon), size: 28, color: AppColors.inkBlue),
+              const SizedBox(width: 16),
+              Expanded(child: Text(c.name, style: AppTextStyles.bodyBold)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
