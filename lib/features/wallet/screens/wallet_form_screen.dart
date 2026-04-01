@@ -8,7 +8,7 @@ import 'package:vintage_ledger/core/constants/currency.dart';
 
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
-import 'package:vintage_ledger/common/widgets/error_snackbar.dart';
+import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 
@@ -64,7 +64,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      showErrorSnackBar(context, e);
+      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
     }
   }
 

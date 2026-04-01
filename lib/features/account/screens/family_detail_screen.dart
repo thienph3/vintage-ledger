@@ -11,7 +11,7 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
-import 'package:vintage_ledger/common/widgets/error_snackbar.dart';
+import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/features/account/models/account.dart';
 
@@ -62,12 +62,10 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
       sl.notificationService.notifyInvite(accountId: widget.account.id, tokenId: tokenId);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context, 'inviteCopied'))),
-      );
+      showAppSnackBar(context, S.of(context, 'inviteCopied'));
     } catch (e) {
       if (!mounted) return;
-      showErrorSnackBar(context, e);
+      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
     }
   }
 
@@ -82,11 +80,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
       _load();
     } catch (e) {
       if (!mounted) return;
-      showErrorSnackBar(context, e);
-    }
-  }
-
-  Future<void> _leave() async {
+      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));() async {
     final confirm = await showDeleteConfirmation(
       context, titleKey: 'leaveFamily', contentKey: 'leaveFamilyConfirm',
     );

@@ -6,7 +6,7 @@ import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/common/widgets/error_snackbar.dart';
+import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
@@ -139,10 +139,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
       final locale = Localizations.localeOf(context).languageCode;
       final amountStr = AmountFormatter.formatCompactCurrency(savedAmount, locale);
 
-      final messenger = ScaffoldMessenger.of(context);
-      messenger.clearSnackBars();
-      messenger.showSnackBar(SnackBar(
-        content: Text('✓ $amountStr $catName'),
+      showAppSnackBar(context, '✓ $amountStr $catName',
         action: SnackBarAction(
           label: S.of(context, 'undo'),
           onPressed: () async {
@@ -150,10 +147,10 @@ class _QuickAddBarState extends State<QuickAddBar> {
             widget.onAdded();
           },
         ),
-      ));
+      );
     } catch (e) {
       if (!mounted) return;
-      showErrorSnackBar(context, e);
+      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
     } finally {
       if (mounted) setState(() => _saving = false);
     }

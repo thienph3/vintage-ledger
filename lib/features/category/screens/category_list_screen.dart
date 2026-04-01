@@ -9,7 +9,7 @@ import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/common/widgets/ledger_list_tile.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
-import 'package:vintage_ledger/common/widgets/error_snackbar.dart';
+import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
@@ -133,7 +133,7 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
             _load();
           } catch (e) {
             if (!context.mounted) return;
-            showErrorSnackBar(context, e);
+            showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
           }
         },
         child: LedgerListTile(

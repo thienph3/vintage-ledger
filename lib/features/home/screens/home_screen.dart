@@ -18,6 +18,8 @@ import 'package:vintage_ledger/common/widgets/network_status_banner.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
 
+import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
+
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_detail_screen.dart';
@@ -79,11 +81,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _addTransaction(List<Wallet> wallets) async {
     if (wallets.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(S.of(context, 'createWalletFirst')),
-          backgroundColor: AppColors.divider,
-        ),
+      showAppSnackBar(
+        context,
+        S.of(context, 'createWalletFirst'),
+        backgroundColor: AppColors.divider,
       );
       return;
     }
@@ -384,9 +385,7 @@ class _HomeScreenState extends State<HomeScreen> {
       onLongPress: () {
         sl.settingService.setLastWalletId(wallet.id!);
         setState(() => _defaultWalletId = wallet.id);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${wallet.name} → ${S.of(context, 'defaultWallet')}'), duration: const Duration(seconds: 2)),
-        );
+        showAppSnackBar(context, '${wallet.name} → ${S.of(context, 'defaultWallet')}');
       },
       child: Container(
         width: 150,

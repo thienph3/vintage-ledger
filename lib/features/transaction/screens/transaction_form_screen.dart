@@ -6,7 +6,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
-import 'package:vintage_ledger/common/widgets/error_snackbar.dart';
+import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/common/widgets/type_selector.dart';
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
@@ -197,11 +197,11 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       _amountCtrl.text = amount.toString();
     }
     if (amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.of(context, 'amountMustBePositive'))));
+      showAppSnackBar(context, S.of(context, 'amountMustBePositive'));
       return;
     }
     if (itemTotal > amount) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.of(context, 'itemsTotalExceed'))));
+      showAppSnackBar(context, S.of(context, 'itemsTotalExceed'));
       return;
     }
 
@@ -244,7 +244,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      showErrorSnackBar(context, e);
+      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
     }
   }
 

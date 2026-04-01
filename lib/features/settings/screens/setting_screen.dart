@@ -17,6 +17,7 @@ import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/main.dart';
+import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -68,14 +69,10 @@ class _SettingScreenState extends State<SettingScreen> {
         subject: 'Vintage Ledger Export',
       ));
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context, 'exportSuccess'))),
-      );
+      showAppSnackBar(context, S.of(context, 'exportSuccess'));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
     } finally {
       if (mounted) setState(() => _exporting = false);
     }
