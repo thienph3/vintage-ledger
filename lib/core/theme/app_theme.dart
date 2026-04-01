@@ -125,6 +125,9 @@ class AppTheme {
       contentTextStyle: AppTextStyles.body.copyWith(color: Colors.white),
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      duration: const Duration(seconds: 3),
+      showCloseIcon: true,
+      closeIconColor: Colors.white,
     ),
 
     // BOTTOM SHEET

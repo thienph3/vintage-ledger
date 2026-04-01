@@ -143,7 +143,6 @@ class _QuickAddBarState extends State<QuickAddBar> {
       messenger.clearSnackBars();
       messenger.showSnackBar(SnackBar(
         content: Text('✓ $amountStr $catName'),
-        duration: const Duration(seconds: 3),
         action: SnackBarAction(
           label: S.of(context, 'undo'),
           onPressed: () async {
