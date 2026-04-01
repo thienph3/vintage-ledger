@@ -29,8 +29,11 @@ service cloud.firestore {
     match /users/{userId} {
       allow read, write: if isCurrentUser(userId);
 
-      // Settings subcollection
       match /settings/{docId} {
+        allow read, write: if isCurrentUser(userId);
+      }
+
+      match /fcm_tokens/{tokenId} {
         allow read, write: if isCurrentUser(userId);
       }
     }

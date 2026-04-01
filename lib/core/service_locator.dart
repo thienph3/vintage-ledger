@@ -6,6 +6,7 @@ import 'package:vintage_ledger/features/settings/services/setting_service.dart';
 import 'package:vintage_ledger/features/auth/services/auth_service.dart';
 import 'package:vintage_ledger/features/account/services/account_service.dart';
 import 'package:vintage_ledger/features/budget/services/budget_service.dart';
+import 'package:vintage_ledger/features/notification/services/notification_service.dart';
 
 class ServiceLocator {
   ServiceLocator._();
@@ -19,6 +20,7 @@ class ServiceLocator {
   final authService = AuthService();
   final accountService = AccountService();
   final budgetService = BudgetService();
+  final notificationService = NotificationService();
 }
 
 final sl = ServiceLocator.instance;

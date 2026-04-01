@@ -152,6 +152,10 @@ const Map<String, String> en = {
   'retry': 'Retry',
   'clearLearnedKeywords': 'Clear learned keywords',
   'keywords': 'keywords',
+  'inviteTitle': 'Family invite',
+  'inviteBody': 'You have a new invite',
+  'newTransactionTitle': 'New transaction',
+  'newTransactionBody': 'New transaction in family',
 
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',

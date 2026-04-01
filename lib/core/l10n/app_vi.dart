@@ -151,6 +151,10 @@ const Map<String, String> vi = {
   'retry': 'Thử lại',
   'clearLearnedKeywords': 'Xóa từ khóa đã học',
   'keywords': 'từ khóa',
+  'inviteTitle': 'Lời mời gia đình',
+  'inviteBody': 'Bạn có lời mời mới',
+  'newTransactionTitle': 'Giao dịch mới',
+  'newTransactionBody': 'Có giao dịch mới trong gia đình',
 
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',

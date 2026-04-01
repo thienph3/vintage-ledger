@@ -3,17 +3,24 @@
 > User nhận được update realtime khi được invite hoặc có transaction mới trong family.
 
 ## Phụ thuộc
-- Firestore Security Rules (để Cloud Function có quyền ghi)
+- Firestore Security Rules ✅
 
 ## Tasks
 
-| # | Task | Mô tả | Ưu tiên |
-|---|------|--------|---------|
-| 1 | Thêm firebase_messaging dependency | `firebase_messaging` + platform setup (Android manifest, iOS entitlements) | 🔴 |
-| 2 | FCM token registration | Khi user login/sign-in, lưu FCM token vào `users/{userId}/fcm_tokens/{deviceId}` | 🔴 |
-| 3 | Cloud Function: onInviteCreated | Trigger khi doc tạo trong `invites/` → gửi notification đến tất cả members của account (trừ creator) | 🔴 |
-| 4 | Cloud Function: onTransactionCreated | Trigger khi doc tạo trong `accounts/{id}/transactions/` → gửi notification đến members khác trong family account | 🟡 |
-| 5 | Notification handler trong app | `FirebaseMessaging.onMessage` (foreground) + `onMessageOpenedApp` (background tap) → navigate đến đúng screen | 🟡 |
-| 6 | Navigate on tap | Invite notification → JoinFamilyScreen(tokenId). Transaction notification → HomeScreen hoặc WalletDetailScreen | 🟡 |
-| 7 | Notification permission request | Hỏi permission lần đầu, lưu preference | 🟢 |
-| 8 | L10n notification messages | Keys cho notification title/body: inviteTitle, inviteBody, newTransactionTitle, newTransactionBody | 🟢 |
+| # | Task | Mô tả | Status |
+|---|------|--------|--------|
+| 1 | Thêm firebase_messaging dependency | `firebase_messaging: ^15.2.4` trong pubspec.yaml | ✅ |
+| 2 | FCM token registration | `NotificationService._registerToken()` → lưu token vào `users/{userId}/fcm_tokens/{token}` + listen onTokenRefresh | ✅ |
+| 3 | Cloud Function: onInviteCreated | `functions/index.js` — trigger on `invites/{tokenId}` create → gửi notification đến members (trừ creator) | ✅ |
+| 4 | Cloud Function: onTransactionCreated | `functions/index.js` — trigger on `accounts/{id}/transactions/{txnId}` create → gửi notification đến family members (trừ creator) | ✅ |
+| 5 | Notification handler trong app | `NotificationService._setupHandlers()` — onMessage (foreground), onMessageOpenedApp (background tap), getInitialMessage (terminated) | ✅ |
+| 6 | Navigate on tap | invite → JoinFamilyScreen(tokenId), transaction → HomeScreen | ✅ |
+| 7 | Notification permission request | `_requestPermission()` gọi trong init() | ✅ |
+| 8 | L10n notification messages | 4 keys: inviteTitle, inviteBody, newTransactionTitle, newTransactionBody | ✅ |
+
+## Deploy
+
+```bash
+cd functions && npm install
+firebase deploy --only functions
+```

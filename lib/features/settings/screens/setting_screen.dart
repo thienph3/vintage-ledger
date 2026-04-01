@@ -48,6 +48,7 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Future<void> _logout() async {
+    await sl.notificationService.removeToken();
     await sl.authService.logout();
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';

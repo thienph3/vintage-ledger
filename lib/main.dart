@@ -41,6 +41,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Locale _locale = const Locale('vi', 'VN');
   bool _ready = false;
+  final _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
@@ -73,6 +74,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         final lastAccountId = await sl.settingService.getLastAccountId();
         if (lastAccountId != null) sl.appState.currentAccountId = lastAccountId;
         await QuickAddParser.init();
+        await sl.notificationService.init();
         setState(() { _locale = Locale(locale); _ready = true; });
         return;
       }
@@ -99,6 +101,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     setState(() => _ready = true);
     await QuickAddParser.init();
+    await sl.notificationService.init();
   }
 
   Future<void> _ensureDefaultWallet() async {
@@ -114,7 +117,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    sl.notificationService.setNavigatorKey(_navigatorKey);
     return MaterialApp(
+      navigatorKey: _navigatorKey,
       title: 'Vintage Ledger',
       theme: AppTheme.light,
       locale: _locale,
