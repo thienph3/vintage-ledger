@@ -82,6 +82,8 @@ class _QuickAddBarState extends State<QuickAddBar> {
         QuickAddParser.learn(_result.keyword!, _result.matchedCategoryId!);
       }
 
+      // Capture values BEFORE clear (clear triggers _onChanged → resets _result)
+      final savedAmount = _result.amount;
       final catName = _categories.where((c) => c.id == _result.matchedCategoryId).firstOrNull?.name ?? '';
 
       _ctrl.clear();
@@ -90,12 +92,11 @@ class _QuickAddBarState extends State<QuickAddBar> {
       if (!mounted) return;
 
       final locale = Localizations.localeOf(context).languageCode;
-      final amountStr = AmountFormatter.formatCompactCurrency(_result.amount, locale);
+      final amountStr = AmountFormatter.formatCompactCurrency(savedAmount, locale);
 
-      // Undo snackbar
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text('✓ $amountStr $catName'),
-        duration: const Duration(seconds: 4),
+        duration: const Duration(seconds: 5),
         action: SnackBarAction(
           label: S.of(context, 'undo'),
           onPressed: () async {
