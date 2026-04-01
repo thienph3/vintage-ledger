@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/features/category/models/category.dart';
+import 'package:vintage_ledger/core/constants/seed_categories.dart';
 
 class QuickAddResult {
   final int amount;
@@ -105,42 +105,14 @@ class QuickAddParser {
     _dirty = false;
   }
 
-  // ── Keyword → category mapping (vi + en) ──
+import 'package:vintage_ledger/features/category/models/category.dart';
 
-  static const _keywordMap = <String, _CategoryMatch>{
-    'ăn': _CategoryMatch('Ăn uống', TransactionType.expense),
-    'cơm': _CategoryMatch('Ăn uống', TransactionType.expense),
-    'phở': _CategoryMatch('Ăn uống', TransactionType.expense),
-    'bún': _CategoryMatch('Ăn uống', TransactionType.expense),
-    'food': _CategoryMatch('Ăn uống', TransactionType.expense),
-    'eat': _CategoryMatch('Ăn uống', TransactionType.expense),
-    'lunch': _CategoryMatch('Ăn uống', TransactionType.expense),
-    'dinner': _CategoryMatch('Ăn uống', TransactionType.expense),
-    'breakfast': _CategoryMatch('Ăn uống', TransactionType.expense),
-    'cf': _CategoryMatch('Cà phê', TransactionType.expense),
-    'cafe': _CategoryMatch('Cà phê', TransactionType.expense),
-    'coffee': _CategoryMatch('Cà phê', TransactionType.expense),
-    'trà': _CategoryMatch('Cà phê', TransactionType.expense),
-    'tea': _CategoryMatch('Cà phê', TransactionType.expense),
-    'grab': _CategoryMatch('Di chuyển', TransactionType.expense),
-    'taxi': _CategoryMatch('Di chuyển', TransactionType.expense),
-    'xăng': _CategoryMatch('Di chuyển', TransactionType.expense),
-    'gas': _CategoryMatch('Di chuyển', TransactionType.expense),
-    'gửi xe': _CategoryMatch('Di chuyển', TransactionType.expense),
-    'parking': _CategoryMatch('Di chuyển', TransactionType.expense),
-    'mua': _CategoryMatch('Mua sắm', TransactionType.expense),
-    'shop': _CategoryMatch('Mua sắm', TransactionType.expense),
-    'shopping': _CategoryMatch('Mua sắm', TransactionType.expense),
-    'tiền nhà': _CategoryMatch('Nhà ở', TransactionType.expense),
-    'rent': _CategoryMatch('Nhà ở', TransactionType.expense),
-    'điện': _CategoryMatch('Hóa đơn', TransactionType.expense),
-    'nước': _CategoryMatch('Hóa đơn', TransactionType.expense),
-    'internet': _CategoryMatch('Hóa đơn', TransactionType.expense),
-    'bill': _CategoryMatch('Hóa đơn', TransactionType.expense),
-    'lương': _CategoryMatch('Lương', TransactionType.income),
-    'salary': _CategoryMatch('Lương', TransactionType.income),
-    'thưởng': _CategoryMatch('Thưởng', TransactionType.income),
-    'bonus': _CategoryMatch('Thưởng', TransactionType.income),
+  // ── Keyword → category mapping (generated from kSeedCategories) ──
+
+  static final _keywordMap = <String, _CategoryMatch>{
+    for (final seed in kSeedCategories)
+      for (final kw in seed.keywords)
+        kw: _CategoryMatch(seed.name, seed.type),
   };
 
   // ── Parse ──

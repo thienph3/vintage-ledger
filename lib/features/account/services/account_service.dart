@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vintage_ledger/features/account/models/account.dart';
 import 'package:vintage_ledger/features/account/models/invite_token.dart';
-import 'package:vintage_ledger/core/constants/category_icons.dart';
+import 'package:vintage_ledger/core/constants/seed_categories.dart';
 
 class AccountService {
   final _firestore = FirebaseFirestore.instance;
@@ -340,22 +340,16 @@ class AccountService {
   Future<void> _seedCategories(String accountId) async {
     final batch = _firestore.batch();
     final catCol = _accounts.doc(accountId).collection('categories');
-
     final now = DateTime.now().millisecondsSinceEpoch;
-    final seeds = [
-      {'name': 'Ăn uống', 'type': 'expense', 'icon': kCategoryIcons[0].codePoint, 'created_at': now, 'updated_at': now},
-      {'name': 'Di chuyển', 'type': 'expense', 'icon': kCategoryIcons[1].codePoint, 'created_at': now, 'updated_at': now},
-      {'name': 'Mua sắm', 'type': 'expense', 'icon': kCategoryIcons[2].codePoint, 'created_at': now, 'updated_at': now},
-      {'name': 'Nhà ở', 'type': 'expense', 'icon': kCategoryIcons[3].codePoint, 'created_at': now, 'updated_at': now},
-      {'name': 'Hóa đơn', 'type': 'expense', 'icon': kCategoryIcons[8].codePoint, 'created_at': now, 'updated_at': now},
-      {'name': 'Khác', 'type': 'expense', 'icon': kCategoryIcons[9].codePoint, 'created_at': now, 'updated_at': now},
-      {'name': 'Lương', 'type': 'income', 'icon': kCategoryIcons[10].codePoint, 'created_at': now, 'updated_at': now},
-      {'name': 'Thưởng', 'type': 'income', 'icon': kCategoryIcons[11].codePoint, 'created_at': now, 'updated_at': now},
-      {'name': 'Khác', 'type': 'income', 'icon': kCategoryIcons[9].codePoint, 'created_at': now, 'updated_at': now},
-    ];
 
-    for (final seed in seeds) {
-      batch.set(catCol.doc(), seed);
+    for (final seed in kSeedCategories) {
+      batch.set(catCol.doc(), {
+        'name': seed.name,
+        'type': seed.type.value,
+        'icon': seed.iconCodePoint,
+        'created_at': now,
+        'updated_at': now,
+      });
     }
     await batch.commit();
   }
