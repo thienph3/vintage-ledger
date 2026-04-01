@@ -7,7 +7,6 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
-import 'package:vintage_ledger/common/widgets/error_snackbar.dart';
 import 'package:vintage_ledger/features/budget/models/budget_status.dart';
 import 'package:vintage_ledger/features/budget/widgets/budget_progress_tile.dart';
 import 'package:vintage_ledger/features/budget/screens/budget_form_screen.dart';
