@@ -134,6 +134,7 @@ const Map<String, String> en = {
   'vsLastMonth': 'vs last month',
   'topSpending': 'Top spending',
   'budgetWarning': 'Budget warning',
+  'firstRunHint': 'Create your first wallet to start tracking \u2191',
 
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',

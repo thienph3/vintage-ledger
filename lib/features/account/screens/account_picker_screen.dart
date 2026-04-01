@@ -45,6 +45,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
 
   void _selectAccount(Account account) {
     sl.appState.currentAccountId = account.id;
+    sl.settingService.setLastAccountId(account.id);
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const HomeScreen()),

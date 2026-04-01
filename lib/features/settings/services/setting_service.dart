@@ -40,6 +40,14 @@ class SettingService {
     await _userSettings.set({'default_currency': currency}, SetOptions(merge: true));
   }
 
+  Future<String?> getLastAccountId() => getSetting('last_account_id');
+
+  Future<void> setLastAccountId(String accountId) => setSetting('last_account_id', accountId);
+
+  Future<String?> getLastWalletId() => getSetting('last_wallet_id');
+
+  Future<void> setLastWalletId(String walletId) => setSetting('last_wallet_id', walletId);
+
   Future<String?> getSetting(String key) async {
     try {
       final doc = await _userSettings.get();

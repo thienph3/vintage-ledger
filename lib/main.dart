@@ -53,8 +53,10 @@ class _MyAppState extends State<MyApp> {
     if (user != null) {
       sl.appState.currentUserId = user.uid;
       if (!user.isAnonymous) {
-        // Logged-in user → load locale, go to account picker
         final locale = await sl.settingService.getLocale();
+        // Restore last account
+        final lastAccountId = await sl.settingService.getLastAccountId();
+        if (lastAccountId != null) sl.appState.currentAccountId = lastAccountId;
         setState(() { _locale = Locale(locale); _ready = true; });
         return;
       }
@@ -64,11 +66,12 @@ class _MyAppState extends State<MyApp> {
       final anon = await sl.authService.signInAnonymously();
       if (anon != null) {
         sl.appState.currentUserId = anon.uid;
-        // Create personal account for anonymous user
         final accountId = await sl.accountService.getOrCreatePersonalAccountId(
           anon.uid, '', 'Anonymous',
         );
         sl.appState.currentAccountId = accountId;
+        // Auto-create default wallet for first-time user
+        await _ensureDefaultWallet();
       }
     } else {
       // Anonymous user already exists
@@ -79,6 +82,13 @@ class _MyAppState extends State<MyApp> {
     }
 
     setState(() => _ready = true);
+  }
+
+  Future<void> _ensureDefaultWallet() async {
+    final wallets = await sl.walletService.getWallets();
+    if (wallets.isEmpty) {
+      await sl.walletService.createWallet('Ví chính', 0);
+    }
   }
 
   void _setLocale(Locale locale) {
@@ -112,8 +122,9 @@ class _MyAppState extends State<MyApp> {
     // Anonymous → straight to Home
     if (user.isAnonymous) return const HomeScreen();
 
-    // Logged in with email → Account picker
+    // Logged in with email → check account count
     sl.appState.currentUserId = user.uid;
+    if (sl.appState.hasAccount) return const HomeScreen();
     return const AccountPickerScreen();
   }
 }

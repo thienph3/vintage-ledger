@@ -133,6 +133,7 @@ const Map<String, String> vi = {
   'vsLastMonth': 'so với tháng trước',
   'topSpending': 'Chi nhiều nhất',
   'budgetWarning': 'Cảnh báo ngân sách',
+  'firstRunHint': 'Tạo ví đầu tiên để bắt đầu ghi chép \u2191',
 
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',

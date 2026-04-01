@@ -108,8 +108,14 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   Future<void> _loadWallets() async {
     final list = await sl.walletService.getWallets();
+    // Auto-select: last used wallet or first available
+    String? lastWalletId;
+    try { lastWalletId = await sl.settingService.getLastWalletId(); } catch (_) {}
     setState(() {
       _wallets = list;
+      if (_walletId == null && lastWalletId != null && list.any((w) => w.id == lastWalletId)) {
+        _walletId = lastWalletId;
+      }
       _walletId ??= _wallets.isNotEmpty ? _wallets.first.id : null;
     });
   }
@@ -231,6 +237,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         );
       }
       if (!mounted) return;
+      // Persist last used wallet
+      sl.settingService.setLastWalletId(_walletId!);
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;

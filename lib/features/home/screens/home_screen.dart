@@ -25,6 +25,7 @@ import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/budget/widgets/budget_summary_card.dart';
+import 'package:vintage_ledger/common/widgets/login_prompt_card.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
@@ -129,6 +130,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: AppSpacing.lg),
                         const BudgetSummaryCard(),
                         const SizedBox(height: AppSpacing.lg),
+                        LoginPromptCard(transactionCount: _dashboard?.recent.length ?? 0),
+                        const SizedBox(height: AppSpacing.lg),
                         LedgerCard(
                           child: TransactionSection(
                             transactions: _dashboard?.recent ?? [],
@@ -146,6 +149,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 QuickAddBar(
                   walletId: wallets.first.id,
                   onAdded: _loadDashboard,
+                )
+              else
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Text(
+                    S.of(context, 'firstRunHint'),
+                    style: AppTextStyles.hint,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
             ],
           ),
