@@ -11,6 +11,7 @@ import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
+import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
@@ -46,6 +47,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   bool _loadingMore = false;
   String? _error;
 
+  List<Wallet> _wallets = [];
+  String? _defaultWalletId;
+
   @override
   void initState() {
     super.initState();
@@ -71,11 +75,20 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     setState(() { _loading = true; _error = null; });
     try {
       await _loadCategories();
+      if (widget.walletId == null) await _loadWallets();
       await _loadMonth();
     } catch (e) {
       _error = e.toString();
     }
     if (mounted) setState(() => _loading = false);
+  }
+
+  Future<void> _loadWallets() async {
+    _wallets = await sl.walletService.getWallets();
+    _defaultWalletId = await sl.settingService.getLastWalletId();
+    if (_defaultWalletId != null && !_wallets.any((w) => w.id == _defaultWalletId)) {
+      _defaultWalletId = _wallets.firstOrNull?.id;
+    }
   }
 
   Future<void> _loadCategories() async {
@@ -190,7 +203,12 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                         : RefreshIndicator(onRefresh: _refresh, child: _buildList()),
           ),
           QuickAddBar(
-            walletId: widget.walletId,
+            walletId: widget.walletId ?? _defaultWalletId,
+            wallets: widget.walletId != null ? const [] : _wallets,
+            onWalletChanged: widget.walletId != null ? null : (id) {
+              sl.settingService.setLastWalletId(id);
+              setState(() => _defaultWalletId = id);
+            },
             onAdded: _refresh,
           ),
         ],
