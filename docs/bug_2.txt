@@ -1,0 +1,100 @@
+Launching lib\main.dart on 23078PND5G in debug mode...
+lib/features/account/screens/family_detail_screen.dart:72:53: Error: Can't find '}' to match '{'.
+  Future<void> _removeMember(String memberId) async {
+                                                    ^
+lib/features/account/screens/family_detail_screen.dart:27:66: Error: Can't find '}' to match '{'.
+class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
+                                                                 ^
+lib/features/account/screens/family_detail_screen.dart:27:7: Error: The non-abstract class '_FamilyDetailScreenState' is missing implementations for these members:
+ - State.build
+Try to either
+ - provide an implementation,
+ - inherit an implementation from a superclass or mixin,
+ - mark the class as abstract, or
+ - provide a 'noSuchMethod' implementation.
+class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
+      ^^^^^^^^^^^^^^^^^^^^^^^^
+../../../flutter/packages/flutter/lib/src/widgets/framework.dart:1461:10: Context: 'State.build' is defined here.
+  Widget build(BuildContext context);
+         ^^^^^
+lib/features/account/screens/family_detail_screen.dart:94:3: Error: Expected ';' after this.
+  }
+  ^
+lib/features/account/screens/family_detail_screen.dart:117:13: Error: Local variable '_buildMembersSection' can't be referenced before it is declared.
+            _buildMembersSection(),
+            ^^^^^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:130:10: Context: This is the declaration of the variable '_buildMembersSection'.
+  Widget _buildMembersSection() {
+         ^^^^^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:119:13: Error: Local variable '_buildActivitySection' can't be referenced before it is declared.
+            _buildActivitySection(),
+            ^^^^^^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:192:10: Context: This is the declaration of the variable '_buildActivitySection'.
+  Widget _buildActivitySection() {
+         ^^^^^^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:209:29: Error: Local variable '_groupActivities' can't be referenced before it is declared.
+            final grouped = _groupActivities(activities);
+                            ^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:223:30: Context: This is the declaration of the variable '_groupActivities'.
+  List<Map<String, dynamic>> _groupActivities(List<Map<String, dynamic>> raw) {
+                             ^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:212:48: Error: Local variable '_buildActivityTile' can't be referenced before it is declared.
+                ...grouped.take(30).map((a) => _buildActivityTile(a)),
+                                               ^^^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:260:10: Context: This is the declaration of the variable '_buildActivityTile'.
+  Widget _buildActivityTile(Map<String, dynamic> a) {
+         ^^^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:121:13: Error: Local variable '_buildActionsSection' can't be referenced before it is declared.
+            _buildActionsSection(),
+            ^^^^^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:316:10: Context: This is the declaration of the variable '_buildActionsSection'.
+  Widget _buildActionsSection() {
+         ^^^^^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:117:13: Error: The method '_buildMembersSection' isn't defined for the type '_FamilyDetailScreenState'.
+ - '_FamilyDetailScreenState' is from 'package:vintage_ledger/features/account/screens/family_detail_screen.dart' ('lib/features/account/screens/family_detail_screen.dart').
+Try correcting the name to the name of an existing method, or defining a method named '_buildMembersSection'.
+            _buildMembersSection(),
+            ^^^^^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:119:13: Error: The method '_buildActivitySection' isn't defined for the type '_FamilyDetailScreenState'.
+ - '_FamilyDetailScreenState' is from 'package:vintage_ledger/features/account/screens/family_detail_screen.dart' ('lib/features/account/screens/family_detail_screen.dart').
+Try correcting the name to the name of an existing method, or defining a method named '_buildActivitySection'.
+            _buildActivitySection(),
+            ^^^^^^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:121:13: Error: The method '_buildActionsSection' isn't defined for the type '_FamilyDetailScreenState'.
+ - '_FamilyDetailScreenState' is from 'package:vintage_ledger/features/account/screens/family_detail_screen.dart' ('lib/features/account/screens/family_detail_screen.dart').
+Try correcting the name to the name of an existing method, or defining a method named '_buildActionsSection'.
+            _buildActionsSection(),
+            ^^^^^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:209:29: Error: The method '_groupActivities' isn't defined for the type '_FamilyDetailScreenState'.
+ - '_FamilyDetailScreenState' is from 'package:vintage_ledger/features/account/screens/family_detail_screen.dart' ('lib/features/account/screens/family_detail_screen.dart').
+Try correcting the name to the name of an existing method, or defining a method named '_groupActivities'.
+            final grouped = _groupActivities(activities);
+                            ^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:212:48: Error: The method '_buildActivityTile' isn't defined for the type '_FamilyDetailScreenState'.
+ - '_FamilyDetailScreenState' is from 'package:vintage_ledger/features/account/screens/family_detail_screen.dart' ('lib/features/account/screens/family_detail_screen.dart').
+Try correcting the name to the name of an existing method, or defining a method named '_buildActivityTile'.
+                ...grouped.take(30).map((a) => _buildActivityTile(a)),
+                                               ^^^^^^^^^^^^^^^^^^
+lib/features/account/screens/family_detail_screen.dart:323:26: Error: The getter '_leave' isn't defined for the type '_FamilyDetailScreenState'.
+ - '_FamilyDetailScreenState' is from 'package:vintage_ledger/features/account/screens/family_detail_screen.dart' ('lib/features/account/screens/family_detail_screen.dart').
+Try correcting the name to the name of an existing getter, or defining a getter or field named '_leave'.
+              onPressed: _leave,
+                         ^^^^^^
+Target kernel_snapshot_program failed: Exception
+
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app:compileFlutterBuildDebug'.
+> Process 'command 'C:\Users\thien\flutter\bin\flutter.bat'' finished with non-zero exit value 1
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights.
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 18s
+Running Gradle task 'assembleDebug'...                             18.3s
+Error: Gradle task assembleDebug failed with exit code 1
