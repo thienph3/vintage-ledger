@@ -72,7 +72,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _openRegister() async {
-    final result = await context.pushScreen(const RegisterScreen());
+    final result = await context.pushScreen(
+      RegisterScreen(anonAccountIdToMigrate: widget.anonAccountIdToMigrate),
+    );
     if (result == true && mounted) _goAccountPicker();
   }
 

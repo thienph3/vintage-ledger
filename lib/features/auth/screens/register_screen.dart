@@ -9,7 +9,10 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+  /// If set, anonymous data will be migrated after registration.
+  final String? anonAccountIdToMigrate;
+
+  const RegisterScreen({super.key, this.anonAccountIdToMigrate});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -24,7 +27,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _loading = false;
   String? _error;
 
+  /// True if current Firebase user is anonymous (upgrade flow from Settings)
   bool get _isUpgrade => sl.authService.isAnonymous;
+
+  /// True if we have anonymous data to migrate (login flow → register)
+  bool get _hasMigrationData =>
+      widget.anonAccountIdToMigrate != null && widget.anonAccountIdToMigrate!.isNotEmpty;
 
   @override
   void dispose() {
@@ -44,6 +52,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final name = _nameCtrl.text.trim();
 
       if (_isUpgrade) {
+        // Anonymous user still signed in → link credentials
         final user = await sl.authService.linkWithEmail(email, password, name);
         if (user != null) {
           await sl.accountService.updateUserProfile(
@@ -51,7 +60,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
         }
       } else {
-        // Fresh registration
+        // Fresh registration (anonymous already logged out)
         final user = await sl.authService.registerWithEmail(email, password, name);
         if (user != null) {
           final accountId = await sl.accountService.createUserWithPersonalAccount(
@@ -59,6 +68,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
           sl.appState.currentUserId = user.uid;
           sl.appState.currentAccountId = accountId;
+
+          // Migrate anonymous data if available
+          if (_hasMigrationData) {
+            await sl.accountService.migrateAccount(widget.anonAccountIdToMigrate!, accountId);
+            await sl.accountService.deleteAccount(widget.anonAccountIdToMigrate!);
+          }
         }
       }
 

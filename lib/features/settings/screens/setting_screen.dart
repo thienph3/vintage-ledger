@@ -95,8 +95,8 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _loginExisting() async {
     final anonAccountId = sl.appState.currentAccountId;
+    final anonUserId = sl.appState.currentUserId;
 
-    // Confirm: data sẽ được chuyển sang account mới
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -110,13 +110,11 @@ class _SettingScreenState extends State<SettingScreen> {
     );
     if (confirm != true || !mounted) return;
 
-    // Logout anonymous
     await sl.authService.logout();
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
     if (!mounted) return;
 
-    // Navigate to login, pass anonAccountId for migration
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => LoginScreen(anonAccountIdToMigrate: anonAccountId)),

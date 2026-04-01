@@ -171,6 +171,20 @@ class AccountService {
     await _accounts.doc(accountId).delete();
   }
 
+  /// Cleanup anonymous user's Firestore data (user doc + account)
+  Future<void> cleanupAnonymousUser(String userId, String accountId) async {
+    // Delete user subcollections
+    for (final sub in ['settings', 'fcm_tokens']) {
+      final docs = await _users.doc(userId).collection(sub).get();
+      if (docs.docs.isEmpty) continue;
+      final batch = _firestore.batch();
+      for (final doc in docs.docs) { batch.delete(doc.reference); }
+      await batch.commit();
+    }
+    await _users.doc(userId).delete();
+    await deleteAccount(accountId);
+  }
+
   Future<List<Map<String, String>>> getMemberProfiles(List<String> memberIds) async {
     final results = <Map<String, String>>[];
     for (final id in memberIds) {
