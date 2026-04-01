@@ -216,6 +216,15 @@ const Map<String, String> vi = {
 
   // Account
   'registerToSync': 'Đăng ký để đồng bộ dữ liệu giữa các thiết bị',
+  'enterEmail': 'Nhập email thành viên',
+  'send': 'Gửi',
+  'inviteSent': 'Đã gửi lời mời',
+  'cannotInviteSelf': 'Không thể mời chính mình',
+  'alreadyMember': 'Người này đã là thành viên',
+  'inviteAlreadySent': 'Đã gửi lời mời cho người này rồi',
+  'pendingInvites': 'Lời mời đang chờ',
+  'accept': 'Chấp nhận',
+  'reject': 'Từ chối',
 
 
 };

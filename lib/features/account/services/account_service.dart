@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/features/account/models/account.dart';
-import 'package:vintage_ledger/features/account/models/invite_token.dart';
 import 'package:vintage_ledger/core/constants/seed_categories.dart';
 
 class AccountService {
@@ -8,7 +8,8 @@ class AccountService {
 
   CollectionReference get _accounts => _firestore.collection('accounts');
   CollectionReference get _users => _firestore.collection('users');
-  CollectionReference get _invites => _firestore.collection('invites');
+  CollectionReference get _pendingInvites => _firestore.collection('pending_invites');
+  CollectionReference get _userEmails => _firestore.collection('user_emails');
 
   // ── Create ──
 
@@ -33,6 +34,8 @@ class AccountService {
       'account_ids': [accountRef.id],
       'created_at': now,
     });
+
+    await _userEmails.doc(email.toLowerCase()).set({'user_id': userId});
 
     await _seedCategories(accountRef.id);
 
@@ -125,6 +128,8 @@ class AccountService {
       'display_name': displayName,
     }, SetOptions(merge: true));
 
+    await _userEmails.doc(email.toLowerCase()).set({'user_id': userId});
+
     // Update personal account name
     final userDoc = await _users.doc(userId).get();
     if (!userDoc.exists) return;
@@ -201,58 +206,81 @@ class AccountService {
     return results;
   }
 
-  // ── Invite by link (#1, #2, #9) ──
+  // ── Invite by email ──
 
-  /// Tạo invite token, trả về token ID dùng làm link
-  Future<String> createInviteToken({
+  Future<String?> _findUserIdByEmail(String email) async {
+    final doc = await _userEmails.doc(email.toLowerCase()).get();
+    if (!doc.exists) return null;
+    return (doc.data() as Map<String, dynamic>)['user_id'] as String?;
+  }
+
+  Future<void> sendInviteByEmail({
     required String accountId,
-    required String createdBy,
+    required String email,
   }) async {
-    final account = await getAccount(accountId);
-    final now = DateTime.now().millisecondsSinceEpoch;
-    final expiresAt = now + 7 * 24 * 60 * 60 * 1000; // 7 ngày
+    final targetUserId = await _findUserIdByEmail(email);
+    if (targetUserId == null) throw Exception('userNotFound');
+    if (targetUserId == sl.appState.currentUserId) throw Exception('cannotInviteSelf');
 
-    final doc = await _invites.add({
+    final account = await getAccount(accountId);
+    if (account == null) throw Exception('notFound');
+    if (account.memberIds.contains(targetUserId)) throw Exception('alreadyMember');
+
+    // Check duplicate pending invite
+    final existing = await _pendingInvites
+        .where('from_user_id', isEqualTo: sl.appState.currentUserId)
+        .where('account_id', isEqualTo: accountId)
+        .where('to_user_id', isEqualTo: targetUserId)
+        .where('status', isEqualTo: 'pending')
+        .limit(1).get();
+    if (existing.docs.isNotEmpty) throw Exception('inviteAlreadySent');
+
+    await _pendingInvites.add({
       'account_id': accountId,
-      'account_name': account?.name ?? '',
-      'created_by': createdBy,
-      'created_at': now,
-      'expires_at': expiresAt,
+      'account_name': account.name,
+      'from_user_id': sl.appState.currentUserId,
+      'to_user_id': targetUserId,
+      'to_email': email.toLowerCase(),
+      'status': 'pending',
+      'created_at': FieldValue.serverTimestamp(),
     });
 
-    return doc.id;
+    sl.notificationService.notifyInvite(accountId: accountId, targetUserId: targetUserId);
   }
 
-  /// Lấy invite token, check expiry
-  Future<InviteToken?> getInviteToken(String tokenId) async {
-    final doc = await _invites.doc(tokenId).get();
-    if (!doc.exists) return null;
-    return InviteToken.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+  Stream<List<Map<String, dynamic>>> watchPendingInvites(String userId) {
+    return _pendingInvites
+        .where('to_user_id', isEqualTo: userId)
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .map((snap) => snap.docs.map((d) {
+          final data = d.data() as Map<String, dynamic>;
+          data['id'] = d.id;
+          return data;
+        }).toList());
   }
 
-  /// Join family bằng invite token
-  Future<void> joinByInvite({
-    required String tokenId,
-    required String userId,
-  }) async {
-    final token = await getInviteToken(tokenId);
-    if (token == null) throw Exception('Invite not found');
-    if (token.isExpired) throw Exception('Invite expired');
+  Future<void> acceptInvite(String inviteId) async {
+    final doc = await _pendingInvites.doc(inviteId).get();
+    if (!doc.exists) return;
+    final data = doc.data() as Map<String, dynamic>;
+    final accountId = data['account_id'] as String;
+    final userId = data['to_user_id'] as String;
 
-    await _accounts.doc(token.accountId).update({
+    await _accounts.doc(accountId).update({
       'member_ids': FieldValue.arrayUnion([userId]),
     });
-
     await _users.doc(userId).update({
-      'account_ids': FieldValue.arrayUnion([token.accountId]),
+      'account_ids': FieldValue.arrayUnion([accountId]),
     });
+    await _pendingInvites.doc(inviteId).update({'status': 'accepted'});
 
-    logActivity(accountId: token.accountId, userId: userId, action: 'join', description: 'đã tham gia');
+    logActivity(accountId: accountId, userId: userId, action: 'join', description: 'đã tham gia');
   }
 
-  /// Build invite link string
-  String buildInviteLink(String tokenId) =>
-      'https://vintage-ledger.web.app/invite/$tokenId';
+  Future<void> rejectInvite(String inviteId) async {
+    await _pendingInvites.doc(inviteId).update({'status': 'rejected'});
+  }
 
   // ── Leave / Remove / Delete ──
 

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
@@ -48,24 +47,37 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
 
   // ── Invite by link (#5) ──
 
-  Future<void> _shareInvite() async {
+  Future<void> _inviteByEmail() async {
+    final ctrl = TextEditingController();
+    final email = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(S.of(ctx, 'inviteMember')),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: TextInputType.emailAddress,
+          decoration: InputDecoration(hintText: S.of(ctx, 'enterEmail')),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.of(ctx, 'cancel'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: Text(S.of(ctx, 'send'))),
+        ],
+      ),
+    );
+    if (email == null || email.isEmpty) return;
+
     try {
-      final tokenId = await sl.accountService.createInviteToken(
+      await sl.accountService.sendInviteByEmail(
         accountId: widget.account.id,
-        createdBy: sl.appState.currentUserId!,
+        email: email,
       );
-      final link = sl.accountService.buildInviteLink(tokenId);
-
-      await Clipboard.setData(ClipboardData(text: link));
-
-      // Notify family members
-      sl.notificationService.notifyInvite(accountId: widget.account.id, tokenId: tokenId);
-
       if (!mounted) return;
-      showAppSnackBar(context, S.of(context, 'inviteCopied'));
+      showAppSnackBar(context, S.of(context, 'inviteSent'));
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
+      final key = e.toString().replaceFirst('Exception: ', '');
+      final msg = S.of(context, key);
+      showAppSnackBar(context, msg, backgroundColor: const Color(0xFF8B1E1E));
     }
   }
 
@@ -141,8 +153,8 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
             if (_isOwner)
               IconButton(
                 icon: const Icon(Icons.share, color: AppColors.inkBlue),
-                tooltip: S.of(context, 'shareInvite'),
-                onPressed: _shareInvite,
+                tooltip: S.of(context, 'inviteMember'),
+                onPressed: _inviteByEmail,
               ),
           ],
         ),

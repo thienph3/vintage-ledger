@@ -217,6 +217,15 @@ const Map<String, String> en = {
 
   // Account
   'registerToSync': 'Register to sync data across devices',
+  'enterEmail': 'Enter member email',
+  'send': 'Send',
+  'inviteSent': 'Invite sent',
+  'cannotInviteSelf': 'Cannot invite yourself',
+  'alreadyMember': 'This person is already a member',
+  'inviteAlreadySent': 'Invite already sent to this person',
+  'pendingInvites': 'Pending invites',
+  'accept': 'Accept',
+  'reject': 'Reject',
 
 
 };

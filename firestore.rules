@@ -34,7 +34,8 @@ service cloud.firestore {
       }
 
       match /fcm_tokens/{tokenId} {
-        allow read, write: if isCurrentUser(userId);
+        allow read: if isAuthenticated();
+        allow write: if isCurrentUser(userId);
       }
     }
 
@@ -121,20 +122,33 @@ service cloud.firestore {
       }
     }
 
-    // ── #5: Invites (top-level collection) ──
+    // ── #5: Pending invites ──
 
-    match /invites/{tokenId} {
-      // Any authenticated user can read (needed to join by link)
-      allow read: if isAuthenticated();
+    match /pending_invites/{inviteId} {
+      // Target user or sender can read
+      allow read: if isAuthenticated() &&
+        (resource.data.to_user_id == request.auth.uid ||
+         resource.data.from_user_id == request.auth.uid);
 
-      // Create: must be member of the account referenced in invite
+      // Any authenticated user can create (sender)
       allow create: if isAuthenticated() &&
-        request.resource.data.account_id is string &&
-        request.resource.data.created_by == request.auth.uid &&
-        request.auth.uid in get(/databases/$(database)/documents/accounts/$(request.resource.data.account_id)).data.member_ids;
+        request.resource.data.from_user_id == request.auth.uid;
 
-      // No update or delete
-      allow update, delete: if false;
+      // Target user can update status (accept/reject)
+      allow update: if isAuthenticated() &&
+        resource.data.to_user_id == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status']);
+
+      allow delete: if false;
+    }
+
+    // ── User email lookup ──
+
+    match /user_emails/{email} {
+      allow read: if isAuthenticated();
+      allow create, update: if isAuthenticated() &&
+        request.resource.data.user_id == request.auth.uid;
+      allow delete: if false;
     }
 
     // ── Config (FCM server key) ──

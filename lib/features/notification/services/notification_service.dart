@@ -6,7 +6,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/features/account/screens/join_family_screen.dart';
 import 'package:vintage_ledger/features/home/screens/home_screen.dart';
 
 class NotificationService {
@@ -94,10 +93,10 @@ class NotificationService {
 
     switch (data['type']) {
       case 'invite':
-        final tokenId = data['token_id'];
-        if (tokenId != null) {
-          nav.push(MaterialPageRoute(builder: (_) => JoinFamilyScreen(tokenId: tokenId)));
-        }
+        nav.pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (_) => false,
+        );
       case 'transaction':
         nav.pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -280,20 +279,14 @@ class NotificationService {
 
   Future<void> notifyInvite({
     required String accountId,
-    required String tokenId,
+    required String targetUserId,
   }) async {
-    final eventId = 'invite_$tokenId';
-    if (!await _acquireNotificationLock(accountId, eventId)) return;
-
-    final account = await sl.accountService.getAccount(accountId);
-    if (account == null) return;
-
-    final tokens = await _getTokensForUsers(account.memberIds);
+    final tokens = await _getTokensForUsers([targetUserId]);
     await _sendPush(
       tokens: tokens,
-      title: account.name,
-      body: 'Bạn được mời vào gia đình ${account.name}',
-      data: {'type': 'invite', 'token_id': tokenId, 'event_id': eventId},
+      title: 'Lời mời gia đình',
+      body: 'Bạn có lời mời tham gia sổ thu chi gia đình',
+      data: {'type': 'invite', 'account_id': accountId},
     );
   }
 
