@@ -115,6 +115,8 @@ const Map<String, String> vi = {
   'currency': 'Loại tiền',
   'selectCurrency': 'Chọn loại tiền',
   'mixedCurrencies': 'Nhiều loại tiền',
+  'quickAddHint': 'Ví dụ: ăn sáng 50k, cf 30k...',
+  'quickAddSuccess': 'Đã thêm thu chi',
 
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',

@@ -116,6 +116,8 @@ const Map<String, String> en = {
   'currency': 'Currency',
   'selectCurrency': 'Select currency',
   'mixedCurrencies': 'Mixed currencies',
+  'quickAddHint': 'e.g. lunch 50k, coffee 30k...',
+  'quickAddSuccess': 'Transaction added',
 
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',

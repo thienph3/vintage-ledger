@@ -23,6 +23,7 @@ import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_detail_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
+import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
@@ -132,19 +133,24 @@ class _HomeScreenState extends State<HomeScreen> {
                             onDataChanged: _loadDashboard,
                           ),
                         ),
-                        const SizedBox(height: 80),
+                        const SizedBox(height: AppSpacing.md),
                       ],
                     ),
                   ),
                 ),
               ),
+              if (wallets.isNotEmpty)
+                QuickAddBar(
+                  walletId: wallets.first.id,
+                  onAdded: _loadDashboard,
+                ),
             ],
           ),
-          fab: FloatingActionButton(
+          fab: wallets.isEmpty ? FloatingActionButton(
             onPressed: () => _addTransaction(wallets),
             backgroundColor: AppColors.inkBlue,
             child: const Icon(Icons.add, color: Colors.white),
-          ),
+          ) : null,
         );
       },
     );
