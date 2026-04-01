@@ -85,7 +85,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _currency,
+                initialValue: _currency,
                 decoration: InputDecoration(labelText: S.of(context, 'currency')),
                 items: Currency.all.map((c) => DropdownMenuItem(
                   value: c.code,

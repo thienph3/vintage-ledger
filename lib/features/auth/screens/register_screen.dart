@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
-import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/error_mapper.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';

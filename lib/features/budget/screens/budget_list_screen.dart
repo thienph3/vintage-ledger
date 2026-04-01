@@ -41,18 +41,6 @@ class _BudgetListScreenState extends State<BudgetListScreen> {
     }
   }
 
-  Future<void> _delete(BudgetStatus s) async {
-    final confirm = await showDeleteConfirmation(context, titleKey: 'delete', contentKey: 'deleteCategoryConfirm');
-    if (confirm != true) return;
-    try {
-      await sl.budgetService.deleteBudget(s.budget.id!);
-      _load();
-    } catch (e) {
-      if (!mounted) return;
-      showErrorSnackBar(context, e);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return AppScaffold(

@@ -75,6 +75,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
     final tokenId = link.contains('/invite/') ? link.split('/invite/').last : link;
     if (tokenId.isEmpty) return;
 
+    if (!mounted) return;
     final result = await context.pushScreen(JoinFamilyScreen(tokenId: tokenId));
     if (result == true) _load();
   }

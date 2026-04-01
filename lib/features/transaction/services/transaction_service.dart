@@ -42,7 +42,7 @@ class TransactionService {
       balance = wallet?.balance ?? 0;
     } else {
       final wallets = await sl.walletService.getWallets();
-      balance = wallets.fold<int>(0, (sum, w) => sum + w.balance);
+      balance = wallets.fold<int>(0, (s, w) => s + w.balance);
     }
 
     return DashboardData(

@@ -83,13 +83,14 @@ class _QuickAddBarState extends State<QuickAddBar> {
       }
 
       final catName = _categories.where((c) => c.id == _result.matchedCategoryId).firstOrNull?.name ?? '';
-      final locale = Localizations.localeOf(context).languageCode;
-      final amountStr = AmountFormatter.formatCompactCurrency(_result.amount, locale);
 
       _ctrl.clear();
       _focusNode.unfocus();
       widget.onAdded();
       if (!mounted) return;
+
+      final locale = Localizations.localeOf(context).languageCode;
+      final amountStr = AmountFormatter.formatCompactCurrency(_result.amount, locale);
 
       // Undo snackbar
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

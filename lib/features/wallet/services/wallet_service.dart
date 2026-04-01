@@ -37,8 +37,6 @@ class WalletService {
 
   /// Recalculate balance from all transactions (fix tool for inconsistent data)
   Future<void> recalculateBalance(String walletId) async {
-    final txns = await sl.transactionService.getDashboard(walletId: walletId);
-    // Use all-time transactions, not just monthly
     final allTxns = await FirebaseFirestore.instance
         .collection('accounts').doc(sl.appState.currentAccountId)
         .collection('transactions')

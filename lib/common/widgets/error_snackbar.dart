@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:vintage_ledger/core/app_exception.dart';
 import 'package:vintage_ledger/core/error_mapper.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';

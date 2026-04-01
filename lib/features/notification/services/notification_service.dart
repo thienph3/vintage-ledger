@@ -273,9 +273,8 @@ class NotificationService {
 
   // ── Public API ──
 
-  // ── Anti-spam debounce (#2) ──
+  // ── Anti-spam debounce ──
 
-  DateTime? _lastTxnNotifyTime;
   int _pendingTxnCount = 0;
   Timer? _txnDebounceTimer;
 

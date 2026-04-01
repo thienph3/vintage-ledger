@@ -345,7 +345,7 @@ class _HomeScreenState extends State<HomeScreen> {
               : ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: wallets.length + 1,
-                  separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+                  separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
                   itemBuilder: (context, index) {
                     if (index == wallets.length) return _buildAddWalletCard();
                     return _buildWalletCard(wallets[index]);

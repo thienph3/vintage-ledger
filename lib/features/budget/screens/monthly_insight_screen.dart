@@ -12,7 +12,6 @@ import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
 import 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
-import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class MonthlyInsightScreen extends StatefulWidget {
@@ -213,7 +212,6 @@ class _MonthlyInsightScreenState extends State<MonthlyInsightScreen> {
     final allCategories = {...currentMap.keys, ...lastMap.keys};
     if (allCategories.isEmpty) return const SizedBox.shrink();
 
-    final locale = Localizations.localeOf(context).languageCode;
     final maxAmount = [...currentMap.values, ...lastMap.values]
         .fold<int>(1, (a, b) => a > b ? a : b);
 

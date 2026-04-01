@@ -1,4 +1,3 @@
-import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/features/budget/models/budget.dart';
 import 'package:vintage_ledger/features/budget/models/budget_status.dart';

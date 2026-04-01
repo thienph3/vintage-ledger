@@ -85,7 +85,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
               const SizedBox(height: AppSpacing.md),
               if (!isEdit)
                 DropdownButtonFormField<String>(
-                  value: _categoryId,
+                  initialValue: _categoryId,
                   decoration: InputDecoration(labelText: S.of(context, 'category')),
                   items: _categories.map((c) => DropdownMenuItem(
                     value: c.id,
