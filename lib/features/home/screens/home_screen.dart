@@ -45,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _amountVisible = false;
   int _streak = 0;
   String? _defaultWalletId;
+  String? _accountName;
 
   @override
   void initState() {
@@ -57,11 +58,13 @@ class _HomeScreenState extends State<HomeScreen> {
       final dashboard = await sl.transactionService.getDashboard();
       final streak = await sl.settingService.recordDailyUsage();
       final lastWalletId = await sl.settingService.getLastWalletId();
+      final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
       if (!mounted) return;
       setState(() {
         _dashboard = dashboard;
         _streak = streak;
         _defaultWalletId = lastWalletId;
+        _accountName = account?.name;
         _loading = false;
         _error = null;
       });
@@ -96,7 +99,7 @@ class _HomeScreenState extends State<HomeScreen> {
         final wallets = walletSnap.data ?? [];
 
         return AppScaffold(
-          title: S.of(context, 'homeTitle'),
+          title: _accountName?.toUpperCase() ?? S.of(context, 'homeTitle'),
           showBackButton: false,
           actions: [
             if (sl.appState.isLoggedIn && !sl.authService.isAnonymous)
