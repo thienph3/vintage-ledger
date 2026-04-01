@@ -42,10 +42,9 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
         setState(() { _loading = false; _error = S.of(context, 'inviteExpired'); });
         return;
       }
-      final account = await sl.accountService.getAccount(token.accountId);
       setState(() {
         _token = token;
-        _familyName = account?.name ?? '';
+        _familyName = token.accountName;
         _loading = false;
       });
     } catch (e) {

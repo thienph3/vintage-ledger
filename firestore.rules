@@ -49,8 +49,11 @@ service cloud.firestore {
         request.auth.uid in request.resource.data.member_ids &&
         request.resource.data.owner_id == request.auth.uid;
 
-      // Update: only owner can update account-level fields (member_ids, name, owner_id)
-      allow update: if isOwner(accountId);
+      // Update: owner can update anything; authenticated user can only add themselves to member_ids (join)
+      allow update: if isOwner(accountId) ||
+        (isAuthenticated() &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['member_ids']) &&
+         request.auth.uid in request.resource.data.member_ids);
 
       // Delete: only owner
       allow delete: if isOwner(accountId);

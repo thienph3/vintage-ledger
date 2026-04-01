@@ -208,11 +208,13 @@ class AccountService {
     required String accountId,
     required String createdBy,
   }) async {
+    final account = await getAccount(accountId);
     final now = DateTime.now().millisecondsSinceEpoch;
     final expiresAt = now + 7 * 24 * 60 * 60 * 1000; // 7 ngày
 
     final doc = await _invites.add({
       'account_id': accountId,
+      'account_name': account?.name ?? '',
       'created_by': createdBy,
       'created_at': now,
       'expires_at': expiresAt,
@@ -236,10 +238,6 @@ class AccountService {
     final token = await getInviteToken(tokenId);
     if (token == null) throw Exception('Invite not found');
     if (token.isExpired) throw Exception('Invite expired');
-
-    final account = await getAccount(token.accountId);
-    if (account == null) throw Exception('Family not found');
-    if (account.memberIds.contains(userId)) throw Exception('Already a member');
 
     await _accounts.doc(token.accountId).update({
       'member_ids': FieldValue.arrayUnion([userId]),
