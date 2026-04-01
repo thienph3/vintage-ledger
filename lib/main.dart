@@ -1,9 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:vintage_ledger/firebase_options.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
@@ -15,13 +13,13 @@ import 'package:vintage_ledger/core/theme/app_theme.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
-
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: true,
+    cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
   );
 
   runApp(const MyApp());
@@ -41,21 +39,46 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   Locale _locale = const Locale('vi', 'VN');
-  bool? _setupDone;
+  bool _ready = false;
 
   @override
   void initState() {
     super.initState();
-    _loadSettings();
+    _init();
   }
 
-  Future<void> _loadSettings() async {
-    final code = await sl.settingService.getLocale();
-    final done = await sl.settingService.isSetupDone();
-    setState(() {
-      _locale = Locale(code);
-      _setupDone = done;
-    });
+  Future<void> _init() async {
+    // Auto sign-in anonymously if no user
+    final user = sl.authService.currentUser;
+    if (user != null) {
+      sl.appState.currentUserId = user.uid;
+      if (!user.isAnonymous) {
+        // Logged-in user → load locale, go to account picker
+        final locale = await sl.settingService.getLocale();
+        setState(() { _locale = Locale(locale); _ready = true; });
+        return;
+      }
+    }
+
+    if (user == null) {
+      final anon = await sl.authService.signInAnonymously();
+      if (anon != null) {
+        sl.appState.currentUserId = anon.uid;
+        // Create personal account for anonymous user
+        final accountId = await sl.accountService.getOrCreatePersonalAccountId(
+          anon.uid, '', 'Anonymous',
+        );
+        sl.appState.currentAccountId = accountId;
+      }
+    } else {
+      // Anonymous user already exists
+      final accountId = await sl.accountService.getOrCreatePersonalAccountId(
+        user.uid, '', 'Anonymous',
+      );
+      sl.appState.currentAccountId = accountId;
+    }
+
+    setState(() => _ready = true);
   }
 
   void _setLocale(Locale locale) {
@@ -66,42 +89,31 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Vintage Ledger',
-
       theme: AppTheme.light,
-
       locale: _locale,
-
       supportedLocales: const [Locale('vi'), Locale('en')],
-
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-
       home: _buildHome(),
     );
   }
 
   Widget _buildHome() {
-    if (_setupDone == null) {
+    if (!_ready) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final user = sl.authService.currentUser;
-    final skipped = _setupDone!;
+    if (user == null) return const LoginScreen();
 
-    // Chưa login + chưa skip → LoginScreen
-    if (user == null && !skipped) {
-      return const LoginScreen();
-    }
+    // Anonymous → straight to Home
+    if (user.isAnonymous) return const HomeScreen();
 
-    // Đã login → set userId + AccountPicker
-    if (user != null) {
-      sl.appState.currentUserId = user.uid;
-      return const AccountPickerScreen();
-    }
-
-    return const HomeScreen();
+    // Logged in with email → Account picker
+    sl.appState.currentUserId = user.uid;
+    return const AccountPickerScreen();
   }
 }

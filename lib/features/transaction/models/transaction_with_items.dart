@@ -1,5 +1,5 @@
-import 'transaction.dart';
-import 'transaction_item.dart';
+import 'package:vintage_ledger/features/transaction/models/transaction.dart';
+import 'package:vintage_ledger/features/transaction/models/transaction_item.dart';
 
 class TransactionWithItems {
   final TransactionModel transaction;

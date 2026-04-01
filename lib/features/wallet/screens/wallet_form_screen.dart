@@ -6,6 +6,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/error_snackbar.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 
@@ -20,81 +21,68 @@ class WalletFormScreen extends StatefulWidget {
 
 class _WalletFormScreenState extends State<WalletFormScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameCtrl = TextEditingController();
+  final _balanceCtrl = TextEditingController();
 
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController balanceController = TextEditingController();
-
-  bool isEdit = false;
+  bool get isEdit => widget.wallet != null;
 
   @override
   void initState() {
     super.initState();
-
-    if (widget.wallet != null) {
-      isEdit = true;
-      nameController.text = widget.wallet!.name;
-      balanceController.text = widget.wallet!.balance.toString();
+    if (isEdit) {
+      _nameCtrl.text = widget.wallet!.name;
+      _balanceCtrl.text = widget.wallet!.balance.toString();
     } else {
-      balanceController.text = "0";
+      _balanceCtrl.text = '0';
     }
   }
 
-  Future<void> save() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _balanceCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final name = _nameCtrl.text.trim();
+    final balance = int.tryParse(_balanceCtrl.text) ?? 0;
+
+    try {
+      if (isEdit) {
+        await sl.walletService.updateWallet(widget.wallet!.id!, name, balance);
+      } else {
+        await sl.walletService.createWallet(name, balance);
+      }
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      showErrorSnackBar(context, e);
     }
-
-    final name = nameController.text.trim();
-    final balance = int.tryParse(balanceController.text) ?? 0;
-
-    if (isEdit) {
-      await sl.walletService.updateWallet(
-        widget.wallet!.id!,
-        name,
-        balance,
-      );
-    } else {
-      await sl.walletService.createWallet(name, balance);
-    }
-
-    if (!mounted) return;
-
-    Navigator.pop(context, true);
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: isEdit
-          ? S.of(context, 'editWallet')
-          : S.of(context, 'addNewWallet'),
+      title: isEdit ? S.of(context, 'editWallet') : S.of(context, 'addNewWallet'),
       body: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-
         child: Form(
           key: _formKey,
-
           child: ListView(
             children: [
               TextFormField(
-                controller: nameController,
-                decoration: InputDecoration(
-                  labelText: S.of(context, 'walletName'),
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return S.of(context, 'walletNameRequired');
-                  }
-                  return null;
-                },
+                controller: _nameCtrl,
+                decoration: InputDecoration(labelText: S.of(context, 'walletName')),
+                validator: (v) => v == null || v.trim().isEmpty ? S.of(context, 'walletNameRequired') : null,
               ),
-
               const SizedBox(height: 16),
-
-              AmountInputField(controller: balanceController),
+              AmountInputField(controller: _balanceCtrl),
               const SizedBox(height: 24),
-
-              FormSaveButton(isEdit: isEdit, onPressed: save),
+              FormSaveButton(isEdit: isEdit, onPressed: _save),
             ],
           ),
         ),

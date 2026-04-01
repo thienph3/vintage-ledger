@@ -7,6 +7,8 @@ import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
+import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
+import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/main.dart';
 
 class SettingScreen extends StatefulWidget {
@@ -18,8 +20,6 @@ class SettingScreen extends StatefulWidget {
 
 class _SettingScreenState extends State<SettingScreen> {
   String _currentLocale = 'vi';
-  String? _lastSync;
-  bool _syncing = false;
 
   @override
   void initState() {
@@ -29,12 +29,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _load() async {
     final locale = await sl.settingService.getLocale();
-    final accountId = sl.appState.currentAccountId;
-    final lastPull = await sl.settingService.getSetting('sync_pull_$accountId');
-    setState(() {
-      _currentLocale = locale;
-      _lastSync = lastPull;
-    });
+    setState(() => _currentLocale = locale);
   }
 
   Future<void> _changeLocale(String locale) async {
@@ -44,29 +39,10 @@ class _SettingScreenState extends State<SettingScreen> {
     MyApp.setLocale(context, Locale(locale));
   }
 
-  Future<void> _syncNow() async {
-    setState(() => _syncing = true);
-    try {
-      await sl.syncService.syncAccount(sl.appState.currentAccountId);
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context, 'syncSuccess'))),
-      );
-      _load();
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${S.of(context, 'syncFailed')}: $e')),
-      );
-    } finally {
-      if (mounted) setState(() => _syncing = false);
-    }
-  }
-
   Future<void> _logout() async {
     await sl.authService.logout();
     sl.appState.currentUserId = null;
-    sl.appState.currentAccountId = 'local';
+    sl.appState.currentAccountId = '';
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
@@ -78,6 +54,7 @@ class _SettingScreenState extends State<SettingScreen> {
   @override
   Widget build(BuildContext context) {
     final user = sl.authService.currentUser;
+    final isAnonymous = sl.authService.isAnonymous;
 
     return AppScaffold(
       title: S.of(context, 'settings'),
@@ -85,10 +62,19 @@ class _SettingScreenState extends State<SettingScreen> {
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
           // Account section
-          if (user != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(S.of(context, 'account'), style: AppTextStyles.title),
-            const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.md),
+          Text(S.of(context, 'account'), style: AppTextStyles.title),
+          const SizedBox(height: AppSpacing.sm),
+
+          if (isAnonymous) ...[
+            ListTile(
+              leading: const Icon(Icons.person_add, color: AppColors.inkBlue),
+              title: Text(S.of(context, 'register')),
+              subtitle: Text(S.of(context, 'registerToSync')),
+              onTap: () => context.pushScreen(const RegisterScreen()),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ] else if (user != null) ...[
             ListTile(
               leading: const Icon(Icons.email_outlined),
               title: Text(user.email ?? ''),
@@ -102,32 +88,8 @@ class _SettingScreenState extends State<SettingScreen> {
               onTap: _logout,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-            const Divider(),
           ],
-
-          // Sync section
-          if (user != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(S.of(context, 'sync'), style: AppTextStyles.title),
-            const SizedBox(height: AppSpacing.sm),
-            ListTile(
-              leading: const Icon(Icons.access_time),
-              title: Text(S.of(context, 'lastSync')),
-              subtitle: Text(_lastSync != null
-                  ? DateTime.fromMillisecondsSinceEpoch(int.parse(_lastSync!)).toString().substring(0, 19)
-                  : '-'),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            ListTile(
-              leading: _syncing
-                  ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.sync, color: AppColors.inkBlue),
-              title: Text(S.of(context, 'syncNow')),
-              onTap: _syncing ? null : _syncNow,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            const Divider(),
-          ],
+          const Divider(),
 
           // Language section
           const SizedBox(height: AppSpacing.md),
@@ -145,9 +107,7 @@ class _SettingScreenState extends State<SettingScreen> {
     return ListTile(
       leading: Text(flag, style: AppTextStyles.emoji),
       title: Text(label),
-      trailing: isSelected
-          ? const Icon(Icons.check_circle, color: AppColors.inkBlue)
-          : null,
+      trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.inkBlue) : null,
       onTap: () => _changeLocale(locale),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       tileColor: isSelected ? AppColors.inkBlue.withValues(alpha: 0.1) : null,

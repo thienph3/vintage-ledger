@@ -5,30 +5,31 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/error_snackbar.dart';
 import 'package:vintage_ledger/common/widgets/type_selector.dart';
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
 
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_item.dart';
+import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/transaction/widgets/category_dropdown.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_item_list.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/screens/category_form_screen.dart';
-
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 
 class TransactionFormScreen extends StatefulWidget {
-  final int? walletId;
-  final TransactionModel? transaction;
+  final String? walletId;
+  final TransactionWithItems? existing;
 
-  const TransactionFormScreen({super.key, this.walletId, this.transaction});
+  const TransactionFormScreen({super.key, this.walletId, this.existing});
 
-  bool get isEdit => transaction != null;
+  bool get isEdit => existing != null;
 
   @override
   State<TransactionFormScreen> createState() => _TransactionFormScreenState();
@@ -36,7 +37,6 @@ class TransactionFormScreen extends StatefulWidget {
 
 class _TransactionFormScreenState extends State<TransactionFormScreen> {
   final _formKey = GlobalKey<FormState>();
-
   final _amountCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
   final _dateCtrl = TextEditingController();
@@ -45,8 +45,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   List<Wallet> _wallets = [];
   List<TransactionItemEntry> _items = [];
 
-  int? _walletId;
-  int? _categoryId;
+  String? _walletId;
+  String? _categoryId;
   TransactionType _type = TransactionType.expense;
   DateTime _date = DateTime.now();
 
@@ -56,13 +56,18 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     _walletId = widget.walletId;
 
     if (widget.isEdit) {
-      final t = widget.transaction!;
+      final t = widget.existing!.transaction;
       _amountCtrl.text = t.amount.toString();
       _type = t.type;
       _categoryId = t.categoryId;
+      _walletId = t.walletId;
       _date = DateTime.fromMillisecondsSinceEpoch(t.date);
       _noteCtrl.text = t.note ?? '';
-      _loadItems();
+      _items = widget.existing!.items.map((i) => TransactionItemEntry(
+        item: i,
+        amountController: TextEditingController(text: i.amount.toString()),
+        noteController: TextEditingController(text: i.note ?? ''),
+      )).toList();
     } else {
       _amountCtrl.text = '0';
     }
@@ -82,13 +87,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     _amountCtrl.dispose();
     _noteCtrl.dispose();
     _dateCtrl.dispose();
-    for (var e in _items) {
-      e.dispose();
-    }
+    for (var e in _items) { e.dispose(); }
     super.dispose();
   }
-
-  // ── Data loading ──
 
   Future<void> _loadCategories() async {
     final list = await sl.categoryService.getCategoriesByType(_type.value);
@@ -109,24 +110,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     });
   }
 
-  Future<void> _loadItems() async {
-    if (!widget.isEdit) return;
-    final loaded = await sl.transactionService.getTransactionItems(widget.transaction!.id!);
-    setState(() {
-      _items = loaded
-          .map((item) => TransactionItemEntry(
-                item: item,
-                amountController:
-                    TextEditingController(text: item.amount.toString()),
-                noteController:
-                    TextEditingController(text: item.note ?? ''),
-              ))
-          .toList();
-    });
-  }
-
-  // ── Actions ──
-
   void _onTypeChanged(String type) {
     final parsed = TransactionType.fromString(type);
     if (_type == parsed) return;
@@ -135,19 +118,14 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Future<void> _onAddCategory() async {
-    final result = await context.pushScreen(
-      CategoryFormScreen(initialType: _type),
-    );
+    final result = await context.pushScreen(CategoryFormScreen(initialType: _type));
     if (result == true) await _loadCategories();
   }
 
   void _addItem() {
     setState(() {
       _items.add(TransactionItemEntry(
-        item: TransactionItemModel(
-          transactionId: widget.transaction?.id ?? 0,
-          amount: 0,
-        ),
+        item: TransactionItemModel(amount: 0),
         amountController: TextEditingController(),
         noteController: TextEditingController(),
       ));
@@ -168,114 +146,88 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   Future<void> _pickDateTime() async {
     final pickedDate = await showDatePicker(
-      context: context,
-      initialDate: _date,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      context: context, initialDate: _date,
+      firstDate: DateTime(2000), lastDate: DateTime(2100),
       locale: Localizations.localeOf(context),
     );
     if (!mounted || pickedDate == null) return;
 
     final pickedTime = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.fromDateTime(_date),
+      context: context, initialTime: TimeOfDay.fromDateTime(_date),
     );
     if (!mounted || pickedTime == null) return;
 
     setState(() {
-      _date = DateTime(
-        pickedDate.year,
-        pickedDate.month,
-        pickedDate.day,
-        pickedTime.hour,
-        pickedTime.minute,
-      );
+      _date = DateTime(pickedDate.year, pickedDate.month, pickedDate.day, pickedTime.hour, pickedTime.minute);
       _updateDateText();
     });
   }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_walletId == null) return;
+    if (_walletId == null || _categoryId == null) return;
 
     var amount = int.tryParse(_amountCtrl.text) ?? 0;
-    final itemTotal = _items.fold<int>(
-        0, (s, e) => s + (int.tryParse(e.amountController.text) ?? 0));
+    final itemTotal = _items.fold<int>(0, (s, e) => s + (int.tryParse(e.amountController.text) ?? 0));
 
     if (amount == 0 && itemTotal > 0) {
       amount = itemTotal;
       _amountCtrl.text = amount.toString();
     }
-
     if (amount <= 0) {
-      _showError(S.of(context, 'amountMustBePositive'));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.of(context, 'amountMustBePositive'))));
       return;
     }
     if (itemTotal > amount) {
-      _showError(S.of(context, 'itemsTotalExceed'));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(S.of(context, 'itemsTotalExceed'))));
       return;
     }
 
-    int txnId;
-    final txn = TransactionModel(
-      id: widget.transaction?.id,
-      walletId: _walletId!,
-      categoryId: _categoryId!,
-      amount: amount,
-      type: _type,
-      date: _date.millisecondsSinceEpoch,
-      note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
-    );
+    final items = _items
+        .map((e) => TransactionItemModel(
+              amount: int.tryParse(e.amountController.text) ?? 0,
+              note: e.noteController.text.isEmpty ? null : e.noteController.text,
+            ))
+        .where((i) => i.amount > 0)
+        .toList();
 
-    if (widget.isEdit) {
-      await sl.transactionService.updateTransaction(txn);
-      txnId = txn.id!;
-    } else {
-      txnId = await sl.transactionService.createTransaction(
-        walletId: txn.walletId,
-        categoryId: txn.categoryId,
-        type: txn.type,
-        amount: txn.amount,
-        date: txn.date,
-        note: txn.note,
-      );
-    }
-
-    await _saveItems(txnId);
-    if (!mounted) return;
-    Navigator.pop(context, true);
-  }
-
-  Future<void> _saveItems(int txnId) async {
-    for (var e in _items) {
-      final amount = int.tryParse(e.amountController.text) ?? 0;
-      if (amount <= 0) continue;
-      final item = TransactionItemModel(
-        id: e.item.id,
-        transactionId: txnId,
-        amount: amount,
-        note: e.noteController.text.isEmpty ? null : e.noteController.text,
-      );
-      if (item.id == null) {
-        await sl.transactionService.addTransactionItem(item);
+    try {
+      if (widget.isEdit) {
+        await sl.transactionService.updateTransaction(TransactionWithItems(
+          transaction: TransactionModel(
+            id: widget.existing!.transaction.id,
+            walletId: _walletId!,
+            categoryId: _categoryId!,
+            amount: amount,
+            type: _type,
+            date: _date.millisecondsSinceEpoch,
+            note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
+          ),
+          items: items,
+        ));
       } else {
-        await sl.transactionService.updateTransactionItem(item);
+        await sl.transactionService.createTransaction(
+          walletId: _walletId!,
+          categoryId: _categoryId!,
+          type: _type,
+          amount: amount,
+          date: _date.millisecondsSinceEpoch,
+          note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
+          items: items,
+        );
       }
+      if (!mounted) return;
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      showErrorSnackBar(context, e);
     }
   }
-
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
-  }
-
-  // ── Build ──
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: widget.isEdit
-          ? S.of(context, 'editTransaction')
-          : S.of(context, 'addNewTransaction'),
+      title: widget.isEdit ? S.of(context, 'editTransaction') : S.of(context, 'addNewTransaction'),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -283,18 +235,12 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
           children: [
             TypeSelector(value: _type.value, onChanged: _onTypeChanged),
             const SizedBox(height: AppSpacing.lg),
-
-            // Amount
             AmountInputField(controller: _amountCtrl),
             const SizedBox(height: AppSpacing.md),
-
-            // Wallet (only when not pre-selected)
             if (widget.walletId == null) ...[
               _buildWalletDropdown(),
               const SizedBox(height: AppSpacing.md),
             ],
-
-            // Category
             CategoryDropdown(
               value: _categoryId,
               categories: _categories,
@@ -302,40 +248,25 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               onAdd: _onAddCategory,
             ),
             const SizedBox(height: AppSpacing.md),
-
-            // Date
             TextFormField(
-              readOnly: true,
-              controller: _dateCtrl,
+              readOnly: true, controller: _dateCtrl,
               decoration: InputDecoration(
                 labelText: S.of(context, 'date'),
                 suffixIcon: const Icon(Icons.calendar_today, size: 20),
               ),
-              onTap: _pickDateTime,
-              style: AppTextStyles.body,
+              onTap: _pickDateTime, style: AppTextStyles.body,
             ),
             const SizedBox(height: AppSpacing.md),
-
-            // Items
-            TransactionItemList(
-              items: _items,
-              onAdd: _addItem,
-              onRemove: _removeItem,
-            ),
+            TransactionItemList(items: _items, onAdd: _addItem, onRemove: _removeItem),
             const SizedBox(height: AppSpacing.md),
-
-            // Note
             TextFormField(
-              controller: _noteCtrl,
-              maxLines: 2,
+              controller: _noteCtrl, maxLines: 2,
               decoration: InputDecoration(
-                labelText: S.of(context, 'note'),
-                hintText: S.of(context, 'noteHint'),
+                labelText: S.of(context, 'note'), hintText: S.of(context, 'noteHint'),
               ),
               style: AppTextStyles.body,
             ),
             const SizedBox(height: AppSpacing.lg),
-
             FormSaveButton(isEdit: widget.isEdit, onPressed: _save),
             const SizedBox(height: AppSpacing.xl),
           ],
@@ -345,22 +276,12 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Widget _buildWalletDropdown() {
-    return DropdownButtonFormField<int>(
-      initialValue: _walletId,
-      decoration: InputDecoration(
-        labelText: S.of(context, 'selectWallet'),
-      ),
-      items: _wallets.map((w) {
-        return DropdownMenuItem(
-          value: w.id,
-          child: Text(w.name, style: AppTextStyles.body),
-        );
-      }).toList(),
+    return DropdownButtonFormField<String>(
+      value: _walletId,
+      decoration: InputDecoration(labelText: S.of(context, 'selectWallet')),
+      items: _wallets.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name, style: AppTextStyles.body))).toList(),
       onChanged: (v) => setState(() => _walletId = v),
-      validator: (v) {
-        if (v == null) return S.of(context, 'selectWalletRequired');
-        return null;
-      },
+      validator: (v) => v == null ? S.of(context, 'selectWalletRequired') : null,
     );
   }
 }

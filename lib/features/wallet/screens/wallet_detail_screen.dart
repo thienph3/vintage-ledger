@@ -15,7 +15,6 @@ import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 
-
 class WalletDetailScreen extends StatefulWidget {
   final Wallet wallet;
 
@@ -33,20 +32,22 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
   @override
   void initState() {
     super.initState();
-    loadData();
+    _loadData();
   }
 
-  Future<void> loadData() async {
+  Future<void> _loadData() async {
     try {
       final dashboard = await sl.transactionService.getDashboard(
         walletId: widget.wallet.id!,
       );
+      if (!mounted) return;
       setState(() {
         _dashboard = dashboard;
         _loading = false;
         _error = null;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _loading = false;
         _error = e.toString();
@@ -65,32 +66,34 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
           padding: const EdgeInsets.all(AppSpacing.md),
           child: ListView(
             children: [
-              LedgerCard(
-                child: Row(
-                  children: [
-                    Text(
-                      "${S.of(context, 'balance')}:",
-                      style: AppTextStyles.body,
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    AmountText.fromBalance(
-                      balance: _dashboard?.balance ?? 0,
-                    ),
-                  ],
+              StreamBuilder<Wallet?>(
+                stream: sl.walletService.watchWallets().map(
+                  (wallets) => wallets.where((w) => w.id == widget.wallet.id).firstOrNull,
                 ),
+                initialData: widget.wallet,
+                builder: (context, snap) {
+                  final balance = snap.data?.balance ?? widget.wallet.balance;
+                  return LedgerCard(
+                    child: Row(
+                      children: [
+                        Text("${S.of(context, 'balance')}:", style: AppTextStyles.body),
+                        const SizedBox(width: AppSpacing.md),
+                        AmountText.fromBalance(balance: balance),
+                      ],
+                    ),
+                  );
+                },
               ),
               const SizedBox(height: AppSpacing.md),
-
               if (_dashboard != null)
                 LedgerCard(child: ChartSection(dashboard: _dashboard!)),
               const SizedBox(height: AppSpacing.md),
-
               LedgerCard(
                 child: TransactionSection(
                   walletId: widget.wallet.id!,
                   transactions: _dashboard?.recent ?? [],
                   categoryMap: _dashboard?.categoryMap ?? {},
-                  onDataChanged: loadData,
+                  onDataChanged: _loadData,
                 ),
               ),
             ],

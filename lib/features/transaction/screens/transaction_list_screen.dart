@@ -8,8 +8,9 @@ import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 
-import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
+import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
+import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
@@ -22,7 +23,7 @@ import 'package:vintage_ledger/core/constants/category_icons.dart';
 enum GroupMode { day, week, month }
 
 class TransactionListScreen extends StatefulWidget {
-  final int? walletId;
+  final String? walletId;
 
   const TransactionListScreen({super.key, this.walletId});
 
@@ -34,8 +35,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   final ScrollController _scrollController = ScrollController();
 
   final List<TransactionWithItems> _transactions = [];
-  Map<int, String> _categoryNameMap = {};
-  Map<int, int?> _categoryIconMap = {};
+  Map<String, String> _categoryNameMap = {};
+  Map<String, int?> _categoryIconMap = {};
   GroupMode _groupMode = GroupMode.day;
 
   late DateTime _cursor;
@@ -60,18 +61,13 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200 &&
-        !_loadingMore) {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 && !_loadingMore) {
       _loadMore();
     }
   }
 
   Future<void> _initialLoad() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() { _loading = true; _error = null; });
     try {
       await _loadCategories();
       await _loadMonth();
@@ -92,16 +88,13 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   Future<void> _loadMonth() async {
     final start = _cursor;
     final end = DateTime(start.year, start.month + 1, 0, 23, 59, 59, 999);
-
     try {
-      final txns = await sl.transactionService.getByDateRangeWithItems(
-        start.millisecondsSinceEpoch,
-        end.millisecondsSinceEpoch,
-        walletId: widget.walletId,
-      );
-
+      final txns = await sl.transactionService.getDashboard(walletId: widget.walletId);
+      // Use getByDateRange from repo via service
+      final repo = sl.transactionService;
+      final monthly = await _getByDateRange(start, end);
       setState(() {
-        _transactions.addAll(txns);
+        _transactions.addAll(monthly);
         _cursor = DateTime(start.year, start.month - 1, 1);
       });
     } catch (e) {
@@ -109,11 +102,18 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }
   }
 
+  Future<List<TransactionWithItems>> _getByDateRange(DateTime start, DateTime end) async {
+    // Use the transaction repository directly through service
+    final dashboard = await sl.transactionService.getDashboard(walletId: widget.walletId);
+    // For now, filter from dashboard monthly data
+    return dashboard.monthly.where((t) {
+      final date = t.transaction.date;
+      return date >= start.millisecondsSinceEpoch && date <= end.millisecondsSinceEpoch;
+    }).toList();
+  }
+
   Future<void> _loadMore() async {
-    setState(() {
-      _loadingMore = true;
-      _error = null;
-    });
+    setState(() { _loadingMore = true; _error = null; });
     await _loadMonth();
     setState(() => _loadingMore = false);
   }
@@ -126,26 +126,15 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     await _initialLoad();
   }
 
-  void _changeGroupMode(GroupMode mode) {
-    setState(() => _groupMode = mode);
-  }
-
-  // ========================
-  // GROUPING LOGIC
-  // ========================
-
-  /// Returns a key for grouping based on the current mode.
   String _groupKey(TransactionWithItems t) {
     final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
     switch (_groupMode) {
       case GroupMode.day:
         return DateFormatter.fullDate(t.transaction.date);
       case GroupMode.week:
-        // ISO week: Monday-based
         final monday = dt.subtract(Duration(days: dt.weekday - 1));
         final sunday = monday.add(const Duration(days: 6));
-        return '${DateFormatter.fullDate(monday.millisecondsSinceEpoch)}'
-            ' - ${DateFormatter.fullDate(sunday.millisecondsSinceEpoch)}';
+        return '${DateFormatter.fullDate(monday.millisecondsSinceEpoch)} - ${DateFormatter.fullDate(sunday.millisecondsSinceEpoch)}';
       case GroupMode.month:
         return DateFormatter.monthYear(DateTime(dt.year, dt.month));
     }
@@ -156,53 +145,29 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     final order = <String>[];
     for (var t in _transactions) {
       final key = _groupKey(t);
-      if (!map.containsKey(key)) {
-        map[key] = [];
-        order.add(key);
-      }
+      if (!map.containsKey(key)) { map[key] = []; order.add(key); }
       map[key]!.add(t);
     }
     return order.map((key) => _Group(key, map[key]!)).toList();
   }
 
-  int get _totalIncome => _transactions
-      .where((t) => t.transaction.type.isIncome)
-      .fold(0, (sum, t) => sum + t.transaction.amount);
-
-  int get _totalExpense => _transactions
-      .where((t) => t.transaction.type.isExpense)
-      .fold(0, (sum, t) => sum + t.transaction.amount);
-
-  // ========================
-  // ACTIONS
-  // ========================
+  int get _totalIncome => _transactions.where((t) => t.transaction.type.isIncome).fold(0, (s, t) => s + t.transaction.amount);
+  int get _totalExpense => _transactions.where((t) => t.transaction.type.isExpense).fold(0, (s, t) => s + t.transaction.amount);
 
   Future<void> _openForm({TransactionWithItems? txn}) async {
-    final result = await context.pushScreen(
-      TransactionFormScreen(
-        walletId: txn?.transaction.walletId ?? widget.walletId,
-        transaction: txn?.transaction,
-      ),
-    );
+    final result = await context.pushScreen(TransactionFormScreen(
+      walletId: txn?.transaction.walletId ?? widget.walletId,
+      existing: txn,
+    ));
     if (result == true) _refresh();
   }
 
-  Future<bool?> _confirmDelete() {
-    return showDeleteConfirmation(
-      context,
-      titleKey: 'deleteTransaction',
-      contentKey: 'deleteTransactionConfirm',
-    );
-  }
+  Future<bool?> _confirmDelete() => showDeleteConfirmation(context, titleKey: 'deleteTransaction', contentKey: 'deleteTransactionConfirm');
 
-  Future<void> _deleteTransaction(int id) async {
+  Future<void> _deleteTransaction(String id) async {
     await sl.transactionService.deleteTransaction(id);
     _refresh();
   }
-
-  // ========================
-  // BUILD
-  // ========================
 
   @override
   Widget build(BuildContext context) {
@@ -211,15 +176,12 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
             child: _buildGroupModeRow(),
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: _buildSummaryCard(),
+            child: LedgerCard(child: IncomeExpenseSummaryRow(income: _totalIncome, expense: _totalExpense)),
           ),
           const SizedBox(height: AppSpacing.sm),
           Expanded(
@@ -229,10 +191,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                     ? Center(child: Text(_error!, style: AppTextStyles.error))
                     : _transactions.isEmpty
                         ? Center(child: Text(S.of(context, 'noTransactions')))
-                        : RefreshIndicator(
-                            onRefresh: _refresh,
-                            child: _buildList(),
-                          ),
+                        : RefreshIndicator(onRefresh: _refresh, child: _buildList()),
           ),
         ],
       ),
@@ -250,7 +209,6 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       GroupMode.week: S.of(context, 'byWeek'),
       GroupMode.month: S.of(context, 'byMonth'),
     };
-
     return Row(
       children: GroupMode.values.map((m) {
         final selected = m == _groupMode;
@@ -258,7 +216,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: ElevatedButton(
-              onPressed: () => _changeGroupMode(m),
+              onPressed: () => setState(() => _groupMode = m),
               style: ElevatedButton.styleFrom(
                 backgroundColor: selected ? AppColors.inkBlue : AppColors.paper,
                 foregroundColor: selected ? Colors.white : AppColors.inkBlack,
@@ -276,35 +234,19 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     );
   }
 
-  Widget _buildSummaryCard() {
-    return LedgerCard(
-      child: IncomeExpenseSummaryRow(
-        income: _totalIncome,
-        expense: _totalExpense,
-      ),
-    );
-  }
-
   Widget _buildList() {
     final groups = _buildGroups();
-
     return ListView.builder(
       controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      // +1 for the loading indicator at the bottom
       itemCount: groups.length + 1,
       itemBuilder: (context, index) {
         if (index == groups.length) {
           return _loadingMore
-              ? const Padding(
-                  padding: EdgeInsets.all(AppSpacing.md),
-                  child: Center(child: CircularProgressIndicator()),
-                )
+              ? const Padding(padding: EdgeInsets.all(AppSpacing.md), child: Center(child: CircularProgressIndicator()))
               : const SizedBox(height: 80);
         }
-
-        final group = groups[index];
-        return _buildGroupSection(group);
+        return _buildGroupSection(groups[index]);
       },
     );
   }
@@ -314,18 +256,12 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: AppSpacing.sm),
-        // Group header
         Row(
           children: [
-            Expanded(
-              child: Text(group.label, style: AppTextStyles.titleSmall),
-            ),
-            if (group.income > 0)
-              AmountText(amount: group.income, type: TransactionType.income, compact: true),
-            if (group.income > 0 && group.expense > 0)
-              const SizedBox(width: AppSpacing.sm),
-            if (group.expense > 0)
-              AmountText(amount: group.expense, type: TransactionType.expense, compact: true),
+            Expanded(child: Text(group.label, style: AppTextStyles.titleSmall)),
+            if (group.income > 0) AmountText(amount: group.income, type: TransactionType.income, compact: true),
+            if (group.income > 0 && group.expense > 0) const SizedBox(width: AppSpacing.sm),
+            if (group.expense > 0) AmountText(amount: group.expense, type: TransactionType.expense, compact: true),
           ],
         ),
         const Divider(),
@@ -335,12 +271,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   Widget _buildTransactionTile(TransactionWithItems txn) {
-    final catName = _categoryNameMap[txn.transaction.categoryId] ??
-        S.of(context, 'other');
+    final catName = _categoryNameMap[txn.transaction.categoryId] ?? S.of(context, 'other');
     final catIcon = _categoryIconMap[txn.transaction.categoryId];
 
     return SwipeListItem(
-      itemKey: Key(txn.transaction.id.toString()),
+      itemKey: Key(txn.transaction.id!),
       onTap: () => _openForm(txn: txn),
       confirmDelete: _confirmDelete,
       onDelete: () => _deleteTransaction(txn.transaction.id!),
@@ -348,39 +283,23 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
-            Icon(
-              getCategoryIcon(catIcon),
-              size: 22,
-              color: AppColors.inkBlue,
-            ),
+            Icon(getCategoryIcon(catIcon), size: 22, color: AppColors.inkBlue),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(catName, style: AppTextStyles.bodyBold),
-                  if (txn.transaction.note != null &&
-                      txn.transaction.note!.isNotEmpty)
-                    Text(
-                      txn.transaction.note!,
-                      style: AppTextStyles.caption,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  if (txn.transaction.note != null && txn.transaction.note!.isNotEmpty)
+                    Text(txn.transaction.note!, style: AppTextStyles.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                AmountText(
-                  amount: txn.transaction.amount,
-                  type: txn.transaction.type,
-                ),
-                Text(
-                  DateFormatter.short(txn.transaction.date),
-                  style: AppTextStyles.caption,
-                ),
+                AmountText(amount: txn.transaction.amount, type: txn.transaction.type),
+                Text(DateFormatter.short(txn.transaction.date), style: AppTextStyles.caption),
               ],
             ),
           ],
@@ -390,18 +309,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 }
 
-/// Helper class to hold a group of transactions with pre-computed totals.
 class _Group {
   final String label;
   final List<TransactionWithItems> items;
-
   _Group(this.label, this.items);
-
-  int get income => items
-      .where((t) => t.transaction.type.isIncome)
-      .fold(0, (sum, t) => sum + t.transaction.amount);
-
-  int get expense => items
-      .where((t) => t.transaction.type.isExpense)
-      .fold(0, (sum, t) => sum + t.transaction.amount);
+  int get income => items.where((t) => t.transaction.type.isIncome).fold(0, (s, t) => s + t.transaction.amount);
+  int get expense => items.where((t) => t.transaction.type.isExpense).fold(0, (s, t) => s + t.transaction.amount);
 }

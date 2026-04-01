@@ -24,7 +24,6 @@ class AccountPickerScreen extends StatefulWidget {
 class _AccountPickerScreenState extends State<AccountPickerScreen> {
   List<Account> _accounts = [];
   bool _loading = true;
-  bool _syncing = false;
   String? _error;
 
   @override
@@ -38,55 +37,14 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
       final userId = sl.appState.currentUserId;
       if (userId == null) return;
       final accounts = await sl.accountService.getAccountsForUser(userId);
-      setState(() {
-        _accounts = accounts;
-        _loading = false;
-      });
+      setState(() { _accounts = accounts; _loading = false; });
     } catch (e) {
-      setState(() {
-        _loading = false;
-        _error = e.toString();
-      });
+      setState(() { _loading = false; _error = e.toString(); });
     }
   }
 
-  Future<void> _sync() async {
-    setState(() => _syncing = true);
-    try {
-      final errors = await sl.syncService.syncAll();
-      if (!mounted) return;
-      if (errors.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context, 'syncSuccess'))),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${S.of(context, 'syncFailed')}: ${errors.join(', ')}')),
-        );
-      }
-      _load();
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    } finally {
-      if (mounted) setState(() => _syncing = false);
-    }
-  }
-
-  Future<void> _selectAccount(Account account) async {
+  void _selectAccount(Account account) {
     sl.appState.currentAccountId = account.id;
-    setState(() => _loading = true);
-
-    // Auto-sync khi chọn account để pull seed data về local
-    try {
-      await sl.syncService.syncAccount(account.id);
-    } catch (_) {
-      // Offline thì bỏ qua, dùng data local có sẵn
-    }
-
-    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -108,7 +66,6 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
                 const SizedBox(height: AppSpacing.lg),
                 Text(S.of(context, 'chooseAccount'), style: AppTextStyles.title),
                 const SizedBox(height: AppSpacing.xl),
-
                 Expanded(
                   child: ListView(
                     children: [
@@ -117,9 +74,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
                         child: GestureDetector(
                           onTap: () => _selectAccount(a),
                           onLongPress: a.isFamily ? () async {
-                            final result = await context.pushScreen(
-                              FamilyDetailScreen(account: a),
-                            );
+                            final result = await context.pushScreen(FamilyDetailScreen(account: a));
                             if (result == true) _load();
                           } : null,
                           child: LedgerCard(
@@ -127,8 +82,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
                               children: [
                                 Icon(
                                   a.isPersonal ? Icons.person : Icons.family_restroom,
-                                  color: AppColors.inkBlue,
-                                  size: 28,
+                                  color: AppColors.inkBlue, size: 28,
                                 ),
                                 const SizedBox(width: AppSpacing.md),
                                 Expanded(
@@ -137,10 +91,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
                                     children: [
                                       Text(a.name, style: AppTextStyles.bodyBold),
                                       if (a.isFamily)
-                                        Text(
-                                          '${a.memberIds.length} ${S.of(context, 'memberCount')}',
-                                          style: AppTextStyles.bodySmall,
-                                        ),
+                                        Text('${a.memberIds.length} ${S.of(context, 'memberCount')}', style: AppTextStyles.bodySmall),
                                     ],
                                   ),
                                 ),
@@ -150,8 +101,6 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
                           ),
                         ),
                       )),
-
-                      // Tạo family mới
                       GestureDetector(
                         onTap: () async {
                           final result = await context.pushScreen(const FamilyFormScreen());
@@ -171,27 +120,10 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
                     ],
                   ),
                 ),
-
-                // Bottom actions
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () => context.pushScreen(const SettingScreen()),
-                      icon: const Icon(Icons.settings, size: 18),
-                      label: Text(S.of(context, 'settings')),
-                    ),
-                    _syncing
-                        ? const SizedBox(
-                            width: 20, height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : TextButton.icon(
-                            onPressed: _sync,
-                            icon: const Icon(Icons.sync, size: 18),
-                            label: Text(S.of(context, 'sync')),
-                          ),
-                  ],
+                TextButton.icon(
+                  onPressed: () => context.pushScreen(const SettingScreen()),
+                  icon: const Icon(Icons.settings, size: 18),
+                  label: Text(S.of(context, 'settings')),
                 ),
               ],
             ),

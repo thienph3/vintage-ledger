@@ -23,6 +23,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _loading = false;
   String? _error;
 
+  bool get _isUpgrade => sl.authService.isAnonymous;
+
   @override
   void dispose() {
     _nameCtrl.dispose();
@@ -33,37 +35,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _register() async {
     if (!_formKey.currentState!.validate()) return;
-
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() { _loading = true; _error = null; });
 
     try {
-      final user = await sl.authService.registerWithEmail(
-        _emailCtrl.text.trim(),
-        _passwordCtrl.text,
-        _nameCtrl.text.trim(),
-      );
+      final email = _emailCtrl.text.trim();
+      final password = _passwordCtrl.text;
+      final name = _nameCtrl.text.trim();
 
-      // Tạo user profile + personal account trên Firestore
-      if (user != null) {
-        final accountId = await sl.accountService.createUserWithPersonalAccount(
-          userId: user.uid,
-          email: user.email!,
-          displayName: _nameCtrl.text.trim(),
-        );
-        sl.appState.currentUserId = user.uid;
-        sl.appState.currentAccountId = accountId;
+      if (_isUpgrade) {
+        // Link anonymous account to email
+        final user = await sl.authService.linkWithEmail(email, password, name);
+        if (user != null) {
+          // Update Firestore user profile
+          await sl.accountService.getOrCreatePersonalAccountId(user.uid, email, name);
+        }
+      } else {
+        // Fresh registration
+        final user = await sl.authService.registerWithEmail(email, password, name);
+        if (user != null) {
+          final accountId = await sl.accountService.createUserWithPersonalAccount(
+            userId: user.uid, email: email, displayName: name,
+          );
+          sl.appState.currentUserId = user.uid;
+          sl.appState.currentAccountId = accountId;
+        }
       }
 
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
-      setState(() {
-        _loading = false;
-        _error = e.toString();
-      });
+      setState(() { _loading = false; _error = e.toString(); });
     }
   }
 
@@ -78,18 +79,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: ListView(
             children: [
               const SizedBox(height: AppSpacing.lg),
-
               TextFormField(
                 controller: _nameCtrl,
                 decoration: InputDecoration(
                   labelText: S.of(context, 'displayName'),
                   prefixIcon: const Icon(Icons.person_outline),
                 ),
-                validator: (v) =>
-                    v == null || v.trim().isEmpty ? S.of(context, 'displayName') : null,
+                validator: (v) => v == null || v.trim().isEmpty ? S.of(context, 'displayName') : null,
               ),
               const SizedBox(height: AppSpacing.md),
-
               TextFormField(
                 controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,
@@ -97,11 +95,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: S.of(context, 'email'),
                   prefixIcon: const Icon(Icons.email_outlined),
                 ),
-                validator: (v) =>
-                    v == null || !v.contains('@') || !v.contains('.') ? S.of(context, 'email') : null,
+                validator: (v) => v == null || !v.contains('@') || !v.contains('.') ? S.of(context, 'email') : null,
               ),
               const SizedBox(height: AppSpacing.md),
-
               TextFormField(
                 controller: _passwordCtrl,
                 obscureText: true,
@@ -109,17 +105,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   labelText: S.of(context, 'password'),
                   prefixIcon: const Icon(Icons.lock_outline),
                 ),
-                validator: (v) =>
-                    v == null || v.length < 6 ? S.of(context, 'password') : null,
+                validator: (v) => v == null || v.length < 6 ? S.of(context, 'password') : null,
               ),
               const SizedBox(height: AppSpacing.lg),
-
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.md),
                   child: Text(_error!, style: AppTextStyles.error),
                 ),
-
               _loading
                   ? const Center(child: CircularProgressIndicator())
                   : FormSaveButton(isEdit: false, onPressed: _register),

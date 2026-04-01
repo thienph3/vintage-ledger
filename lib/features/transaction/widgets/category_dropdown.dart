@@ -7,9 +7,9 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 
 class CategoryDropdown extends StatelessWidget {
-  final int? value;
+  final String? value;
   final List<Category> categories;
-  final ValueChanged<int?> onChanged;
+  final ValueChanged<String?> onChanged;
   final VoidCallback onAdd;
 
   const CategoryDropdown({
@@ -22,14 +22,12 @@ class CategoryDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<int>(
-      initialValue: value,
-      decoration: InputDecoration(
-        labelText: S.of(context, 'category'),
-      ),
+    return DropdownButtonFormField<String>(
+      value: value,
+      decoration: InputDecoration(labelText: S.of(context, 'category')),
       items: [
         DropdownMenuItem(
-          value: -1,
+          value: '__add__',
           child: Row(
             children: [
               const Icon(Icons.add, size: 18),
@@ -38,36 +36,22 @@ class CategoryDropdown extends StatelessWidget {
             ],
           ),
         ),
-        ...categories.map((c) {
-          return DropdownMenuItem(
-            value: c.id,
-            child: Row(
-              children: [
-                Icon(
-                  getCategoryIcon(c.icon),
-                  size: 20,
-                  color: AppColors.inkBlue,
-                ),
-                const SizedBox(width: 8),
-                Text(c.name, style: AppTextStyles.body),
-              ],
-            ),
-          );
-        }),
+        ...categories.map((c) => DropdownMenuItem(
+          value: c.id,
+          child: Row(
+            children: [
+              Icon(getCategoryIcon(c.icon), size: 20, color: AppColors.inkBlue),
+              const SizedBox(width: 8),
+              Text(c.name, style: AppTextStyles.body),
+            ],
+          ),
+        )),
       ],
       onChanged: (v) {
-        if (v == -1) {
-          onAdd();
-          return;
-        }
+        if (v == '__add__') { onAdd(); return; }
         onChanged(v);
       },
-      validator: (v) {
-        if (v == null || v == -1) {
-          return S.of(context, 'selectCategoryRequired');
-        }
-        return null;
-      },
+      validator: (v) => v == null || v == '__add__' ? S.of(context, 'selectCategoryRequired') : null,
     );
   }
 }

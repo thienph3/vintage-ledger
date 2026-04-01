@@ -109,6 +109,9 @@ const Map<String, String> vi = {
   'cancel': 'Hủy',
   'delete': 'Xóa',
   'done': 'Xong',
+  'dismiss': 'Bỏ qua',
+  'saveFailed': 'Lưu thất bại',
+  'offline': 'Ngoại tuyến',
 
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',
@@ -127,19 +130,8 @@ const Map<String, String> vi = {
   'leaveFamilyConfirm': 'Bạn có chắc muốn rời gia đình này?',
   'deleteFamilyConfirm': 'Bạn có chắc muốn xóa gia đình này? Tất cả dữ liệu sẽ bị xóa.',
 
-  // Sync
-  'sync': 'Đồng bộ',
-  'syncNow': 'Đồng bộ ngay',
-  'lastSync': 'Lần đồng bộ cuối',
-  'syncing': 'Đang đồng bộ...',
-  'syncSuccess': 'Đồng bộ thành công',
-  'syncFailed': 'Đồng bộ thất bại',
-  'noInternet': 'Không có kết nối mạng',
-  'importFromCloud': 'Nhập dữ liệu từ đám mây?',
+  // Account
+  'registerToSync': 'Đăng ký để đồng bộ dữ liệu giữa các thiết bị',
 
-  // Onboarding
-  'welcomeTitle': 'Chào mừng đến Sổ Thu Chi',
-  'welcomeSubtitle': 'Bạn có muốn tạo dữ liệu mẫu để khám phá ứng dụng không?',
-  'startWithSample': 'Bắt đầu với dữ liệu mẫu',
-  'startEmpty': 'Bắt đầu từ đầu',
+
 };

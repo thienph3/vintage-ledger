@@ -1,106 +1,113 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:vintage_ledger/core/database.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
+import 'package:vintage_ledger/core/firestore/firestore_repository.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
+import 'package:vintage_ledger/features/transaction/models/transaction_item.dart';
+import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 
-class TransactionRepository {
-  /// CREATE
-  Future<int> create(TransactionModel transaction) async {
-    final db = await AppDatabase.instance.database;
+class TransactionRepository extends FirestoreRepository<TransactionWithItems> {
+  @override
+  String get collectionName => 'transactions';
 
-    return await db.insert(
-      'transactions',
-      transaction.toMap(),
-      conflictAlgorithm: ConflictAlgorithm.replace,
+  @override
+  TransactionWithItems fromFirestore(String id, Map<String, dynamic> data) {
+    final items = (data['items'] as List<dynamic>? ?? [])
+        .map((i) => TransactionItemModel.fromMap(i as Map<String, dynamic>))
+        .toList();
+
+    return TransactionWithItems(
+      transaction: TransactionModel(
+        id: id,
+        walletId: data['wallet_id'] ?? '',
+        categoryId: data['category_id'] ?? '',
+        type: TransactionType.fromString(data['type'] ?? 'expense'),
+        amount: data['amount'] ?? 0,
+        note: data['note'],
+        date: data['date'] ?? 0,
+        createdBy: data['created_by'],
+      ),
+      items: items,
     );
   }
 
-  /// READ BY ID
-  Future<TransactionModel?> getById(int id) async {
-    final db = await AppDatabase.instance.database;
-
-    final result = await db.query(
-      'transactions',
-      where: 'id = ?',
-      whereArgs: [id],
-      limit: 1,
-    );
-
-    if (result.isNotEmpty) {
-      return TransactionModel.fromMap(result.first);
-    }
-
-    return null;
+  @override
+  Map<String, dynamic> toFirestore(TransactionWithItems item) {
+    final t = item.transaction;
+    return {
+      'wallet_id': t.walletId,
+      'category_id': t.categoryId,
+      'type': t.type.value,
+      'amount': t.amount,
+      'note': t.note,
+      'date': t.date,
+      'created_by': t.createdBy,
+      'items': item.items.map((i) => i.toMap()).toList(),
+    };
   }
 
-  /// READ RECENT (with optional wallet filter)
-  Future<List<TransactionModel>> getRecent(int limit, {int? walletId, String accountId = 'local'}) async {
-    final db = await AppDatabase.instance.database;
-    final conditions = <String>['account_id = ?'];
-    final args = <dynamic>[accountId];
-    if (walletId != null) {
-      conditions.add('wallet_id = ?');
-      args.add(walletId);
-    }
-    return (await db.query(
-      'transactions',
-      where: conditions.join(' AND '),
-      whereArgs: args,
-      orderBy: 'date DESC',
-      limit: limit,
-    )).map((e) => TransactionModel.fromMap(e)).toList();
-  }
+  // ── Streams ──
 
-  Future<List<TransactionModel>> getByDateRange(
-    int startDate,
-    int endDate, {
-    int? walletId,
-    String accountId = 'local',
-  }) async {
-    final db = await AppDatabase.instance.database;
-    final conditions = <String>['account_id = ?', 'date >= ?', 'date <= ?'];
-    final args = <dynamic>[accountId, startDate, endDate];
-    if (walletId != null) {
-      conditions.add('wallet_id = ?');
-      args.add(walletId);
-    }
-    return (await db.query(
-      'transactions',
-      where: conditions.join(' AND '),
-      whereArgs: args,
-      orderBy: 'date DESC',
-    )).map((e) => TransactionModel.fromMap(e)).toList();
-  }
-
-  /// DELETE ALL TRANSACTIONS FOR A WALLET (atomic)
-  Future<void> deleteAllByWallet(int walletId) async {
-    final db = await AppDatabase.instance.database;
-
-    await db.transaction((txn) async {
-      await txn.rawDelete(
-        'DELETE FROM transaction_items WHERE transaction_id IN '
-        '(SELECT id FROM transactions WHERE wallet_id = ?)',
-        [walletId],
-      );
-      await txn.delete('transactions', where: 'wallet_id = ?', whereArgs: [walletId]);
+  Stream<List<TransactionWithItems>> watchRecent(int limit, {String? walletId}) {
+    return watchAll(queryBuilder: (ref) {
+      Query<Map<String, dynamic>> q = ref.orderBy('date', descending: true).limit(limit);
+      if (walletId != null) q = ref.where('wallet_id', isEqualTo: walletId).orderBy('date', descending: true).limit(limit);
+      return q;
     });
   }
 
-  /// UPDATE
-  Future<int> update(TransactionModel transaction) async {
-    final db = await AppDatabase.instance.database;
-
-    return await db.update(
-      'transactions',
-      transaction.toMap(),
-      where: 'id = ?',
-      whereArgs: [transaction.id],
-    );
+  Stream<List<TransactionWithItems>> watchByDateRange(int startDate, int endDate, {String? walletId}) {
+    return watchAll(queryBuilder: (ref) {
+      Query<Map<String, dynamic>> q = ref
+          .where('date', isGreaterThanOrEqualTo: startDate)
+          .where('date', isLessThanOrEqualTo: endDate)
+          .orderBy('date', descending: true);
+      if (walletId != null) {
+        q = ref
+            .where('wallet_id', isEqualTo: walletId)
+            .where('date', isGreaterThanOrEqualTo: startDate)
+            .where('date', isLessThanOrEqualTo: endDate)
+            .orderBy('date', descending: true);
+      }
+      return q;
+    });
   }
 
-  /// DELETE
-  Future<int> delete(int id) async {
-    final db = await AppDatabase.instance.database;
+  // ── One-shot reads ──
 
-    return await db.delete('transactions', where: 'id = ?', whereArgs: [id]);
+  Future<List<TransactionWithItems>> getRecent(int limit, {String? walletId}) {
+    return getAll(queryBuilder: (ref) {
+      Query<Map<String, dynamic>> q = ref.orderBy('date', descending: true).limit(limit);
+      if (walletId != null) q = ref.where('wallet_id', isEqualTo: walletId).orderBy('date', descending: true).limit(limit);
+      return q;
+    });
+  }
+
+  Future<List<TransactionWithItems>> getByDateRange(int startDate, int endDate, {String? walletId}) {
+    return getAll(queryBuilder: (ref) {
+      Query<Map<String, dynamic>> q = ref
+          .where('date', isGreaterThanOrEqualTo: startDate)
+          .where('date', isLessThanOrEqualTo: endDate)
+          .orderBy('date', descending: true);
+      if (walletId != null) {
+        q = ref
+            .where('wallet_id', isEqualTo: walletId)
+            .where('date', isGreaterThanOrEqualTo: startDate)
+            .where('date', isLessThanOrEqualTo: endDate)
+            .orderBy('date', descending: true);
+      }
+      return q;
+    });
+  }
+
+  // ── Write with balance update ──
+
+  Future<String> addTransaction(TransactionWithItems item) async {
+    return await add(item);
+  }
+
+  Future<void> updateTransaction(String id, TransactionWithItems item) async {
+    final data = toFirestore(item);
+    data['updated_at'] = FieldValue.serverTimestamp();
+    await update(id, data);
   }
 }

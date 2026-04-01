@@ -1,39 +1,30 @@
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/repositories/category_repository.dart';
-import 'package:vintage_ledger/core/service_locator.dart';
 
 class CategoryService {
   final CategoryRepository _repo = CategoryRepository();
 
-  String get _accountId => sl.appState.currentAccountId;
+  Stream<List<Category>> watchCategories() => _repo.watchCategories();
 
-  Future<int> createCategory(String name, {TransactionType? type, int? icon}) async {
+  Stream<List<Category>> watchByType(String type) => _repo.watchByType(type);
+
+  Future<List<Category>> getCategories() => _repo.getAll();
+
+  Future<List<Category>> getCategoriesByType(String type) => _repo.getByType(type);
+
+  Future<Category?> getCategory(String id) => _repo.getById(id);
+
+  Future<String> createCategory(String name, {TransactionType? type, int? icon}) async {
     if (name.trim().isEmpty) throw Exception("Category name cannot be empty");
-    return await _repo.create(Category(name: name, type: type, icon: icon, accountId: _accountId));
+    return await _repo.add(Category(name: name, type: type, icon: icon));
   }
 
-  Future<List<Category>> getCategories() async {
-    return await _repo.getAll(accountId: _accountId);
+  Future<void> updateCategory(String id, String name, {TransactionType? type, int? icon}) async {
+    await _repo.update(id, {'name': name, 'type': type?.value, 'icon': icon});
   }
 
-  Future<List<Category>> getCategoriesByType(String type) async {
-    return await _repo.getByType(type, accountId: _accountId);
-  }
-
-  Future<Category?> getCategory(int id) async {
-    return await _repo.getById(id);
-  }
-
-  Future<int> updateCategory(int id, String name,
-      {TransactionType? type, int? icon}) async {
-    final category = await _repo.getById(id);
-    if (category == null) throw Exception("Category not found");
-    return await _repo.update(
-        Category(id: id, name: name, type: type, icon: icon, accountId: category.accountId));
-  }
-
-  Future<int> deleteCategory(int id) async {
-    return await _repo.delete(id);
+  Future<void> deleteCategory(String id) async {
+    await _repo.delete(id);
   }
 }

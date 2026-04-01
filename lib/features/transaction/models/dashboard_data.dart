@@ -5,7 +5,7 @@ import 'package:vintage_ledger/core/enums/transaction_type.dart';
 class DashboardData {
   final List<TransactionWithItems> recent;
   final List<TransactionWithItems> monthly;
-  final Map<int, Category> categoryMap;
+  final Map<String, Category> categoryMap;
   final int balance;
 
   late final Map<DateTime, Map<String, int>> dailyData;

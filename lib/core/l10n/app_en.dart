@@ -110,6 +110,9 @@ const Map<String, String> en = {
   'cancel': 'Cancel',
   'delete': 'Delete',
   'done': 'Done',
+  'dismiss': 'Dismiss',
+  'saveFailed': 'Save failed',
+  'offline': 'Offline',
 
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',
@@ -128,19 +131,8 @@ const Map<String, String> en = {
   'leaveFamilyConfirm': 'Are you sure you want to leave this family?',
   'deleteFamilyConfirm': 'Are you sure you want to delete this family? All data will be lost.',
 
-  // Sync
-  'sync': 'Sync',
-  'syncNow': 'Sync now',
-  'lastSync': 'Last sync',
-  'syncing': 'Syncing...',
-  'syncSuccess': 'Sync successful',
-  'syncFailed': 'Sync failed',
-  'noInternet': 'No internet connection',
-  'importFromCloud': 'Import data from cloud?',
+  // Account
+  'registerToSync': 'Register to sync data across devices',
 
-  // Onboarding
-  'welcomeTitle': 'Welcome to Vintage Ledger',
-  'welcomeSubtitle': 'Would you like to create sample data to explore the app?',
-  'startWithSample': 'Start with sample data',
-  'startEmpty': 'Start from scratch',
+
 };

@@ -1,28 +1,42 @@
-import 'package:vintage_ledger/features/settings/repositories/setting_repository.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 
 class SettingService {
-  final SettingRepository _repo = SettingRepository();
+  final _firestore = FirebaseFirestore.instance;
 
-  static const _localeKey = 'locale';
-  static const _setupDoneKey = 'setup_done';
+  DocumentReference get _userSettings {
+    final userId = sl.appState.currentUserId;
+    if (userId == null) throw Exception('Not logged in');
+    return _firestore.collection('users').doc(userId).collection('settings').doc('prefs');
+  }
 
   Future<String> getLocale() async {
-    return await _repo.get(_localeKey) ?? 'vi';
+    try {
+      final doc = await _userSettings.get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>?;
+        return data?['locale'] ?? 'vi';
+      }
+    } catch (_) {}
+    return 'vi';
   }
 
   Future<void> setLocale(String locale) async {
-    await _repo.set(_localeKey, locale);
-  }
-
-  Future<bool> isSetupDone() async {
-    return await _repo.get(_setupDoneKey) == 'true';
-  }
-
-  Future<void> markSetupDone() async {
-    await _repo.set(_setupDoneKey, 'true');
+    await _userSettings.set({'locale': locale}, SetOptions(merge: true));
   }
 
   Future<String?> getSetting(String key) async {
-    return await _repo.get(key);
+    try {
+      final doc = await _userSettings.get();
+      if (doc.exists) {
+        final data = doc.data() as Map<String, dynamic>?;
+        return data?[key]?.toString();
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  Future<void> setSetting(String key, String value) async {
+    await _userSettings.set({key: value}, SetOptions(merge: true));
   }
 }

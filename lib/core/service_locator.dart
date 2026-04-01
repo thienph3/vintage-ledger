@@ -5,7 +5,6 @@ import 'package:vintage_ledger/features/category/services/category_service.dart'
 import 'package:vintage_ledger/features/settings/services/setting_service.dart';
 import 'package:vintage_ledger/features/auth/services/auth_service.dart';
 import 'package:vintage_ledger/features/account/services/account_service.dart';
-import 'package:vintage_ledger/features/sync/services/sync_service.dart';
 
 class ServiceLocator {
   ServiceLocator._();
@@ -18,7 +17,6 @@ class ServiceLocator {
   final settingService = SettingService();
   final authService = AuthService();
   final accountService = AccountService();
-  final syncService = SyncService();
 }
 
 final sl = ServiceLocator.instance;

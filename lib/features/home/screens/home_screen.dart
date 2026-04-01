@@ -4,7 +4,6 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
-
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -15,6 +14,7 @@ import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/common/widgets/async_content.dart';
+import 'package:vintage_ledger/common/widgets/network_status_banner.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
 
@@ -34,31 +34,28 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<Wallet> wallets = [];
   DashboardData? _dashboard;
   bool _loading = true;
   String? _error;
   bool _amountVisible = false;
-  int _dirtyCount = 0;
 
   @override
   void initState() {
     super.initState();
-    loadData();
+    _loadDashboard();
   }
 
-  Future<void> loadData() async {
+  Future<void> _loadDashboard() async {
     try {
-      final w = await sl.walletService.getWallets();
       final dashboard = await sl.transactionService.getDashboard();
+      if (!mounted) return;
       setState(() {
-        wallets = w;
         _dashboard = dashboard;
         _loading = false;
         _error = null;
       });
-      _loadDirtyCount();
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _loading = false;
         _error = e.toString();
@@ -66,19 +63,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  int get _monthIncome => _dashboard?.monthIncome ?? 0;
-
-  int get _monthExpense => _dashboard?.monthExpense ?? 0;
-
-  Future<void> _loadDirtyCount() async {
-    if (!sl.appState.isLoggedIn) return;
-    try {
-      final count = await sl.syncService.getDirtyCount(sl.appState.currentAccountId);
-      setState(() => _dirtyCount = count);
-    } catch (_) {}
-  }
-
-  Future<void> _addTransaction() async {
+  Future<void> _addTransaction(List<Wallet> wallets) async {
     if (wallets.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -89,18 +74,21 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
     final result = await context.pushScreen(const TransactionFormScreen());
-    if (result == true) loadData();
+    if (result == true) _loadDashboard();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AppScaffold(
-      title: S.of(context, 'homeTitle'),
-      showBackButton: false,
-      actions: [
-        if (sl.appState.isLoggedIn)
-          Stack(
-            children: [
+    return StreamBuilder<List<Wallet>>(
+      stream: sl.walletService.watchWallets(),
+      builder: (context, walletSnap) {
+        final wallets = walletSnap.data ?? [];
+
+        return AppScaffold(
+          title: S.of(context, 'homeTitle'),
+          showBackButton: false,
+          actions: [
+            if (sl.appState.isLoggedIn && !sl.authService.isAnonymous)
               IconButton(
                 icon: const Icon(Icons.swap_horiz),
                 onPressed: () {
@@ -110,67 +98,57 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-              if (_dirtyCount > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.expense,
-                      shape: BoxShape.circle,
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () async {
+                await context.pushScreen(const SettingScreen());
+                _loadDashboard();
+              },
+            ),
+          ],
+          body: Column(
+            children: [
+              const NetworkStatusBanner(),
+              Expanded(
+                child: AsyncContent(
+                  loading: _loading && !walletSnap.hasData,
+                  error: _error,
+                  child: RefreshIndicator(
+                    onRefresh: _loadDashboard,
+                    child: ListView(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      children: [
+                        _buildBalanceCard(),
+                        const SizedBox(height: AppSpacing.lg),
+                        _buildWalletRow(wallets),
+                        const SizedBox(height: AppSpacing.lg),
+                        if (_dashboard != null)
+                          LedgerCard(child: ChartSection(dashboard: _dashboard!)),
+                        const SizedBox(height: AppSpacing.lg),
+                        LedgerCard(
+                          child: TransactionSection(
+                            transactions: _dashboard?.recent ?? [],
+                            categoryMap: _dashboard?.categoryMap ?? {},
+                            onDataChanged: _loadDashboard,
+                          ),
+                        ),
+                        const SizedBox(height: 80),
+                      ],
                     ),
                   ),
                 ),
-            ],
-          ),
-        IconButton(
-          icon: const Icon(Icons.settings),
-          onPressed: () async {
-            await context.pushScreen(const SettingScreen());
-            loadData();
-          },
-        ),
-      ],
-      body: AsyncContent(
-        loading: _loading,
-        error: _error,
-        child: RefreshIndicator(
-          onRefresh: loadData,
-          child: ListView(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            children: [
-              _buildBalanceCard(),
-              const SizedBox(height: AppSpacing.lg),
-              _buildWalletRow(),
-              const SizedBox(height: AppSpacing.lg),
-              if (_dashboard != null)
-                LedgerCard(child: ChartSection(dashboard: _dashboard!)),
-              const SizedBox(height: AppSpacing.lg),
-              LedgerCard(
-                child: TransactionSection(
-                  transactions: _dashboard?.recent ?? [],
-                  categoryMap: _dashboard?.categoryMap ?? {},
-                  onDataChanged: loadData,
-                ),
               ),
-              const SizedBox(height: 80), // padding cho FAB
             ],
           ),
-        ),
-      ),
-      fab: FloatingActionButton(
-        onPressed: _addTransaction,
-        backgroundColor: AppColors.inkBlue,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+          fab: FloatingActionButton(
+            onPressed: () => _addTransaction(wallets),
+            backgroundColor: AppColors.inkBlue,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+        );
+      },
     );
   }
-
-  // ========================
-  // BALANCE CARD
-  // ========================
 
   Widget _buildBalanceCard() {
     return LedgerCard(
@@ -209,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.arrow_downward,
                   color: AppColors.income,
                   label: S.of(context, 'monthIncome'),
-                  amount: _monthIncome,
+                  amount: _dashboard?.monthIncome ?? 0,
                   type: TransactionType.income,
                 ),
               ),
@@ -219,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   icon: Icons.arrow_upward,
                   color: AppColors.expense,
                   label: S.of(context, 'monthExpense'),
-                  amount: _monthExpense,
+                  amount: _dashboard?.monthExpense ?? 0,
                   type: TransactionType.expense,
                 ),
               ),
@@ -256,11 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // ========================
-  // WALLET ROW
-  // ========================
-
-  Widget _buildWalletRow() {
+  Widget _buildWalletRow(List<Wallet> wallets) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -271,7 +245,7 @@ class _HomeScreenState extends State<HomeScreen> {
             InkWell(
               onTap: () async {
                 await context.pushScreen(const WalletListScreen());
-                loadData();
+                _loadDashboard();
               },
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -292,8 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
               : ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: wallets.length + 1,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(width: AppSpacing.sm),
+                  separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
                   itemBuilder: (context, index) {
                     if (index == wallets.length) return _buildAddWalletCard();
                     return _buildWalletCard(wallets[index]);
@@ -308,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: () async {
         await context.pushScreen(WalletDetailScreen(wallet: wallet));
-        loadData();
+        _loadDashboard();
       },
       child: Container(
         width: 150,
@@ -324,18 +297,10 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Row(
               children: [
-                const Icon(
-                  Icons.account_balance_wallet,
-                  size: 16,
-                  color: AppColors.inkBlue,
-                ),
+                const Icon(Icons.account_balance_wallet, size: 16, color: AppColors.inkBlue),
                 const SizedBox(width: 6),
                 Expanded(
-                  child: Text(
-                    wallet.name,
-                    style: AppTextStyles.bodyBold,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(wallet.name, style: AppTextStyles.bodyBold, overflow: TextOverflow.ellipsis),
                 ),
               ],
             ),
@@ -353,7 +318,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return GestureDetector(
       onTap: () async {
         final result = await context.pushScreen(const WalletFormScreen());
-        if (result == true) loadData();
+        if (result == true) _loadDashboard();
       },
       child: Container(
         width: 90,
