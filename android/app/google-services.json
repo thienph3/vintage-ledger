@@ -12,7 +12,12 @@
           "package_name": "com.thienph3.vintageledger"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1068857729867-2gkpgcgqao57gjbucu8b4bitbv8b3s9p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyADGQc3HZk1ABM6zgDvqGU2_HtrEkvmfIg"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1068857729867-2gkpgcgqao57gjbucu8b4bitbv8b3s9p.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
