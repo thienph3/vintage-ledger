@@ -118,6 +118,22 @@ const Map<String, String> vi = {
   'quickAddHint': 'Ví dụ: ăn sáng 50k, cf 30k...',
   'quickAddSuccess': 'Đã thêm thu chi',
 
+  // Budget & Insight
+  'budget': 'Ngân sách',
+  'budgets': 'NGÂN SÁCH',
+  'setBudget': 'Đặt ngân sách',
+  'editBudget': 'SỬa ngân sách',
+  'budgetLimit': 'Hạn mức',
+  'budgetExceeded': 'Đã vượt ngân sách',
+  'budgetNearLimit': 'Sắp hết ngân sách',
+  'remaining': 'Còn lại',
+  'spent': 'Đã chi',
+  'noBudgets': 'Chưa đặt ngân sách',
+  'monthlyInsight': 'TỔNG QUAN THÁNG',
+  'vsLastMonth': 'so với tháng trước',
+  'topSpending': 'Chi nhiều nhất',
+  'budgetWarning': 'Cảnh báo ngân sách',
+
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',
   'personalAccount': 'Ví cá nhân',

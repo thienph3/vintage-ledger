@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
+import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/error_snackbar.dart';
@@ -19,6 +20,7 @@ import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/screens/category_form_screen.dart';
+import 'package:vintage_ledger/features/budget/models/budget_status.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
@@ -49,6 +51,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   String? _categoryId;
   TransactionType _type = TransactionType.expense;
   DateTime _date = DateTime.now();
+  BudgetStatus? _budgetStatus;
 
   @override
   void initState() {
@@ -100,6 +103,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       }
       _categoryId ??= _categories.isNotEmpty ? _categories.first.id : null;
     });
+    _checkBudget();
   }
 
   Future<void> _loadWallets() async {
@@ -113,8 +117,18 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   void _onTypeChanged(String type) {
     final parsed = TransactionType.fromString(type);
     if (_type == parsed) return;
-    setState(() => _type = parsed);
+    setState(() { _type = parsed; _budgetStatus = null; });
     _loadCategories();
+  }
+
+  Future<void> _checkBudget() async {
+    if (_categoryId == null || _type != TransactionType.expense) {
+      setState(() => _budgetStatus = null);
+      return;
+    }
+    final status = await sl.budgetService.checkBudget(_categoryId!);
+    if (!mounted) return;
+    setState(() => _budgetStatus = status);
   }
 
   Future<void> _onAddCategory() async {
@@ -244,9 +258,36 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             CategoryDropdown(
               value: _categoryId,
               categories: _categories,
-              onChanged: (v) => setState(() => _categoryId = v),
+              onChanged: (v) {
+                setState(() => _categoryId = v);
+                _checkBudget();
+              },
               onAdd: _onAddCategory,
             ),
+            if (_budgetStatus != null && (_budgetStatus!.isNearLimit || _budgetStatus!.isExceeded))
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                child: Row(
+                  children: [
+                    Icon(
+                      _budgetStatus!.isExceeded ? Icons.warning_amber : Icons.info_outline,
+                      size: 16,
+                      color: _budgetStatus!.isExceeded ? AppColors.expense : const Color(0xFFE6A817),
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: Text(
+                        _budgetStatus!.isExceeded
+                            ? S.of(context, 'budgetExceeded')
+                            : '${S.of(context, 'budgetNearLimit')}: ${S.of(context, 'remaining')} ${_budgetStatus!.remaining}',
+                        style: AppTextStyles.caption.copyWith(
+                          color: _budgetStatus!.isExceeded ? AppColors.expense : const Color(0xFFE6A817),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const SizedBox(height: AppSpacing.md),
             TextFormField(
               readOnly: true, controller: _dateCtrl,

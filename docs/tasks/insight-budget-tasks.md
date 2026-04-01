@@ -3,21 +3,21 @@
 > Giúp user hiểu và kiểm soát tiền. Nền tảng cho Premium monetization.
 
 ## Phụ thuộc
-- Không (dùng data layer hiện có hoặc V2)
+- Data Layer V2 ✅
 
 ## Tasks
 
-| # | Task | Mô tả | Ưu tiên |
-|---|------|--------|---------|
-| 1 | Budget model | `budgets` table/collection: id, category_id, amount_limit, period (monthly), account_id, created_at | 🔴 |
-| 2 | BudgetRepository + BudgetService | CRUD budget per category per month | 🔴 |
-| 3 | BudgetFormScreen | Chọn category → nhập limit amount → save. Hiển thị danh sách budgets đã set | 🔴 |
-| 4 | Budget tracking | Tính % used = tổng chi category trong tháng / budget limit | 🔴 |
-| 5 | Budget progress UI | Progress bar cho mỗi category trong BudgetListScreen: xanh < 80%, vàng 80-100%, đỏ > 100% | 🔴 |
-| 6 | Monthly insight screen | Tổng thu, tổng chi, balance, top 3 spending categories, so sánh với tháng trước | 🟡 |
-| 7 | Budget widget trên Home | Card nhỏ hiển thị "Còn lại X đ cho Ăn uống" hoặc "Đã vượt budget Mua sắm" | 🟡 |
-| 8 | Budget alert | Khi tạo transaction mà category gần/vượt budget → hiển thị warning trong form | 🟡 |
-| 9 | Spending trend | So sánh chi tiêu tháng này vs tháng trước theo category (bar chart) | 🟡 |
-| 10 | Budget sync | Sync budgets qua Firestore (nếu dùng Data Layer V2 thì tự có) | 🟢 |
-| 11 | Premium gate | Wrap insight/budget screens sau paywall check (chuẩn bị cho monetization) | 🟢 |
-| 12 | L10n keys | Thêm keys: budget, setBudget, budgetExceeded, remaining, monthlyInsight, vs lastMonth... | 🟢 |
+| # | Task | Mô tả | Status |
+|---|------|--------|--------|
+| 1 | Budget model | `Budget` (id, categoryId, amountLimit, period) + `BudgetStatus` (budget + spent + percentage + isExceeded/isNearLimit) | ✅ |
+| 2 | BudgetRepository + BudgetService | Firestore CRUD, upsert per category, `getBudgetStatuses()` tính % used, `checkBudget()` cho single category | ✅ |
+| 3 | BudgetFormScreen + BudgetListScreen | Form: chọn category expense + nhập limit. List: progress bars + swipe delete + add button | ✅ |
+| 4 | Budget tracking | `getBudgetStatuses()` tính spent = tổng expense transactions tháng này per category / budget limit | ✅ |
+| 5 | Budget progress UI | `BudgetProgressTile`: progress bar xanh < 80%, vàng 80-100%, đỏ > 100% + spent/remaining text | ✅ |
+| 6 | Monthly insight screen | `MonthlyInsightScreen`: tổng thu/chi/net, top 3 spending categories, vs last month trend | ✅ |
+| 7 | Budget widget trên Home | `BudgetSummaryCard`: hiển thị budgets gần/vượt limit + link đến BudgetList + Insight | ✅ |
+| 8 | Budget alert | Warning trong TransactionFormScreen khi chọn category gần/vượt budget (icon + text) | ✅ |
+| 9 | Spending trend | Bar chart so sánh chi tiêu tháng này vs tháng trước per category trong MonthlyInsightScreen | ✅ |
+| 10 | Budget sync | Firestore-first via `FirestoreRepository` base — auto sync | ✅ |
+| 11 | Premium gate | `PremiumGate.isUnlocked` placeholder — sẵn sàng wrap screens khi có monetization | ✅ |
+| 12 | L10n keys | 14 keys: budget, budgets, setBudget, editBudget, budgetLimit, budgetExceeded, budgetNearLimit, remaining, spent, noBudgets, monthlyInsight, vsLastMonth, topSpending, budgetWarning | ✅ |

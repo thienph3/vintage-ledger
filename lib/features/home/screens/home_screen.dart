@@ -24,6 +24,7 @@ import 'package:vintage_ledger/features/wallet/screens/wallet_detail_screen.dart
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
+import 'package:vintage_ledger/features/budget/widgets/budget_summary_card.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
@@ -125,6 +126,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: AppSpacing.lg),
                         if (_dashboard != null)
                           LedgerCard(child: ChartSection(dashboard: _dashboard!)),
+                        const SizedBox(height: AppSpacing.lg),
+                        const BudgetSummaryCard(),
                         const SizedBox(height: AppSpacing.lg),
                         LedgerCard(
                           child: TransactionSection(

@@ -119,6 +119,22 @@ const Map<String, String> en = {
   'quickAddHint': 'e.g. lunch 50k, coffee 30k...',
   'quickAddSuccess': 'Transaction added',
 
+  // Budget & Insight
+  'budget': 'Budget',
+  'budgets': 'BUDGETS',
+  'setBudget': 'Set budget',
+  'editBudget': 'Edit budget',
+  'budgetLimit': 'Limit',
+  'budgetExceeded': 'Budget exceeded',
+  'budgetNearLimit': 'Near budget limit',
+  'remaining': 'Remaining',
+  'spent': 'Spent',
+  'noBudgets': 'No budgets set',
+  'monthlyInsight': 'MONTHLY INSIGHT',
+  'vsLastMonth': 'vs last month',
+  'topSpending': 'Top spending',
+  'budgetWarning': 'Budget warning',
+
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',
   'personalAccount': 'Personal',
