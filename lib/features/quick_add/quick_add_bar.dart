@@ -139,9 +139,11 @@ class _QuickAddBarState extends State<QuickAddBar> {
       final locale = Localizations.localeOf(context).languageCode;
       final amountStr = AmountFormatter.formatCompactCurrency(savedAmount, locale);
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      final messenger = ScaffoldMessenger.of(context);
+      messenger.clearSnackBars();
+      messenger.showSnackBar(SnackBar(
         content: Text('✓ $amountStr $catName'),
-        duration: const Duration(seconds: 5),
+        duration: const Duration(seconds: 3),
         action: SnackBarAction(
           label: S.of(context, 'undo'),
           onPressed: () async {
@@ -177,7 +179,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
 
     context.pushScreen(TransactionFormScreen(
       walletId: widget.walletId,
-      existing: prefill,
+      prefill: prefill,
     )).then((result) {
       if (result == true) widget.onAdded();
     });

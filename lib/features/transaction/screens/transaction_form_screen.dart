@@ -28,8 +28,9 @@ import 'package:vintage_ledger/core/service_locator.dart';
 class TransactionFormScreen extends StatefulWidget {
   final String? walletId;
   final TransactionWithItems? existing;
+  final TransactionWithItems? prefill;
 
-  const TransactionFormScreen({super.key, this.walletId, this.existing});
+  const TransactionFormScreen({super.key, this.walletId, this.existing, this.prefill});
 
   bool get isEdit => existing != null;
 
@@ -58,15 +59,16 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     super.initState();
     _walletId = widget.walletId;
 
-    if (widget.isEdit) {
-      final t = widget.existing!.transaction;
-      _amountCtrl.text = t.amount.toString();
+    final source = widget.existing ?? widget.prefill;
+    if (source != null) {
+      final t = source.transaction;
+      _amountCtrl.text = t.amount > 0 ? t.amount.toString() : '0';
       _type = t.type;
-      _categoryId = t.categoryId;
-      _walletId = t.walletId;
+      if (t.categoryId.isNotEmpty) _categoryId = t.categoryId;
+      if (t.walletId.isNotEmpty) _walletId = t.walletId;
       _date = DateTime.fromMillisecondsSinceEpoch(t.date);
       _noteCtrl.text = t.note ?? '';
-      _items = widget.existing!.items.map((i) => TransactionItemEntry(
+      _items = source.items.map((i) => TransactionItemEntry(
         item: i,
         amountController: TextEditingController(text: i.amount.toString()),
         noteController: TextEditingController(text: i.note ?? ''),
