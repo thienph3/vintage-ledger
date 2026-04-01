@@ -135,6 +135,21 @@ const Map<String, String> vi = {
   'budgetWarning': 'Cảnh báo ngân sách',
   'firstRunHint': 'Tạo ví đầu tiên để bắt đầu ghi chép \u2191',
 
+  // Errors
+  'noConnection': 'Mất kết nối mạng',
+  'noPermission': 'Không có quyền truy cập',
+  'systemOverload': 'Hệ thống quá tải, vui lòng thử lại',
+  'genericError': 'Có lỗi xảy ra',
+  'wrongPassword': 'Sai mật khẩu',
+  'userNotFound': 'Tài khoản không tồn tại',
+  'emailInUse': 'Email đã được sử dụng',
+  'weakPassword': 'Mật khẩu quá yếu (tối thiểu 6 ký tự)',
+  'invalidEmail': 'Email không hợp lệ',
+  'tooManyRequests': 'Quá nhiều yêu cầu, vui lòng thử lại sau',
+  'notFound': 'Không tìm thấy dữ liệu',
+  'alreadyExists': 'Dữ liệu đã tồn tại',
+  'retry': 'Thử lại',
+
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',
   'personalAccount': 'Ví cá nhân',

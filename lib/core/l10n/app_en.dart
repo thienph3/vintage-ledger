@@ -136,6 +136,21 @@ const Map<String, String> en = {
   'budgetWarning': 'Budget warning',
   'firstRunHint': 'Create your first wallet to start tracking \u2191',
 
+  // Errors
+  'noConnection': 'No internet connection',
+  'noPermission': 'Permission denied',
+  'systemOverload': 'System overloaded, please try again',
+  'genericError': 'Something went wrong',
+  'wrongPassword': 'Incorrect password',
+  'userNotFound': 'Account not found',
+  'emailInUse': 'Email already in use',
+  'weakPassword': 'Password too weak (min 6 characters)',
+  'invalidEmail': 'Invalid email address',
+  'tooManyRequests': 'Too many requests, please try again later',
+  'notFound': 'Data not found',
+  'alreadyExists': 'Data already exists',
+  'retry': 'Retry',
+
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',
   'personalAccount': 'Personal',

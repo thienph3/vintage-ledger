@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:vintage_ledger/core/error_mapper.dart';
 
 class AuthService {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -8,33 +9,46 @@ class AuthService {
   bool get isAnonymous => currentUser?.isAnonymous ?? false;
 
   Future<User?> signInAnonymously() async {
-    final result = await _firebaseAuth.signInAnonymously();
-    return result.user;
+    try {
+      final result = await _firebaseAuth.signInAnonymously();
+      return result.user;
+    } on FirebaseAuthException catch (e) {
+      throw ErrorMapper.map(e);
+    }
   }
 
   Future<User?> loginWithEmail(String email, String password) async {
-    final result = await _firebaseAuth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    return result.user;
+    try {
+      final result = await _firebaseAuth.signInWithEmailAndPassword(
+        email: email, password: password,
+      );
+      return result.user;
+    } on FirebaseAuthException catch (e) {
+      throw ErrorMapper.map(e);
+    }
   }
 
   Future<User?> registerWithEmail(String email, String password, String displayName) async {
-    final result = await _firebaseAuth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
-    await result.user?.updateDisplayName(displayName);
-    return result.user;
+    try {
+      final result = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email, password: password,
+      );
+      await result.user?.updateDisplayName(displayName);
+      return result.user;
+    } on FirebaseAuthException catch (e) {
+      throw ErrorMapper.map(e);
+    }
   }
 
-  /// Link anonymous account to email/password (upgrade)
   Future<User?> linkWithEmail(String email, String password, String displayName) async {
-    final credential = EmailAuthProvider.credential(email: email, password: password);
-    final result = await _firebaseAuth.currentUser?.linkWithCredential(credential);
-    await result?.user?.updateDisplayName(displayName);
-    return result?.user;
+    try {
+      final credential = EmailAuthProvider.credential(email: email, password: password);
+      final result = await _firebaseAuth.currentUser?.linkWithCredential(credential);
+      await result?.user?.updateDisplayName(displayName);
+      return result?.user;
+    } on FirebaseAuthException catch (e) {
+      throw ErrorMapper.map(e);
+    }
   }
 
   Future<void> logout() async {

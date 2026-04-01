@@ -7,12 +7,12 @@
 
 ## Tasks
 
-| # | Task | Mô tả | Ưu tiên |
-|---|------|--------|---------|
-| 1 | AppException class | Custom exception với `code` và `userMessage`. Các service throw AppException thay vì raw Exception | 🔴 |
-| 2 | FirestoreErrorMapper | Map `FirebaseException.code` → user-friendly message: `unavailable` → "Mất kết nối", `permission-denied` → "Không có quyền", `resource-exhausted` → "Hệ thống quá tải", default → "Có lỗi xảy ra" | 🔴 |
-| 3 | Refactor showErrorSnackBar | Nhận `Object error`, nếu là `AppException` hiển thị `userMessage`, nếu là `FirebaseException` chạy qua mapper, còn lại hiển thị generic message | 🔴 |
-| 4 | Wrap service methods | Tất cả service methods catch `FirebaseException` → throw `AppException` với message đã map | 🟡 |
-| 5 | Auth error mapping | Map Firebase Auth errors: `wrong-password` → "Sai mật khẩu", `user-not-found` → "Tài khoản không tồn tại", `email-already-in-use` → "Email đã được sử dụng", `weak-password` → "Mật khẩu quá yếu" | 🟡 |
-| 6 | L10n error keys | Thêm keys: noConnection, noPermission, systemOverload, genericError, wrongPassword, userNotFound, emailInUse, weakPassword | 🟡 |
-| 7 | Retry action trong snackbar | SnackBar có nút "Thử lại" với callback, thay vì chỉ "Bỏ qua" | 🟢 |
+| # | Task | Mô tả | Status |
+|---|------|--------|--------|
+| 1 | AppException class | `AppException(code, message)` — message là l10n key | ✅ |
+| 2 | FirestoreErrorMapper | Map `FirebaseException.code` → l10n key: unavailable → noConnection, permission-denied → noPermission, resource-exhausted → systemOverload | ✅ |
+| 3 | Refactor showErrorSnackBar | `ErrorMapper.map(error)` → `S.of(context, mapped.message)` → SnackBar với l10n message | ✅ |
+| 4 | Wrap service methods | AuthService catch `FirebaseAuthException` → throw `AppException`. LoginScreen + RegisterScreen hiển thị mapped message | ✅ |
+| 5 | Auth error mapping | wrong-password → wrongPassword, user-not-found → userNotFound, email-already-in-use → emailInUse, weak-password → weakPassword, invalid-email → invalidEmail, too-many-requests → tooManyRequests, network-request-failed → noConnection | ✅ |
+| 6 | L10n error keys | 13 keys: noConnection, noPermission, systemOverload, genericError, wrongPassword, userNotFound, emailInUse, weakPassword, invalidEmail, tooManyRequests, notFound, alreadyExists, retry | ✅ |
+| 7 | Retry action trong snackbar | `showErrorSnackBar(context, error, onRetry: callback)` — nút "Thử lại" nếu có callback, "Bỏ qua" nếu không | ✅ |
