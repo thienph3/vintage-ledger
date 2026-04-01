@@ -128,15 +128,6 @@ class TransactionSection extends StatelessWidget {
               ),
             );
           }),
-        const SizedBox(height: AppSpacing.sm),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: () => _addTransaction(context),
-            icon: const Icon(Icons.add, size: 16),
-            label: Text(S.of(context, 'addTransaction')),
-          ),
-        ),
       ],
     );
   }

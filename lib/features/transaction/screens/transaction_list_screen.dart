@@ -19,6 +19,7 @@ import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
+import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 
 enum GroupMode { day, week, month }
 
@@ -188,12 +189,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                         ? Center(child: Text(S.of(context, 'noTransactions')))
                         : RefreshIndicator(onRefresh: _refresh, child: _buildList()),
           ),
+          QuickAddBar(
+            walletId: widget.walletId,
+            onAdded: _refresh,
+          ),
         ],
-      ),
-      fab: FloatingActionButton(
-        onPressed: () => _openForm(),
-        backgroundColor: AppColors.inkBlue,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
