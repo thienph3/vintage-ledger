@@ -150,6 +150,8 @@ const Map<String, String> en = {
   'notFound': 'Data not found',
   'alreadyExists': 'Data already exists',
   'retry': 'Retry',
+  'clearLearnedKeywords': 'Clear learned keywords',
+  'keywords': 'keywords',
 
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',

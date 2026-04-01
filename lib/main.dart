@@ -9,6 +9,7 @@ import 'package:vintage_ledger/features/home/screens/home_screen.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/core/theme/app_theme.dart';
+import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,14 +38,28 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Locale _locale = const Locale('vi', 'VN');
   bool _ready = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _init();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
+      QuickAddParser.flush();
+    }
   }
 
   Future<void> _init() async {
@@ -57,6 +72,7 @@ class _MyAppState extends State<MyApp> {
         // Restore last account
         final lastAccountId = await sl.settingService.getLastAccountId();
         if (lastAccountId != null) sl.appState.currentAccountId = lastAccountId;
+        await QuickAddParser.init();
         setState(() { _locale = Locale(locale); _ready = true; });
         return;
       }
@@ -82,6 +98,7 @@ class _MyAppState extends State<MyApp> {
     }
 
     setState(() => _ready = true);
+    await QuickAddParser.init();
   }
 
   Future<void> _ensureDefaultWallet() async {

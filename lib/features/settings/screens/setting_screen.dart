@@ -7,6 +7,7 @@ import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/currency.dart';
+import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
 import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -123,6 +124,21 @@ class _SettingScreenState extends State<SettingScreen> {
           const SizedBox(height: AppSpacing.sm),
           _buildLanguageTile('vi', S.of(context, 'vietnamese'), '🇻🇳'),
           _buildLanguageTile('en', S.of(context, 'english'), '🇺🇸'),
+
+          if (QuickAddParser.learnedCount > 0) ...[
+            const Divider(),
+            const SizedBox(height: AppSpacing.md),
+            ListTile(
+              leading: const Icon(Icons.delete_sweep_outlined, color: AppColors.inkRed),
+              title: Text(S.of(context, 'clearLearnedKeywords')),
+              subtitle: Text('${QuickAddParser.learnedCount} ${S.of(context, 'keywords')}'),
+              onTap: () async {
+                await QuickAddParser.clearLearned();
+                setState(() {});
+              },
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ],
         ],
       ),
     );

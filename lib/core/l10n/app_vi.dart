@@ -149,6 +149,8 @@ const Map<String, String> vi = {
   'notFound': 'Không tìm thấy dữ liệu',
   'alreadyExists': 'Dữ liệu đã tồn tại',
   'retry': 'Thử lại',
+  'clearLearnedKeywords': 'Xóa từ khóa đã học',
+  'keywords': 'từ khóa',
 
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',

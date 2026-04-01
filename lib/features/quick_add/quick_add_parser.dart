@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 
 class QuickAddResult {
@@ -20,24 +22,92 @@ class QuickAddResult {
 }
 
 class QuickAddParser {
-  // ── Amount regex: matches "50k", "10tr", "1.5tr", "2 tỷ", "50000", "1.5m" ──
   static final _amountRegex = RegExp(
     r'(\d+(?:[.,]\d+)?)\s*(tỷ|ty|tr|triệu|trieu|k|nghìn|nghin|m|b)?',
     caseSensitive: false,
   );
 
-  /// User-learned mappings: keyword → categoryId
+  static const _maxLearnedEntries = 100;
   static final Map<String, String> _learnedMap = {};
+  static Timer? _persistTimer;
+  static bool _dirty = false;
 
-  /// Record a successful mapping for future use
-  static void learn(String keyword, String categoryId) {
-    if (keyword.trim().isEmpty) return;
-    _learnedMap[keyword.trim().toLowerCase()] = categoryId;
+  // ── Lifecycle (#2, #3) ──
+
+  /// Load learned keywords from Firestore on app startup
+  static Future<void> init() async {
+    try {
+      final raw = await sl.settingService.getSetting('quick_add_keywords');
+      if (raw == null || raw.isEmpty) return;
+      // Stored as "key1:val1,key2:val2"
+      for (final pair in raw.split(',')) {
+        final parts = pair.split(':');
+        if (parts.length == 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
+          _learnedMap[parts[0]] = parts[1];
+        }
+      }
+    } catch (_) {}
   }
 
-  // ── Keyword → category name mapping (vi + en) ──
+  /// Record a successful mapping (#1, #6 LRU)
+  static void learn(String keyword, String categoryId) {
+    if (keyword.trim().isEmpty) return;
+    final key = keyword.trim().toLowerCase();
+
+    // LRU: remove oldest if at capacity
+    if (!_learnedMap.containsKey(key) && _learnedMap.length >= _maxLearnedEntries) {
+      _learnedMap.remove(_learnedMap.keys.first);
+    }
+
+    // Move to end (most recent) by removing and re-adding
+    _learnedMap.remove(key);
+    _learnedMap[key] = categoryId;
+
+    _schedulePersist();
+  }
+
+  /// Clear all learned keywords (#5)
+  static Future<void> clearLearned() async {
+    _learnedMap.clear();
+    _dirty = false;
+    _persistTimer?.cancel();
+    try {
+      await sl.settingService.setSetting('quick_add_keywords', '');
+    } catch (_) {}
+  }
+
+  static int get learnedCount => _learnedMap.length;
+
+  // ── Debounced persist (#4) ──
+
+  static void _schedulePersist() {
+    _dirty = true;
+    _persistTimer?.cancel();
+    _persistTimer = Timer(const Duration(seconds: 5), _persist);
+  }
+
+  /// Call on app pause (WidgetsBindingObserver) to flush pending writes
+  static Future<void> flush() async {
+    if (_dirty) await _persist();
+  }
+
+  static Future<void> _persist() async {
+    if (_learnedMap.isEmpty) {
+      try { await sl.settingService.setSetting('quick_add_keywords', ''); } catch (_) {}
+      _dirty = false;
+      return;
+    }
+    // Serialize as "key1:val1,key2:val2"
+    final encoded = _learnedMap.entries.map((e) => '${e.key}:${e.value}').join(',');
+    try {
+      await sl.settingService.setSetting('quick_add_keywords', encoded);
+    } catch (_) {}
+    _dirty = false;
+  }
+
+  // ── Keyword → category mapping (vi + en) ──
+
   static const _keywordMap = <String, _CategoryMatch>{
-    // Ăn uống
     'ăn': _CategoryMatch('Ăn uống', TransactionType.expense),
     'cơm': _CategoryMatch('Ăn uống', TransactionType.expense),
     'phở': _CategoryMatch('Ăn uống', TransactionType.expense),
@@ -47,38 +117,34 @@ class QuickAddParser {
     'lunch': _CategoryMatch('Ăn uống', TransactionType.expense),
     'dinner': _CategoryMatch('Ăn uống', TransactionType.expense),
     'breakfast': _CategoryMatch('Ăn uống', TransactionType.expense),
-    // Cà phê
     'cf': _CategoryMatch('Cà phê', TransactionType.expense),
     'cafe': _CategoryMatch('Cà phê', TransactionType.expense),
     'coffee': _CategoryMatch('Cà phê', TransactionType.expense),
     'trà': _CategoryMatch('Cà phê', TransactionType.expense),
     'tea': _CategoryMatch('Cà phê', TransactionType.expense),
-    // Di chuyển
     'grab': _CategoryMatch('Di chuyển', TransactionType.expense),
     'taxi': _CategoryMatch('Di chuyển', TransactionType.expense),
     'xăng': _CategoryMatch('Di chuyển', TransactionType.expense),
     'gas': _CategoryMatch('Di chuyển', TransactionType.expense),
     'gửi xe': _CategoryMatch('Di chuyển', TransactionType.expense),
     'parking': _CategoryMatch('Di chuyển', TransactionType.expense),
-    // Mua sắm
     'mua': _CategoryMatch('Mua sắm', TransactionType.expense),
     'shop': _CategoryMatch('Mua sắm', TransactionType.expense),
     'shopping': _CategoryMatch('Mua sắm', TransactionType.expense),
-    // Nhà ở
     'tiền nhà': _CategoryMatch('Nhà ở', TransactionType.expense),
     'rent': _CategoryMatch('Nhà ở', TransactionType.expense),
     'điện': _CategoryMatch('Hóa đơn', TransactionType.expense),
     'nước': _CategoryMatch('Hóa đơn', TransactionType.expense),
     'internet': _CategoryMatch('Hóa đơn', TransactionType.expense),
     'bill': _CategoryMatch('Hóa đơn', TransactionType.expense),
-    // Income
     'lương': _CategoryMatch('Lương', TransactionType.income),
     'salary': _CategoryMatch('Lương', TransactionType.income),
     'thưởng': _CategoryMatch('Thưởng', TransactionType.income),
     'bonus': _CategoryMatch('Thưởng', TransactionType.income),
   };
 
-  /// Parse input string → QuickAddResult
+  // ── Parse ──
+
   static QuickAddResult parse(String input, List<Category> categories) {
     final trimmed = input.trim().toLowerCase();
     if (trimmed.isEmpty) return QuickAddResult(amount: 0);
@@ -113,14 +179,13 @@ class QuickAddParser {
   }
 
   static String _extractKeyword(String input) {
-    // Remove amount part, keep the rest as keyword
     return input.replaceAll(_amountRegex, '').trim();
   }
 
   static _MatchResult? _matchCategory(String keyword, List<Category> categories) {
     if (keyword.isEmpty) return null;
 
-    // 1. Check learned mappings first
+    // 1. Learned mappings (highest priority)
     final learnedId = _learnedMap[keyword];
     if (learnedId != null) {
       final cat = categories.where((c) => c.id == learnedId).firstOrNull;
@@ -129,7 +194,7 @@ class QuickAddParser {
       }
     }
 
-    // 2. Exact keyword match from built-in map
+    // 2. Built-in keyword map
     for (final entry in _keywordMap.entries) {
       if (keyword.contains(entry.key)) {
         final cat = categories.where((c) =>
@@ -140,7 +205,7 @@ class QuickAddParser {
       }
     }
 
-    // Fuzzy: check if keyword is substring of any category name
+    // 3. Fuzzy match
     for (final cat in categories) {
       if (cat.name.toLowerCase().contains(keyword) || keyword.contains(cat.name.toLowerCase())) {
         return _MatchResult(categoryId: cat.id!, type: cat.type ?? TransactionType.expense);
