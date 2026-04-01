@@ -9,6 +9,7 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/error_snackbar.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
+import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
@@ -17,9 +18,17 @@ import 'package:vintage_ledger/utils/navigator_x.dart';
 
 class QuickAddBar extends StatefulWidget {
   final String? walletId;
+  final List<Wallet> wallets;
+  final ValueChanged<String>? onWalletChanged;
   final VoidCallback onAdded;
 
-  const QuickAddBar({super.key, this.walletId, required this.onAdded});
+  const QuickAddBar({
+    super.key,
+    this.walletId,
+    this.wallets = const [],
+    this.onWalletChanged,
+    required this.onAdded,
+  });
 
   @override
   State<QuickAddBar> createState() => _QuickAddBarState();
@@ -55,16 +64,50 @@ class _QuickAddBarState extends State<QuickAddBar> {
     setState(() => _result = QuickAddParser.parse(_ctrl.text, _categories));
   }
 
+  String? get _currentWalletName {
+    if (widget.walletId == null) return null;
+    return widget.wallets.where((w) => w.id == widget.walletId).firstOrNull?.name;
+  }
+
+  void _showWalletPicker() {
+    if (widget.wallets.length <= 1) return;
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Text(S.of(ctx, 'selectWallet'), style: AppTextStyles.titleSmall),
+            ),
+            ...widget.wallets.map((w) => ListTile(
+              leading: const Icon(Icons.account_balance_wallet, size: 20, color: AppColors.inkBlue),
+              title: Text(w.name, style: AppTextStyles.body),
+              trailing: w.id == widget.walletId
+                  ? const Icon(Icons.check_circle, color: AppColors.inkBlue, size: 20)
+                  : null,
+              onTap: () {
+                Navigator.pop(ctx);
+                widget.onWalletChanged?.call(w.id!);
+              },
+            )),
+            const SizedBox(height: AppSpacing.md),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _submit() async {
     if (!_result.hasAmount) return;
 
-    // Fallback: no category or fuzzy-only match → open full form
     if (!_result.hasCategory || QuickAddParser.lastMatchWasFuzzy) {
       _openFullForm();
       return;
     }
 
-    final walletId = widget.walletId ?? (await sl.walletService.getWallets()).firstOrNull?.id;
+    final walletId = widget.walletId ?? widget.wallets.firstOrNull?.id;
     if (walletId == null) return;
 
     setState(() => _saving = true);
@@ -82,7 +125,9 @@ class _QuickAddBarState extends State<QuickAddBar> {
         QuickAddParser.learn(_result.keyword!, _result.matchedCategoryId!);
       }
 
-      // Capture values BEFORE clear (clear triggers _onChanged → resets _result)
+      // Persist as last used wallet
+      sl.settingService.setLastWalletId(walletId);
+
       final savedAmount = _result.amount;
       final catName = _categories.where((c) => c.id == _result.matchedCategoryId).firstOrNull?.name ?? '';
 
@@ -154,11 +199,16 @@ class _QuickAddBarState extends State<QuickAddBar> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Preview
+            // Preview + wallet selector
             if (hasInput && _result.hasAmount)
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                 child: _buildPreview(locale),
+              )
+            else if (widget.wallets.length > 1)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                child: _buildWalletChip(),
               ),
             // Input row
             Row(
@@ -210,6 +260,24 @@ class _QuickAddBarState extends State<QuickAddBar> {
     );
   }
 
+  Widget _buildWalletChip() {
+    final name = _currentWalletName ?? '';
+    return GestureDetector(
+      onTap: _showWalletPicker,
+      child: Row(
+        children: [
+          const Icon(Icons.account_balance_wallet, size: 14, color: AppColors.divider),
+          const SizedBox(width: 4),
+          Text(name, style: AppTextStyles.caption),
+          if (widget.wallets.length > 1) ...[
+            const SizedBox(width: 2),
+            const Icon(Icons.unfold_more, size: 12, color: AppColors.divider),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildPreview(String locale) {
     final amountStr = AmountFormatter.formatCurrency(_result.amount, locale);
     final catName = _result.hasCategory
@@ -219,6 +287,22 @@ class _QuickAddBarState extends State<QuickAddBar> {
 
     return Row(
       children: [
+        // Wallet chip (compact)
+        if (widget.wallets.length > 1) ...[
+          GestureDetector(
+            onTap: _showWalletPicker,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.account_balance_wallet, size: 12, color: AppColors.divider),
+                const SizedBox(width: 2),
+                Text(_currentWalletName ?? '', style: AppTextStyles.caption),
+                const Icon(Icons.unfold_more, size: 10, color: AppColors.divider),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+        ],
         Icon(
           isIncome ? Icons.arrow_downward : Icons.arrow_upward,
           size: 14,

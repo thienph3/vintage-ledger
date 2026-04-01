@@ -89,6 +89,8 @@ const Map<String, String> en = {
   'logout': 'Log out',
   'loginExisting': 'Log in to existing account',
   'loginMigrateWarning': 'Your current data will be transferred to the account you log in to.',
+  'defaultWallet': 'Default wallet',
+  'longPressToSetDefault': 'Long press to set as default',
   'account': 'Account',
 
   // Chart

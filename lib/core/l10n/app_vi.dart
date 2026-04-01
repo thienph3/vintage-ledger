@@ -88,6 +88,8 @@ const Map<String, String> vi = {
   'logout': 'Đăng xuất',
   'loginExisting': 'Đăng nhập tài khoản đã có',
   'loginMigrateWarning': 'Dữ liệu hiện tại sẽ được chuyển sang tài khoản bạn đăng nhập.',
+  'defaultWallet': 'Ví mặc định',
+  'longPressToSetDefault': 'Nhấn giữ để đặt làm ví mặc định',
   'account': 'Tài khoản',
 
   // Chart

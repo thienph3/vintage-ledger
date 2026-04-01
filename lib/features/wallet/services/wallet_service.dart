@@ -33,6 +33,14 @@ class WalletService {
     final wallet = await _repo.getById(id);
     await _repo.delete(id);
     if (wallet != null) _log('wallet', 'đã xóa ví ${wallet.name}');
+
+    // Clear default wallet if deleted
+    final lastWalletId = await sl.settingService.getLastWalletId();
+    if (lastWalletId == id) {
+      final remaining = await _repo.getAll();
+      final newDefault = remaining.firstOrNull?.id ?? '';
+      await sl.settingService.setLastWalletId(newDefault);
+    }
   }
 
   /// Recalculate balance from all transactions (fix tool for inconsistent data)

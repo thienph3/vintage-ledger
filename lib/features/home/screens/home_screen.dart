@@ -44,6 +44,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _error;
   bool _amountVisible = false;
   int _streak = 0;
+  String? _defaultWalletId;
 
   @override
   void initState() {
@@ -55,10 +56,12 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final dashboard = await sl.transactionService.getDashboard();
       final streak = await sl.settingService.recordDailyUsage();
+      final lastWalletId = await sl.settingService.getLastWalletId();
       if (!mounted) return;
       setState(() {
         _dashboard = dashboard;
         _streak = streak;
+        _defaultWalletId = lastWalletId;
         _loading = false;
         _error = null;
       });
@@ -154,7 +157,12 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               if (wallets.isNotEmpty)
                 QuickAddBar(
-                  walletId: wallets.first.id,
+                  walletId: _resolveDefaultWallet(wallets),
+                  wallets: wallets,
+                  onWalletChanged: (id) {
+                    sl.settingService.setLastWalletId(id);
+                    setState(() => _defaultWalletId = id);
+                  },
                   onAdded: _loadDashboard,
                 )
               else
@@ -271,6 +279,12 @@ class _HomeScreenState extends State<HomeScreen> {
       ],
     );
   }
+  String? _resolveDefaultWallet(List<Wallet> wallets) {
+    if (_defaultWalletId != null && wallets.any((w) => w.id == _defaultWalletId)) {
+      return _defaultWalletId;
+    }
+    return wallets.firstOrNull?.id;
+  }
 
   Widget _buildSavingsHighlight() {
     final net = (_dashboard?.monthIncome ?? 0) - (_dashboard?.monthExpense ?? 0);
@@ -357,10 +371,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildWalletCard(Wallet wallet) {
+    final isDefault = wallet.id == _resolveDefaultWallet(
+      [wallet], // just check if this wallet is the resolved default
+    ) || wallet.id == _defaultWalletId;
+
     return GestureDetector(
       onTap: () async {
         await context.pushScreen(WalletDetailScreen(wallet: wallet));
         _loadDashboard();
+      },
+      onLongPress: () {
+        sl.settingService.setLastWalletId(wallet.id!);
+        setState(() => _defaultWalletId = wallet.id);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${wallet.name} → ${S.of(context, 'defaultWallet')}'), duration: const Duration(seconds: 2)),
+        );
       },
       child: Container(
         width: 150,
@@ -376,7 +401,16 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.account_balance_wallet, size: 16, color: AppColors.inkBlue),
+                Stack(
+                  children: [
+                    const Icon(Icons.account_balance_wallet, size: 16, color: AppColors.inkBlue),
+                    if (isDefault)
+                      const Positioned(
+                        right: -4, bottom: -4,
+                        child: Icon(Icons.star, size: 10, color: Color(0xFFE6A817)),
+                      ),
+                  ],
+                ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(wallet.name, style: AppTextStyles.bodyBold, overflow: TextOverflow.ellipsis),

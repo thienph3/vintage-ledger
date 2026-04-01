@@ -17,14 +17,38 @@ import 'package:vintage_ledger/utils/navigator_x.dart';
 
 import 'wallet_form_screen.dart';
 
-class WalletListScreen extends StatelessWidget {
+class WalletListScreen extends StatefulWidget {
   const WalletListScreen({super.key});
 
-  Future<bool?> _confirmDelete(BuildContext context) {
-    return showDeleteConfirmation(
-      context,
-      titleKey: 'deleteWallet',
-      contentKey: 'deleteWalletConfirm',
+  @override
+  State<WalletListScreen> createState() => _WalletListScreenState();
+}
+
+class _WalletListScreenState extends State<WalletListScreen> {
+  String? _defaultWalletId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDefault();
+  }
+
+  Future<void> _loadDefault() async {
+    final id = await sl.settingService.getLastWalletId();
+    if (mounted) setState(() => _defaultWalletId = id);
+  }
+
+  bool _isDefault(Wallet w, List<Wallet> wallets) {
+    if (_defaultWalletId != null) return w.id == _defaultWalletId;
+    return w.id == wallets.firstOrNull?.id;
+  }
+
+  Future<void> _setDefault(Wallet w) async {
+    await sl.settingService.setLastWalletId(w.id!);
+    setState(() => _defaultWalletId = w.id);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${w.name} → ${S.of(context, 'defaultWallet')}'), duration: const Duration(seconds: 2)),
     );
   }
 
@@ -45,28 +69,45 @@ class WalletListScreen extends StatelessWidget {
               : ListView(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: Text(S.of(context, 'longPressToSetDefault'), style: AppTextStyles.caption),
+                    ),
                     ...wallets.map((w) => Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: SwipeListItem(
                         itemKey: Key(w.id!),
                         onTap: () => context.pushScreen(WalletFormScreen(wallet: w)),
-                        confirmDelete: () => _confirmDelete(context),
+                        confirmDelete: () => showDeleteConfirmation(context, titleKey: 'deleteWallet', contentKey: 'deleteWalletConfirm'),
                         onDelete: () async {
                           try {
                             await sl.walletService.deleteWallet(w.id!);
+                            _loadDefault();
                           } catch (e) {
                             if (!context.mounted) return;
                             showErrorSnackBar(context, e);
                           }
                         },
-                        child: LedgerListTile(
-                          child: Row(
-                            children: [
-                              const Icon(Icons.account_balance_wallet, size: 28, color: AppColors.inkBlue),
-                              const SizedBox(width: 16),
-                              Expanded(child: Text(w.name, style: AppTextStyles.bodyBold)),
-                              AmountText.fromBalance(balance: w.balance, currency: w.currency),
-                            ],
+                        child: GestureDetector(
+                          onLongPress: () => _setDefault(w),
+                          child: LedgerListTile(
+                            child: Row(
+                              children: [
+                                Stack(
+                                  children: [
+                                    const Icon(Icons.account_balance_wallet, size: 28, color: AppColors.inkBlue),
+                                    if (_isDefault(w, wallets))
+                                      const Positioned(
+                                        right: -2, bottom: -2,
+                                        child: Icon(Icons.star, size: 14, color: Color(0xFFE6A817)),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(child: Text(w.name, style: AppTextStyles.bodyBold)),
+                                AmountText.fromBalance(balance: w.balance, currency: w.currency),
+                              ],
+                            ),
                           ),
                         ),
                       ),

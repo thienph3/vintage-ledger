@@ -15,6 +15,7 @@ import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
+import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/main.dart';
 
 class SettingScreen extends StatefulWidget {
@@ -28,6 +29,8 @@ class _SettingScreenState extends State<SettingScreen> {
   String _currentLocale = 'vi';
   String _defaultCurrency = 'VND';
   bool _exporting = false;
+  String? _defaultWalletId;
+  List<Wallet> _wallets = [];
 
   @override
   void initState() {
@@ -38,9 +41,13 @@ class _SettingScreenState extends State<SettingScreen> {
   Future<void> _load() async {
     final locale = await sl.settingService.getLocale();
     final currency = await sl.settingService.getDefaultCurrency();
+    final walletId = await sl.settingService.getLastWalletId();
+    final wallets = await sl.walletService.getWallets();
     setState(() {
       _currentLocale = locale;
       _defaultCurrency = currency;
+      _defaultWalletId = walletId;
+      _wallets = wallets;
     });
   }
 
@@ -181,6 +188,28 @@ class _SettingScreenState extends State<SettingScreen> {
               onTap: _logout,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
+          ],
+          const Divider(),
+
+          // Default wallet section
+          if (_wallets.length > 1) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(S.of(context, 'defaultWallet'), style: AppTextStyles.title),
+            const SizedBox(height: AppSpacing.sm),
+            ..._wallets.map((w) {
+              final isSelected = _defaultWalletId == w.id || (_defaultWalletId == null && w.id == _wallets.firstOrNull?.id);
+              return ListTile(
+                leading: const Icon(Icons.account_balance_wallet, size: 20, color: AppColors.inkBlue),
+                title: Text(w.name),
+                trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.inkBlue) : null,
+                onTap: () async {
+                  await sl.settingService.setLastWalletId(w.id!);
+                  setState(() => _defaultWalletId = w.id);
+                },
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                tileColor: isSelected ? AppColors.inkBlue.withValues(alpha: 0.1) : null,
+              );
+            }),
           ],
           const Divider(),
 
