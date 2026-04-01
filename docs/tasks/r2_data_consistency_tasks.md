@@ -7,12 +7,12 @@
 
 ## Tasks
 
-| # | Task | Mô tả | Ưu tiên |
-|---|------|--------|---------|
-| 1 | Atomic createTransaction | Wrap `add transaction doc` + `update wallet balance` trong `FirebaseFirestore.instance.runTransaction()` | 🔴 |
-| 2 | Atomic updateTransaction | Wrap `read old` + `revert old balance` + `update transaction doc` + `apply new balance` trong 1 Firestore transaction | 🔴 |
-| 3 | Atomic deleteTransaction | Wrap `read transaction` + `delete doc` + `revert balance` trong 1 Firestore transaction | 🔴 |
-| 4 | Refactor TransactionService | Chuyển 3 methods trên từ sequential writes → `runTransaction()`. Cần đọc wallet doc bằng `transaction.get()` thay vì `getById()` | 🔴 |
-| 5 | Refactor FirestoreRepository | Thêm helper `collectionRef(accountId)` public để TransactionService có thể dùng trong `runTransaction` context | 🟡 |
-| 6 | Balance recalculation tool | Method `recalculateBalance(walletId)` — query tất cả transactions của wallet, tính lại balance. Dùng để fix data cũ bị sai | 🟡 |
-| 7 | Test atomic operations | Verify: tạo transaction → balance đúng, update → balance đúng, delete → balance revert đúng | 🟢 |
+| # | Task | Mô tả | Status |
+|---|------|--------|--------|
+| 1 | Atomic createTransaction | `runTransaction`: add transaction doc + update wallet balance trong 1 atomic operation | ✅ |
+| 2 | Atomic updateTransaction | `runTransaction`: read old → revert old balance → update doc → apply new balance. Hỗ trợ wallet change (old ≠ new wallet) | ✅ |
+| 3 | Atomic deleteTransaction | `runTransaction`: read transaction → revert balance → delete doc | ✅ |
+| 4 | Refactor TransactionService | Chuyển từ sequential writes → `firestore.runTransaction()`. Đọc wallet doc bằng `txn.get()` trong transaction context | ✅ |
+| 5 | Refactor FirestoreRepository | Thêm `collection` getter (public) + `firestore` getter để service dùng trong `runTransaction` | ✅ |
+| 6 | Balance recalculation tool | `WalletService.recalculateBalance(walletId)` — query tất cả transactions, tính lại balance. Dùng fix data cũ | ✅ |
+| 7 | Test atomic operations | Chưa verify — cần flutter test environment | ⏳ |

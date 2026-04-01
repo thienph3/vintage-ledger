@@ -12,6 +12,12 @@ abstract class FirestoreRepository<T> {
   CollectionReference<Map<String, dynamic>> _collection(String accountId) =>
       _firestore.collection('accounts').doc(accountId).collection(collectionName);
 
+  /// Public access for Firestore transactions
+  CollectionReference<Map<String, dynamic>> get collection => _collection(_accountId);
+
+  /// Public access to Firestore instance for runTransaction
+  FirebaseFirestore get firestore => _firestore;
+
   String get _accountId => sl.appState.currentAccountId;
 
   // ── Write ──

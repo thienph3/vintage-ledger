@@ -1,8 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/wallet/repositories/wallet_repository.dart';
 
 class WalletService {
   final WalletRepository _repo = WalletRepository();
+
+  /// Exposed for atomic Firestore transactions
+  WalletRepository get repo => _repo;
 
   Stream<List<Wallet>> watchWallets() => _repo.watchWallets();
 
@@ -25,9 +31,24 @@ class WalletService {
     await _repo.delete(id);
   }
 
-  Future<void> updateBalance(String walletId, int delta) async {
-    final wallet = await _repo.getById(walletId);
-    if (wallet == null) throw Exception("Wallet not found");
-    await _repo.update(walletId, {'balance': wallet.balance + delta});
+  /// Recalculate balance from all transactions (fix tool for inconsistent data)
+  Future<void> recalculateBalance(String walletId) async {
+    final txns = await sl.transactionService.getDashboard(walletId: walletId);
+    // Use all-time transactions, not just monthly
+    final allTxns = await FirebaseFirestore.instance
+        .collection('accounts').doc(sl.appState.currentAccountId)
+        .collection('transactions')
+        .where('wallet_id', isEqualTo: walletId)
+        .get();
+
+    int balance = 0;
+    for (final doc in allTxns.docs) {
+      final data = doc.data();
+      final type = TransactionType.fromString(data['type'] ?? 'expense');
+      final amount = data['amount'] as int? ?? 0;
+      balance += type.isIncome ? amount : -amount;
+    }
+
+    await _repo.update(walletId, {'balance': balance});
   }
 }

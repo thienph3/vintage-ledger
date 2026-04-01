@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
@@ -45,14 +46,11 @@ class TransactionService {
     }
 
     return DashboardData(
-      recent: recent,
-      monthly: monthly,
-      categoryMap: categoryMap,
-      balance: balance,
+      recent: recent, monthly: monthly, categoryMap: categoryMap, balance: balance,
     );
   }
 
-  // ── Create ──
+  // ── Atomic Create (#1) ──
 
   Future<String> createTransaction({
     required String walletId,
@@ -65,65 +63,117 @@ class TransactionService {
   }) async {
     if (amount <= 0) throw Exception("Amount must be greater than 0");
 
-    final txn = TransactionWithItems(
+    final firestore = _repo.firestore;
+    final walletRef = sl.walletService.repo.collection.doc(walletId);
+    final txnData = _repo.toFirestore(TransactionWithItems(
       transaction: TransactionModel(
-        walletId: walletId,
-        categoryId: categoryId,
-        type: type,
-        amount: amount,
-        note: note,
-        date: date,
+        walletId: walletId, categoryId: categoryId, type: type,
+        amount: amount, note: note, date: date,
         createdBy: sl.appState.currentUserId,
       ),
       items: items,
-    );
+    ));
+    txnData['created_at'] = FieldValue.serverTimestamp();
+    txnData['updated_at'] = FieldValue.serverTimestamp();
 
-    final id = await _repo.addTransaction(txn);
-
-    // Update wallet balance
     final delta = type.isIncome ? amount : -amount;
-    await sl.walletService.updateBalance(walletId, delta);
 
-    // Log activity for family accounts
+    final newDocRef = _repo.collection.doc();
+
+    await firestore.runTransaction((txn) async {
+      final walletSnap = await txn.get(walletRef);
+      if (!walletSnap.exists) throw Exception("Wallet not found");
+      final currentBalance = walletSnap.data()?['balance'] as int? ?? 0;
+
+      txn.set(newDocRef, txnData);
+      txn.update(walletRef, {'balance': currentBalance + delta});
+    });
+
     _logActivity(type.value, amount, note);
-
-    return id;
+    return newDocRef.id;
   }
 
-  // ── Update ──
+  // ── Atomic Update (#2) ──
 
   Future<void> updateTransaction(TransactionWithItems updated) async {
     final id = updated.transaction.id;
     if (id == null) throw Exception("Transaction ID required");
 
-    // Get old transaction to revert balance
-    final old = await _repo.getById(id);
-    if (old != null) {
-      final oldDelta = old.transaction.type.isIncome ? -old.transaction.amount : old.transaction.amount;
-      await sl.walletService.updateBalance(old.transaction.walletId, oldDelta);
-    }
+    final firestore = _repo.firestore;
+    final txnRef = _repo.collection.doc(id);
 
-    await _repo.updateTransaction(id, updated);
+    final newData = _repo.toFirestore(updated);
+    newData['updated_at'] = FieldValue.serverTimestamp();
 
-    // Apply new balance
-    final newDelta = updated.transaction.type.isIncome ? updated.transaction.amount : -updated.transaction.amount;
-    await sl.walletService.updateBalance(updated.transaction.walletId, newDelta);
+    await firestore.runTransaction((txn) async {
+      final oldSnap = await txn.get(txnRef);
+      if (!oldSnap.exists) throw Exception("Transaction not found");
+      final oldData = oldSnap.data()!;
+      final oldType = TransactionType.fromString(oldData['type'] ?? 'expense');
+      final oldAmount = oldData['amount'] as int? ?? 0;
+      final oldWalletId = oldData['wallet_id'] as String? ?? '';
+      final newWalletId = updated.transaction.walletId;
+      final sameWallet = oldWalletId == newWalletId;
+
+      if (sameWallet) {
+        final walletRef = sl.walletService.repo.collection.doc(newWalletId);
+        final walletSnap = await txn.get(walletRef);
+        if (!walletSnap.exists) throw Exception("Wallet not found");
+        var balance = walletSnap.data()?['balance'] as int? ?? 0;
+        balance += oldType.isIncome ? -oldAmount : oldAmount;
+        balance += updated.transaction.type.isIncome ? updated.transaction.amount : -updated.transaction.amount;
+        txn.update(walletRef, {'balance': balance});
+      } else {
+        // Revert old wallet
+        final oldWalletRef = sl.walletService.repo.collection.doc(oldWalletId);
+        final oldWalletSnap = await txn.get(oldWalletRef);
+        if (oldWalletSnap.exists) {
+          final oldBalance = oldWalletSnap.data()?['balance'] as int? ?? 0;
+          final revert = oldType.isIncome ? -oldAmount : oldAmount;
+          txn.update(oldWalletRef, {'balance': oldBalance + revert});
+        }
+        // Apply to new wallet
+        final newWalletRef = sl.walletService.repo.collection.doc(newWalletId);
+        final newWalletSnap = await txn.get(newWalletRef);
+        if (!newWalletSnap.exists) throw Exception("Wallet not found");
+        final newBalance = newWalletSnap.data()?['balance'] as int? ?? 0;
+        final apply = updated.transaction.type.isIncome ? updated.transaction.amount : -updated.transaction.amount;
+        txn.update(newWalletRef, {'balance': newBalance + apply});
+      }
+
+      txn.update(txnRef, newData);
+    });
   }
 
-  // ── Delete ──
+  // ── Atomic Delete (#3) ──
 
   Future<void> deleteTransaction(String id) async {
-    final txn = await _repo.getById(id);
-    if (txn == null) return;
+    final firestore = _repo.firestore;
+    final txnRef = _repo.collection.doc(id);
 
-    await _repo.delete(id);
+    await firestore.runTransaction((txn) async {
+      final txnSnap = await txn.get(txnRef);
+      if (!txnSnap.exists) return;
+      final data = txnSnap.data()!;
+      final type = TransactionType.fromString(data['type'] ?? 'expense');
+      final amount = data['amount'] as int? ?? 0;
+      final walletId = data['wallet_id'] as String? ?? '';
 
-    // Revert balance
-    final delta = txn.transaction.type.isIncome ? -txn.transaction.amount : txn.transaction.amount;
-    await sl.walletService.updateBalance(txn.transaction.walletId, delta);
+      if (walletId.isNotEmpty) {
+        final walletRef = sl.walletService.repo.collection.doc(walletId);
+        final walletSnap = await txn.get(walletRef);
+        if (walletSnap.exists) {
+          final balance = walletSnap.data()?['balance'] as int? ?? 0;
+          final delta = type.isIncome ? -amount : amount;
+          txn.update(walletRef, {'balance': balance + delta});
+        }
+      }
+
+      txn.delete(txnRef);
+    });
   }
 
-  // ── Items (embedded, no separate CRUD needed) ──
+  // ── Items (embedded) ──
 
   Future<TransactionWithItems?> getTransactionWithItems(String id) => _repo.getById(id);
 
@@ -134,10 +184,7 @@ class TransactionService {
 
     final desc = note != null && note.isNotEmpty ? '$amount - $note' : '$amount';
     sl.accountService.logActivity(
-      accountId: accountId,
-      userId: userId,
-      action: action,
-      description: desc,
+      accountId: accountId, userId: userId, action: action, description: desc,
     );
   }
 }
