@@ -113,6 +113,36 @@ class AccountService {
     );
   }
 
+  /// Update user profile + account name after anonymous upgrade
+  Future<void> updateUserProfile({
+    required String userId,
+    required String email,
+    required String displayName,
+  }) async {
+    // Update user doc
+    await _users.doc(userId).set({
+      'email': email,
+      'display_name': displayName,
+    }, SetOptions(merge: true));
+
+    // Update personal account name
+    final userDoc = await _users.doc(userId).get();
+    if (!userDoc.exists) return;
+    final accountIds = List<String>.from(
+      (userDoc.data() as Map<String, dynamic>)['account_ids'] ?? [],
+    );
+    if (accountIds.isEmpty) return;
+
+    // Update first account (personal) name
+    final accountDoc = await _accounts.doc(accountIds.first).get();
+    if (accountDoc.exists) {
+      final data = accountDoc.data() as Map<String, dynamic>;
+      if (data['type'] == 'personal') {
+        await _accounts.doc(accountIds.first).update({'name': displayName});
+      }
+    }
+  }
+
   Future<List<Map<String, String>>> getMemberProfiles(List<String> memberIds) async {
     final results = <Map<String, String>>[];
     for (final id in memberIds) {

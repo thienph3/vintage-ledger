@@ -44,11 +44,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       final name = _nameCtrl.text.trim();
 
       if (_isUpgrade) {
-        // Link anonymous account to email
         final user = await sl.authService.linkWithEmail(email, password, name);
         if (user != null) {
-          // Update Firestore user profile
-          await sl.accountService.getOrCreatePersonalAccountId(user.uid, email, name);
+          await sl.accountService.updateUserProfile(
+            userId: user.uid, email: email, displayName: name,
+          );
         }
       } else {
         // Fresh registration
