@@ -168,6 +168,11 @@ const Map<String, String> en = {
   'savedThisMonth': 'You saved this month',
   'spentMoreThisMonth': 'You spent more this month',
   'streakDays': 'day streak',
+  'approximateTooltip': 'Approximate based on reference rates',
+  'addedTransactionsToday': 'added {n} transactions',
+  'emptyTransactionHint': 'No transactions yet — try typing \'lunch 50k\' 👇',
+  'emptyBudgetHint': 'Set a budget to control spending →',
+  'emptyChartHint': 'Add transactions to see charts',
 
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',

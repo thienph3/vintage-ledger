@@ -77,7 +77,13 @@ class _BudgetSummaryCardState extends State<BudgetSummaryCard> {
           ),
           if (_alerts.isEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
-            Text('✓ ${S.of(context, 'noBudgets')}', style: AppTextStyles.hint),
+            InkWell(
+              onTap: () async {
+                await context.pushScreen(const BudgetListScreen());
+                _load();
+              },
+              child: Text(S.of(context, 'emptyBudgetHint'), style: AppTextStyles.hint),
+            ),
           ],
           ..._alerts.map((s) => Padding(
             padding: const EdgeInsets.only(top: AppSpacing.sm),

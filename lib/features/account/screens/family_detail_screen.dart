@@ -212,55 +212,108 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
               );
             }
 
+            final grouped = _groupActivities(activities);
             return Column(
-              children: activities.take(10).map((a) {
-                final isMe = a['user_id'] == sl.appState.currentUserId;
-                final memberName = _members
-                    .where((m) => m['id'] == a['user_id']).firstOrNull?['name'] ?? '?';
-                final timestamp = a['created_at'];
-                final timeStr = timestamp != null
-                    ? DateFormatter.relative(timestamp is Timestamp ? timestamp.toDate() : timestamp)
-                    : '';
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        a['action'] == 'expense' ? Icons.arrow_upward
-                            : a['action'] == 'income' ? Icons.arrow_downward
-                            : Icons.info_outline,
-                        size: 16,
-                        color: a['action'] == 'expense' ? AppColors.expense
-                            : a['action'] == 'income' ? AppColors.income
-                            : AppColors.inkBlue,
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text.rich(TextSpan(children: [
-                              TextSpan(
-                                text: memberName,
-                                style: isMe ? AppTextStyles.bodySmall : AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
-                              ),
-                              TextSpan(text: ' ${a['description'] ?? ''}', style: AppTextStyles.bodySmall),
-                            ])),
-                            if (timeStr.isNotEmpty)
-                              Text(timeStr, style: AppTextStyles.caption),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
+              children: [
+                ...grouped.take(30).map((a) => _buildActivityTile(a)),
+              ],
             );
           },
         ),
       ],
+    );
+  }
+
+  // ── Activity grouping ──
+
+  List<Map<String, dynamic>> _groupActivities(List<Map<String, dynamic>> raw) {
+    final result = <Map<String, dynamic>>[];
+    String? lastUserId;
+    String? lastDay;
+    int txnCount = 0;
+
+    for (final a in raw) {
+      final action = a['action'] as String? ?? '';
+      final userId = a['user_id'] as String? ?? '';
+      final ts = a['created_at'];
+      final day = ts is Timestamp
+          ? DateFormatter.fullDate(ts.toDate().millisecondsSinceEpoch)
+          : '';
+
+      final isTxn = action == 'expense' || action == 'income';
+
+      if (isTxn && userId == lastUserId && day == lastDay && result.isNotEmpty) {
+        txnCount++;
+        result.last['_grouped_count'] = txnCount;
+        continue;
+      }
+
+      result.add(Map<String, dynamic>.from(a));
+      if (isTxn) {
+        lastUserId = userId;
+        lastDay = day;
+        txnCount = 1;
+        result.last['_grouped_count'] = 1;
+      } else {
+        lastUserId = null;
+        lastDay = null;
+        txnCount = 0;
+      }
+    }
+    return result;
+  }
+
+  Widget _buildActivityTile(Map<String, dynamic> a) {
+    final isMe = a['user_id'] == sl.appState.currentUserId;
+    final memberName = _members.where((m) => m['id'] == a['user_id']).firstOrNull?['name'] ?? '?';
+    final timestamp = a['created_at'];
+    final timeStr = timestamp != null
+        ? DateFormatter.relative(timestamp is Timestamp ? timestamp.toDate() : timestamp)
+        : '';
+    final action = a['action'] as String? ?? '';
+    final isPriority = action == 'join' || action == 'leave';
+    final groupedCount = a['_grouped_count'] as int? ?? 0;
+
+    String description;
+    if (groupedCount > 1) {
+      description = ' ${S.of(context, 'addedTransactionsToday').replaceAll('{n}', '$groupedCount')}';
+    } else {
+      description = ' ${a['description'] ?? ''}';
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            action == 'expense' ? Icons.arrow_upward
+                : action == 'income' ? Icons.arrow_downward
+                : isPriority ? Icons.group : Icons.info_outline,
+            size: isPriority ? 20 : 16,
+            color: action == 'expense' ? AppColors.expense
+                : action == 'income' ? AppColors.income
+                : AppColors.inkBlue,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text.rich(TextSpan(children: [
+                  TextSpan(
+                    text: memberName,
+                    style: isMe ? AppTextStyles.bodySmall : AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(text: description, style: AppTextStyles.bodySmall),
+                ])),
+                if (timeStr.isNotEmpty)
+                  Text(timeStr, style: AppTextStyles.caption),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

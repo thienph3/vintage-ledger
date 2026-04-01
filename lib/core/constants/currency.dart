@@ -29,6 +29,30 @@ class Currency {
 
   bool get hasDecimals => decimals > 0;
 
+  /// Static exchange rates to VND (approximate, update manually)
+  static const _toVnd = <String, double>{
+    'VND': 1,
+    'USD': 25000,
+    'EUR': 27000,
+    'GBP': 32000,
+    'JPY': 170,
+    'KRW': 19,
+    'CNY': 3500,
+    'THB': 700,
+  };
+
+  /// Convert amount from one currency to another using static rates
+  static int convert(int amount, String from, String to) {
+    if (from == to) return amount;
+    final fromRate = _toVnd[from];
+    final toRate = _toVnd[to];
+    if (fromRate == null || toRate == null) return 0;
+    return (amount * fromRate / toRate).round();
+  }
+
+  /// Convert amount to VND
+  static int toVnd(int amount, String from) => convert(amount, from, 'VND');
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) || other is Currency && code == other.code;

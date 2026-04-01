@@ -264,7 +264,7 @@ class AccountService {
     });
   }
 
-  Stream<List<Map<String, dynamic>>> watchActivities(String accountId, {int limit = 20}) {
+  Stream<List<Map<String, dynamic>>> watchActivities(String accountId, {int limit = 30}) {
     return _accounts.doc(accountId)
         .collection('activities')
         .orderBy('created_at', descending: true)

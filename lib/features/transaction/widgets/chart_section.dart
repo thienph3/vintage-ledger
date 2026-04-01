@@ -39,7 +39,7 @@ class _ChartSectionState extends State<ChartSection> {
         SizedBox(
           height: 250,
           child: widget.dashboard.monthly.isEmpty
-              ? EmptyState(message: S.of(context, 'noData'))
+              ? EmptyState(message: S.of(context, 'emptyChartHint'))
               : AnimatedSwitcher(
                   duration: const Duration(milliseconds: 300),
                   switchInCurve: Curves.easeIn,

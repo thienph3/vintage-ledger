@@ -94,7 +94,7 @@ class TransactionSection extends StatelessWidget {
           ],
         ),
         const Divider(),
-        if (transactions.isEmpty) EmptyState(message: S.of(context, 'noTransactions')),
+        if (transactions.isEmpty) EmptyState(message: S.of(context, 'emptyTransactionHint')),
         if (transactions.isNotEmpty)
           ...transactions.map((txn) {
             final category = categoryMap[txn.transaction.categoryId];

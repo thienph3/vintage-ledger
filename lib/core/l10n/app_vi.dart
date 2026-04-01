@@ -167,6 +167,11 @@ const Map<String, String> vi = {
   'savedThisMonth': 'Tháng này bạn tiết kiệm được',
   'spentMoreThisMonth': 'Tháng này bạn chi nhiều hơn',
   'streakDays': 'ngày liên tiếp',
+  'approximateTooltip': 'Ước tính theo tỷ giá tham khảo',
+  'addedTransactionsToday': 'đã thêm {n} giao dịch',
+  'emptyTransactionHint': 'Chưa có giao dịch — thử nhập \'ăn trưa 50k\' 👇',
+  'emptyBudgetHint': 'Đặt ngân sách để kiểm soát chi tiêu →',
+  'emptyChartHint': 'Thêm giao dịch để xem biểu đồ',
 
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',

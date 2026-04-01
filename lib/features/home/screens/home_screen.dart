@@ -26,6 +26,7 @@ import 'package:vintage_ledger/features/transaction/screens/transaction_form_scr
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/budget/widgets/budget_summary_card.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
+import 'package:vintage_ledger/core/constants/currency.dart' as curr;
 import 'package:vintage_ledger/common/widgets/login_prompt_card.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -182,6 +183,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final isMixed = currencies.length > 1;
     final currency = isMixed ? 'VND' : (currencies.firstOrNull ?? 'VND');
 
+    int? approxBalance;
+    if (isMixed && wallets.isNotEmpty) {
+      approxBalance = wallets.fold<int>(0, (sum, w) => sum + curr.Currency.toVnd(w.balance, w.currency));
+    }
+
     return LedgerCard(
       child: Column(
         children: [
@@ -193,8 +199,11 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (_amountVisible)
-                  isMixed
-                      ? Text(S.of(context, 'mixedCurrencies'), style: AppTextStyles.title.copyWith(fontSize: 20))
+                  isMixed && approxBalance != null
+                      ? Text(
+                          '\u2248 ${AmountFormatter.formatCurrency(approxBalance, Localizations.localeOf(context).languageCode)}',
+                          style: AppTextStyles.title.copyWith(fontSize: 22),
+                        )
                       : AmountText.fromBalance(balance: _dashboard?.balance ?? 0, currency: currency, fontSize: 28)
                 else
                   Text('••••••', style: AppTextStyles.title.copyWith(fontSize: 28)),
@@ -206,6 +215,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
           ),
+          if (_amountVisible && isMixed)
+            Text(S.of(context, 'approximateTooltip'), style: AppTextStyles.caption),
           const SizedBox(height: AppSpacing.md),
           const Divider(),
           const SizedBox(height: AppSpacing.sm),
