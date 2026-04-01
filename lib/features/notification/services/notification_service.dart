@@ -30,6 +30,7 @@ class NotificationService {
     await _registerToken();
     await _fetchServerKey();
     _setupHandlers();
+    _cleanupOldNotificationEvents();
   }
 
   Future<void> _fetchServerKey() async {
@@ -123,13 +124,33 @@ class NotificationService {
     return tokens;
   }
 
-  // ── #1: Deduplication check ──
+  // ── Deduplication: in-memory fast path + Firestore cross-device lock ──
 
-  bool _isDuplicate(String eventId) {
+  bool _isDuplicateLocal(String eventId) {
     _cleanExpiredEvents();
     if (_sentEvents.containsKey(eventId)) return true;
     _sentEvents[eventId] = DateTime.now();
     return false;
+  }
+
+  /// Cross-device dedup via Firestore lock doc
+  Future<bool> _acquireNotificationLock(String accountId, String eventId) async {
+    if (_isDuplicateLocal(eventId)) return false;
+
+    try {
+      final ref = _firestore.collection('accounts').doc(accountId)
+          .collection('notification_events').doc(eventId);
+
+      return await _firestore.runTransaction<bool>((txn) async {
+        final snap = await txn.get(ref);
+        if (snap.exists) return false; // another device already sent
+        txn.set(ref, {'created_at': FieldValue.serverTimestamp()});
+        return true;
+      });
+    } catch (e) {
+      _log('Lock failed for $eventId: $e');
+      return true; // on error, proceed (best effort)
+    }
   }
 
   void _cleanExpiredEvents() {
@@ -223,6 +244,33 @@ class NotificationService {
     if (kDebugMode) debugPrint('[FCM] $message');
   }
 
+  /// TTL cleanup: delete notification_events > 3 days (1x/day)
+  Future<void> _cleanupOldNotificationEvents() async {
+    final accountId = sl.appState.currentAccountId;
+    if (accountId.isEmpty) return;
+
+    final key = 'notif_cleanup_$accountId';
+    final last = await sl.settingService.getSetting(key);
+    final now = DateTime.now().millisecondsSinceEpoch;
+    if (last != null && now - (int.tryParse(last) ?? 0) < 86400000) return; // < 1 day
+
+    try {
+      final cutoff = DateTime.now().subtract(const Duration(days: 3)).millisecondsSinceEpoch;
+      final old = await _firestore.collection('accounts').doc(accountId)
+          .collection('notification_events')
+          .where('created_at', isLessThan: Timestamp.fromMillisecondsSinceEpoch(cutoff))
+          .limit(50).get();
+
+      if (old.docs.isNotEmpty) {
+        final batch = _firestore.batch();
+        for (final doc in old.docs) { batch.delete(doc.reference); }
+        await batch.commit();
+      }
+
+      await sl.settingService.setSetting(key, now.toString());
+    } catch (_) {}
+  }
+
   // ── Public API ──
 
   // ── Anti-spam debounce (#2) ──
@@ -235,7 +283,8 @@ class NotificationService {
     required String accountId,
     required String tokenId,
   }) async {
-    if (_isDuplicate('invite_$tokenId')) return;
+    final eventId = 'invite_$tokenId';
+    if (!await _acquireNotificationLock(accountId, eventId)) return;
 
     final account = await sl.accountService.getAccount(accountId);
     if (account == null) return;
@@ -245,7 +294,7 @@ class NotificationService {
       tokens: tokens,
       title: account.name,
       body: 'Bạn được mời vào gia đình ${account.name}',
-      data: {'type': 'invite', 'token_id': tokenId, 'event_id': 'invite_$tokenId'},
+      data: {'type': 'invite', 'token_id': tokenId, 'event_id': eventId},
     );
   }
 
@@ -257,7 +306,7 @@ class NotificationService {
     String? categoryName,
   }) async {
     final eventId = 'txn_${transactionId ?? DateTime.now().millisecondsSinceEpoch}';
-    if (_isDuplicate(eventId)) return;
+    if (!await _acquireNotificationLock(accountId, eventId)) return;
 
     final account = await sl.accountService.getAccount(accountId);
     if (account == null || account.type != 'family') return;

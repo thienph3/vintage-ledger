@@ -109,6 +109,13 @@ service cloud.firestore {
         // No update or delete
         allow update, delete: if false;
       }
+
+      match /notification_events/{eventId} {
+        allow read: if isMember(accountId);
+        allow create: if isMember(accountId);
+        allow delete: if isMember(accountId);
+        allow update: if false;
+      }
     }
 
     // ── #5: Invites (top-level collection) ──
