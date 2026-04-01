@@ -114,6 +114,11 @@ class TransactionSection extends StatelessWidget {
                             const SizedBox(width: 6),
                           ],
                           Text(category?.name ?? S.of(context, 'other'), style: AppTextStyles.body),
+                          if (txn.transaction.createdBy != null && txn.transaction.createdBy != sl.appState.currentUserId)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: Icon(Icons.people_outline, size: 14, color: AppColors.divider),
+                            ),
                         ],
                       ),
                     ),

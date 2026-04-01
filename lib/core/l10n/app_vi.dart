@@ -132,6 +132,15 @@ const Map<String, String> vi = {
   'removeMemberConfirm': 'Bạn có chắc muốn xóa thành viên này?',
   'leaveFamilyConfirm': 'Bạn có chắc muốn rời gia đình này?',
   'deleteFamilyConfirm': 'Bạn có chắc muốn xóa gia đình này? Tất cả dữ liệu sẽ bị xóa.',
+  'shareInvite': 'Chia sẻ link mời',
+  'inviteExpired': 'Link mời đã hết hạn',
+  'inviteCopied': 'Đã sao chép link mời',
+  'sharedWallet': 'Ví chung',
+  'activity': 'Hoạt động',
+  'noActivity': 'Chưa có hoạt động',
+  'justSpent': 'vừa chi',
+  'justEarned': 'vừa thu',
+  'createdBy': 'Tạo bởi',
 
   // Account
   'registerToSync': 'Đăng ký để đồng bộ dữ liệu giữa các thiết bị',

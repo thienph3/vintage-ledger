@@ -133,6 +133,15 @@ const Map<String, String> en = {
   'removeMemberConfirm': 'Are you sure you want to remove this member?',
   'leaveFamilyConfirm': 'Are you sure you want to leave this family?',
   'deleteFamilyConfirm': 'Are you sure you want to delete this family? All data will be lost.',
+  'shareInvite': 'Share invite link',
+  'inviteExpired': 'Invite link has expired',
+  'inviteCopied': 'Invite link copied',
+  'sharedWallet': 'Shared wallet',
+  'activity': 'Activity',
+  'noActivity': 'No activity yet',
+  'justSpent': 'just spent',
+  'justEarned': 'just earned',
+  'createdBy': 'Created by',
 
   // Account
   'registerToSync': 'Register to sync data across devices',

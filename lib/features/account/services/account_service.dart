@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vintage_ledger/features/account/models/account.dart';
+import 'package:vintage_ledger/features/account/models/invite_token.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
 
 class AccountService {
@@ -7,6 +8,7 @@ class AccountService {
 
   CollectionReference get _accounts => _firestore.collection('accounts');
   CollectionReference get _users => _firestore.collection('users');
+  CollectionReference get _invites => _firestore.collection('invites');
 
   // ── Create ──
 
@@ -37,6 +39,7 @@ class AccountService {
     return accountRef.id;
   }
 
+  /// Task #4: Tạo family + shared wallet mặc định
   Future<String> createFamilyAccount({
     required String userId,
     required String name,
@@ -56,6 +59,15 @@ class AccountService {
     });
 
     await _seedCategories(accountRef.id);
+
+    // Shared wallet mặc định
+    await accountRef.collection('wallets').add({
+      'name': 'Ví chung',
+      'balance': 0,
+      'currency': 'VND',
+      'created_at': FieldValue.serverTimestamp(),
+      'updated_at': FieldValue.serverTimestamp(),
+    });
 
     return accountRef.id;
   }
@@ -101,7 +113,6 @@ class AccountService {
     );
   }
 
-  /// Lấy member display names cho family detail
   Future<List<Map<String, String>>> getMemberProfiles(List<String> memberIds) async {
     final results = <Map<String, String>>[];
     for (final id in memberIds) {
@@ -118,36 +129,60 @@ class AccountService {
     return results;
   }
 
-  // ── Invite member (#22) ──
+  // ── Invite by link (#1, #2, #9) ──
 
-  Future<void> inviteMember({
+  /// Tạo invite token, trả về token ID dùng làm link
+  Future<String> createInviteToken({
     required String accountId,
-    required String email,
+    required String createdBy,
   }) async {
-    // Tìm user theo email
-    final query = await _users.where('email', isEqualTo: email).limit(1).get();
-    if (query.docs.isEmpty) throw Exception('User not found');
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final expiresAt = now + 7 * 24 * 60 * 60 * 1000; // 7 ngày
 
-    final invitedUserId = query.docs.first.id;
-
-    // Check đã là member chưa
-    final account = await getAccount(accountId);
-    if (account != null && account.memberIds.contains(invitedUserId)) {
-      throw Exception('Already a member');
-    }
-
-    // Thêm vào account.member_ids
-    await _accounts.doc(accountId).update({
-      'member_ids': FieldValue.arrayUnion([invitedUserId]),
+    final doc = await _invites.add({
+      'account_id': accountId,
+      'created_by': createdBy,
+      'created_at': now,
+      'expires_at': expiresAt,
     });
 
-    // Thêm accountId vào user.account_ids
-    await _users.doc(invitedUserId).update({
-      'account_ids': FieldValue.arrayUnion([accountId]),
+    return doc.id;
+  }
+
+  /// Lấy invite token, check expiry
+  Future<InviteToken?> getInviteToken(String tokenId) async {
+    final doc = await _invites.doc(tokenId).get();
+    if (!doc.exists) return null;
+    return InviteToken.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+  }
+
+  /// Join family bằng invite token
+  Future<void> joinByInvite({
+    required String tokenId,
+    required String userId,
+  }) async {
+    final token = await getInviteToken(tokenId);
+    if (token == null) throw Exception('Invite not found');
+    if (token.isExpired) throw Exception('Invite expired');
+
+    final account = await getAccount(token.accountId);
+    if (account == null) throw Exception('Family not found');
+    if (account.memberIds.contains(userId)) throw Exception('Already a member');
+
+    await _accounts.doc(token.accountId).update({
+      'member_ids': FieldValue.arrayUnion([userId]),
+    });
+
+    await _users.doc(userId).update({
+      'account_ids': FieldValue.arrayUnion([token.accountId]),
     });
   }
 
-  // ── Leave family (#23) ──
+  /// Build invite link string
+  String buildInviteLink(String tokenId) =>
+      'https://vintage-ledger.web.app/invite/$tokenId';
+
+  // ── Leave / Remove / Delete ──
 
   Future<void> leaveFamily({
     required String accountId,
@@ -156,17 +191,14 @@ class AccountService {
     final account = await getAccount(accountId);
     if (account == null) return;
 
-    // Remove user từ member_ids
     await _accounts.doc(accountId).update({
       'member_ids': FieldValue.arrayRemove([userId]),
     });
 
-    // Remove accountId từ user.account_ids
     await _users.doc(userId).update({
       'account_ids': FieldValue.arrayRemove([accountId]),
     });
 
-    // Nếu owner rời → chuyển owner cho member đầu tiên, hoặc xóa nếu trống
     if (account.ownerId == userId) {
       final remaining = account.memberIds.where((id) => id != userId).toList();
       if (remaining.isEmpty) {
@@ -177,7 +209,6 @@ class AccountService {
     }
   }
 
-  /// Remove member (owner action)
   Future<void> removeMember({
     required String accountId,
     required String memberId,
@@ -190,21 +221,17 @@ class AccountService {
     });
   }
 
-  // ── Delete family (#24) ──
-
   Future<void> deleteFamily({required String accountId}) async {
     final account = await getAccount(accountId);
     if (account == null) return;
 
-    // Remove accountId từ tất cả members
     for (final memberId in account.memberIds) {
       await _users.doc(memberId).update({
         'account_ids': FieldValue.arrayRemove([accountId]),
       });
     }
 
-    // Xóa subcollections bằng batch
-    for (final sub in ['wallets', 'transactions', 'categories']) {
+    for (final sub in ['wallets', 'transactions', 'categories', 'activities']) {
       final docs = await _accounts.doc(accountId).collection(sub).get();
       if (docs.docs.isEmpty) continue;
       final batch = _firestore.batch();
@@ -214,11 +241,39 @@ class AccountService {
       await batch.commit();
     }
 
-    // Xóa account document
     await _accounts.doc(accountId).delete();
   }
 
-  // ── Seed categories (#25) ──
+  // ── Activity feed (#6) ──
+
+  Future<void> logActivity({
+    required String accountId,
+    required String userId,
+    required String action,
+    required String description,
+  }) async {
+    await _accounts.doc(accountId).collection('activities').add({
+      'user_id': userId,
+      'action': action,
+      'description': description,
+      'created_at': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Stream<List<Map<String, dynamic>>> watchActivities(String accountId, {int limit = 20}) {
+    return _accounts.doc(accountId)
+        .collection('activities')
+        .orderBy('created_at', descending: true)
+        .limit(limit)
+        .snapshots()
+        .map((snap) => snap.docs.map((d) {
+          final data = d.data();
+          data['id'] = d.id;
+          return data;
+        }).toList());
+  }
+
+  // ── Seed categories ──
 
   Future<void> _seedCategories(String accountId) async {
     final batch = _firestore.batch();

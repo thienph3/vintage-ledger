@@ -84,6 +84,9 @@ class TransactionService {
     final delta = type.isIncome ? amount : -amount;
     await sl.walletService.updateBalance(walletId, delta);
 
+    // Log activity for family accounts
+    _logActivity(type.value, amount, note);
+
     return id;
   }
 
@@ -123,4 +126,18 @@ class TransactionService {
   // ── Items (embedded, no separate CRUD needed) ──
 
   Future<TransactionWithItems?> getTransactionWithItems(String id) => _repo.getById(id);
+
+  void _logActivity(String action, int amount, String? note) {
+    final accountId = sl.appState.currentAccountId;
+    final userId = sl.appState.currentUserId;
+    if (accountId.isEmpty || userId == null) return;
+
+    final desc = note != null && note.isNotEmpty ? '$amount - $note' : '$amount';
+    sl.accountService.logActivity(
+      accountId: accountId,
+      userId: userId,
+      action: action,
+      description: desc,
+    );
+  }
 }
