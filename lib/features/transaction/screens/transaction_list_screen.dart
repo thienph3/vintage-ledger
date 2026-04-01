@@ -10,7 +10,7 @@ import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
-import 'package:vintage_ledger/features/category/models/category.dart';
+import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
@@ -33,6 +33,7 @@ class TransactionListScreen extends StatefulWidget {
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
   final ScrollController _scrollController = ScrollController();
+  final TransactionRepository _txnRepo = TransactionRepository();
 
   final List<TransactionWithItems> _transactions = [];
   Map<String, String> _categoryNameMap = {};
@@ -42,7 +43,6 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   late DateTime _cursor;
   bool _loading = false;
   bool _loadingMore = false;
-  bool _categoriesLoaded = false;
   String? _error;
 
   @override
@@ -74,57 +74,48 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     } catch (e) {
       _error = e.toString();
     }
-    setState(() => _loading = false);
+    if (mounted) setState(() => _loading = false);
   }
 
   Future<void> _loadCategories() async {
-    if (_categoriesLoaded) return;
     final cats = await sl.categoryService.getCategories();
     _categoryNameMap = {for (var c in cats) if (c.id != null) c.id!: c.name};
     _categoryIconMap = {for (var c in cats) if (c.id != null) c.id!: c.icon};
-    _categoriesLoaded = true;
   }
 
   Future<void> _loadMonth() async {
     final start = _cursor;
     final end = DateTime(start.year, start.month + 1, 0, 23, 59, 59, 999);
     try {
-      final txns = await sl.transactionService.getDashboard(walletId: widget.walletId);
-      // Use getByDateRange from repo via service
-      final repo = sl.transactionService;
-      final monthly = await _getByDateRange(start, end);
+      final txns = await _txnRepo.getByDateRange(
+        start.millisecondsSinceEpoch,
+        end.millisecondsSinceEpoch,
+        walletId: widget.walletId,
+      );
+      if (!mounted) return;
       setState(() {
-        _transactions.addAll(monthly);
+        _transactions.addAll(txns);
         _cursor = DateTime(start.year, start.month - 1, 1);
       });
     } catch (e) {
-      setState(() => _error = e.toString());
+      if (mounted) setState(() => _error = e.toString());
     }
-  }
-
-  Future<List<TransactionWithItems>> _getByDateRange(DateTime start, DateTime end) async {
-    // Use the transaction repository directly through service
-    final dashboard = await sl.transactionService.getDashboard(walletId: widget.walletId);
-    // For now, filter from dashboard monthly data
-    return dashboard.monthly.where((t) {
-      final date = t.transaction.date;
-      return date >= start.millisecondsSinceEpoch && date <= end.millisecondsSinceEpoch;
-    }).toList();
   }
 
   Future<void> _loadMore() async {
     setState(() { _loadingMore = true; _error = null; });
     await _loadMonth();
-    setState(() => _loadingMore = false);
+    if (mounted) setState(() => _loadingMore = false);
   }
 
   Future<void> _refresh() async {
     final now = DateTime.now();
     _cursor = DateTime(now.year, now.month, 1);
     _transactions.clear();
-    _categoriesLoaded = false;
     await _initialLoad();
   }
+
+  // ── Grouping ──
 
   String _groupKey(TransactionWithItems t) {
     final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
@@ -154,6 +145,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   int get _totalIncome => _transactions.where((t) => t.transaction.type.isIncome).fold(0, (s, t) => s + t.transaction.amount);
   int get _totalExpense => _transactions.where((t) => t.transaction.type.isExpense).fold(0, (s, t) => s + t.transaction.amount);
 
+  // ── Actions ──
+
   Future<void> _openForm({TransactionWithItems? txn}) async {
     final result = await context.pushScreen(TransactionFormScreen(
       walletId: txn?.transaction.walletId ?? widget.walletId,
@@ -168,6 +161,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     await sl.transactionService.deleteTransaction(id);
     _refresh();
   }
+
+  // ── Build ──
 
   @override
   Widget build(BuildContext context) {

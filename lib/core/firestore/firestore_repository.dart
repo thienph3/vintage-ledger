@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
+import 'package:vintage_ledger/core/debug/read_counter.dart';
 
 abstract class FirestoreRepository<T> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -43,6 +44,7 @@ abstract class FirestoreRepository<T> {
 
   Future<T?> getById(String id) async {
     final doc = await _collection(_accountId).doc(id).get();
+    ReadCounter.increment();
     if (!doc.exists || doc.data() == null) return null;
     return fromFirestore(doc.id, doc.data()!);
   }
@@ -51,6 +53,7 @@ abstract class FirestoreRepository<T> {
     final ref = _collection(_accountId);
     final query = queryBuilder != null ? queryBuilder(ref) : ref;
     final snapshot = await query.get();
+    ReadCounter.increment(snapshot.docs.length);
     return snapshot.docs.map((d) => fromFirestore(d.id, d.data())).toList();
   }
 

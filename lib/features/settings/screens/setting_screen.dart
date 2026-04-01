@@ -8,6 +8,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/currency.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
+import 'package:vintage_ledger/core/debug/read_counter.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
 import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -139,6 +140,20 @@ class _SettingScreenState extends State<SettingScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ],
+
+          // Debug
+          const Divider(),
+          const SizedBox(height: AppSpacing.md),
+          ListTile(
+            leading: const Icon(Icons.bug_report_outlined),
+            title: const Text('Firestore reads'),
+            subtitle: Text('${ReadCounter.count} reads this session'),
+            trailing: IconButton(
+              icon: const Icon(Icons.refresh, size: 18),
+              onPressed: () { ReadCounter.reset(); setState(() {}); },
+            ),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
         ],
       ),
     );

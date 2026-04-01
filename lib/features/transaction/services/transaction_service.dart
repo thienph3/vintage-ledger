@@ -177,6 +177,10 @@ class TransactionService {
 
   Future<TransactionWithItems?> getTransactionWithItems(String id) => _repo.getById(id);
 
+  /// Direct date range query (for TransactionListScreen lazy loading)
+  Future<List<TransactionWithItems>> getByDateRange(int startDate, int endDate, {String? walletId}) =>
+      _repo.getByDateRange(startDate, endDate, walletId: walletId);
+
   void _logActivity(String action, int amount, String? note) {
     final accountId = sl.appState.currentAccountId;
     final userId = sl.appState.currentUserId;
