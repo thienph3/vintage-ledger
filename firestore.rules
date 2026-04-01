@@ -27,7 +27,8 @@ service cloud.firestore {
     // ── #6: User profiles ──
 
     match /users/{userId} {
-      allow read, write: if isCurrentUser(userId);
+      allow read: if isAuthenticated();
+      allow write: if isCurrentUser(userId);
 
       match /settings/{docId} {
         allow read, write: if isCurrentUser(userId);
