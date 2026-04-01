@@ -22,6 +22,7 @@ class AuthService {
       final result = await _firebaseAuth.signInWithEmailAndPassword(
         email: email, password: password,
       );
+      await result.user?.getIdToken(true);
       return result.user;
     } on FirebaseAuthException catch (e) {
       throw ErrorMapper.map(e);
@@ -34,6 +35,7 @@ class AuthService {
         email: email, password: password,
       );
       await result.user?.updateDisplayName(displayName);
+      await result.user?.getIdToken(true);
       return result.user;
     } on FirebaseAuthException catch (e) {
       throw ErrorMapper.map(e);
@@ -45,6 +47,7 @@ class AuthService {
       final credential = EmailAuthProvider.credential(email: email, password: password);
       final result = await _firebaseAuth.currentUser?.linkWithCredential(credential);
       await result?.user?.updateDisplayName(displayName);
+      await result?.user?.getIdToken(true);
       return result?.user;
     } on FirebaseAuthException catch (e) {
       throw ErrorMapper.map(e);
