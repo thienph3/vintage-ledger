@@ -172,6 +172,12 @@ const Map<String, String> vi = {
   'emptyTransactionHint': 'Chưa có giao dịch — thử nhập \'ăn trưa 50k\' 👇',
   'emptyBudgetHint': 'Đặt ngân sách để kiểm soát chi tiêu →',
   'emptyChartHint': 'Thêm giao dịch để xem biểu đồ',
+  'exportCsv': 'Xuất dữ liệu (CSV)',
+  'exportSuccess': 'Xuất dữ liệu thành công',
+  'privacy': 'Bảo mật',
+  'dataSecure': 'Dữ liệu lưu an toàn trên Firebase (Google)',
+  'onlyYouCanAccess': 'Chỉ bạn và thành viên gia đình có quyền truy cập',
+  'privacyDetail': 'Dữ liệu của bạn được lưu trữ trên Firebase (Google Cloud) với mã hóa truyền tải. Chúng tôi không bán hoặc chia sẻ dữ liệu với bên thứ 3. Chỉ bạn và thành viên gia đình (nếu có) mới có quyền truy cập, được bảo vệ bởi Firestore Security Rules.',
 
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',

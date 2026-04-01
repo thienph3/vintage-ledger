@@ -9,6 +9,8 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/currency.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 import 'package:vintage_ledger/core/debug/read_counter.dart';
+import 'package:vintage_ledger/features/export/export_service.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
 import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -24,6 +26,7 @@ class SettingScreen extends StatefulWidget {
 class _SettingScreenState extends State<SettingScreen> {
   String _currentLocale = 'vi';
   String _defaultCurrency = 'VND';
+  bool _exporting = false;
 
   @override
   void initState() {
@@ -47,8 +50,49 @@ class _SettingScreenState extends State<SettingScreen> {
     MyApp.setLocale(context, Locale(locale));
   }
 
-  Future<void> _logout() async {
-    await sl.notificationService.removeToken();
+  Future<void> _exportCsv() async {
+    setState(() => _exporting = true);
+    try {
+      final path = await ExportService().exportTransactionsCsv();
+      if (!mounted) return;
+      await SharePlus.instance.share(ShareParams(
+        files: [XFile(path)],
+        subject: 'Vintage Ledger Export',
+      ));
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(S.of(context, 'exportSuccess'))),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  void _showPrivacyInfo() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(S.of(ctx, 'privacy'), style: AppTextStyles.title),
+            const SizedBox(height: AppSpacing.md),
+            Text(S.of(ctx, 'privacyDetail'), style: AppTextStyles.body),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _logout() async {    await sl.notificationService.removeToken();
     await sl.authService.logout();
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
@@ -126,6 +170,31 @@ class _SettingScreenState extends State<SettingScreen> {
           const SizedBox(height: AppSpacing.sm),
           _buildLanguageTile('vi', S.of(context, 'vietnamese'), '🇻🇳'),
           _buildLanguageTile('en', S.of(context, 'english'), '🇺🇸'),
+          const Divider(),
+
+          // Export section
+          const SizedBox(height: AppSpacing.md),
+          ListTile(
+            leading: _exporting
+                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                : const Icon(Icons.download_outlined, color: AppColors.inkBlue),
+            title: Text(S.of(context, 'exportCsv')),
+            onTap: _exporting ? null : _exportCsv,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+
+          // Privacy section
+          const Divider(),
+          const SizedBox(height: AppSpacing.md),
+          Text(S.of(context, 'privacy'), style: AppTextStyles.title),
+          const SizedBox(height: AppSpacing.sm),
+          ListTile(
+            leading: const Icon(Icons.shield_outlined, color: AppColors.inkBlue),
+            title: Text(S.of(context, 'dataSecure')),
+            subtitle: Text(S.of(context, 'onlyYouCanAccess')),
+            onTap: _showPrivacyInfo,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
 
           if (QuickAddParser.learnedCount > 0) ...[
             const Divider(),

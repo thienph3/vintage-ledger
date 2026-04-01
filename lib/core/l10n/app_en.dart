@@ -173,6 +173,12 @@ const Map<String, String> en = {
   'emptyTransactionHint': 'No transactions yet — try typing \'lunch 50k\' 👇',
   'emptyBudgetHint': 'Set a budget to control spending →',
   'emptyChartHint': 'Add transactions to see charts',
+  'exportCsv': 'Export data (CSV)',
+  'exportSuccess': 'Export successful',
+  'privacy': 'Privacy',
+  'dataSecure': 'Data stored securely on Firebase (Google)',
+  'onlyYouCanAccess': 'Only you and family members can access',
+  'privacyDetail': 'Your data is stored on Firebase (Google Cloud) with encrypted transmission. We do not sell or share data with third parties. Only you and your family members (if any) can access, protected by Firestore Security Rules.',
 
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',
