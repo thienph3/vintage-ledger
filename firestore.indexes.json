@@ -1,46 +1,29 @@
 {
   "indexes": [
     {
-      "collectionGroup": "wallets",
+      "collectionGroup": "transactions",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "updated_at", "order": "ASCENDING" }
+        { "fieldPath": "wallet_id", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "DESCENDING" }
       ]
     },
     {
       "collectionGroup": "transactions",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "updated_at", "order": "ASCENDING" }
+        { "fieldPath": "wallet_id", "order": "ASCENDING" },
+        { "fieldPath": "date", "order": "ASCENDING" }
       ]
     },
     {
       "collectionGroup": "categories",
       "queryScope": "COLLECTION",
       "fields": [
-        { "fieldPath": "updated_at", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "wallets",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "deleted_at", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "transactions",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "deleted_at", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "categories",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "deleted_at", "order": "ASCENDING" }
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "name", "order": "ASCENDING" }
       ]
     }
-  ]
+  ],
+  "fieldOverrides": []
 }
