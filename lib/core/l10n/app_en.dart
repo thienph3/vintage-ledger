@@ -167,6 +167,7 @@ const Map<String, String> en = {
   'pasteInviteLink': 'Paste invite link here',
   'savedThisMonth': 'You saved this month',
   'spentMoreThisMonth': 'You spent more this month',
+  'streakDays': 'day streak',
 
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',

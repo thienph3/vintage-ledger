@@ -42,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
   String? _error;
   bool _amountVisible = false;
+  int _streak = 0;
 
   @override
   void initState() {
@@ -52,9 +53,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadDashboard() async {
     try {
       final dashboard = await sl.transactionService.getDashboard();
+      final streak = await sl.settingService.recordDailyUsage();
       if (!mounted) return;
       setState(() {
         _dashboard = dashboard;
+        _streak = streak;
         _loading = false;
         _error = null;
       });
@@ -131,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: AppSpacing.lg),
                         const BudgetSummaryCard(),
                         _buildSavingsHighlight(),
+                        if (_streak >= 2) _buildStreakCard(),
                         const SizedBox(height: AppSpacing.lg),
                         LoginPromptCard(transactionCount: _dashboard?.recent.length ?? 0),
                         const SizedBox(height: AppSpacing.lg),
@@ -274,6 +278,24 @@ class _HomeScreenState extends State<HomeScreen> {
                 '${S.of(context, 'savedThisMonth')} ${AmountFormatter.formatCompactCurrency(net, locale)}',
                 style: AppTextStyles.bodySmall.copyWith(color: AppColors.income),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStreakCard() {
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: LedgerCard(
+        child: Row(
+          children: [
+            const Text('\uD83D\uDD25', style: TextStyle(fontSize: 20)),
+            const SizedBox(width: AppSpacing.sm),
+            Text(
+              '$_streak ${S.of(context, 'streakDays')}',
+              style: AppTextStyles.bodySmall,
             ),
           ],
         ),

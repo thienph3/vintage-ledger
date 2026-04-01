@@ -62,4 +62,38 @@ class SettingService {
   Future<void> setSetting(String key, String value) async {
     await _userSettings.set({key: value}, SetOptions(merge: true));
   }
+
+  // ── Streak ──
+
+  /// Record today's usage. Returns current streak count.
+  Future<int> recordDailyUsage() async {
+    final today = _dateKey(DateTime.now());
+    final yesterday = _dateKey(DateTime.now().subtract(const Duration(days: 1)));
+
+    final lastDate = await getSetting('streak_last_date');
+    final streakStr = await getSetting('streak_count');
+    var streak = int.tryParse(streakStr ?? '') ?? 0;
+
+    if (lastDate == today) return streak; // already recorded today
+
+    if (lastDate == yesterday) {
+      streak++;
+    } else {
+      streak = 1; // reset
+    }
+
+    await _userSettings.set({
+      'streak_last_date': today,
+      'streak_count': streak.toString(),
+    }, SetOptions(merge: true));
+
+    return streak;
+  }
+
+  Future<int> getStreak() async {
+    final s = await getSetting('streak_count');
+    return int.tryParse(s ?? '') ?? 0;
+  }
+
+  String _dateKey(DateTime dt) => '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}';
 }

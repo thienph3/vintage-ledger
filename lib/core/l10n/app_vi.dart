@@ -166,6 +166,7 @@ const Map<String, String> vi = {
   'pasteInviteLink': 'Dán link mời vào đây',
   'savedThisMonth': 'Tháng này bạn tiết kiệm được',
   'spentMoreThisMonth': 'Tháng này bạn chi nhiều hơn',
+  'streakDays': 'ngày liên tiếp',
 
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',

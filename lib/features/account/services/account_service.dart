@@ -176,6 +176,8 @@ class AccountService {
     await _users.doc(userId).update({
       'account_ids': FieldValue.arrayUnion([token.accountId]),
     });
+
+    logActivity(accountId: token.accountId, userId: userId, action: 'join', description: 'đã tham gia');
   }
 
   /// Build invite link string
@@ -198,6 +200,8 @@ class AccountService {
     await _users.doc(userId).update({
       'account_ids': FieldValue.arrayRemove([accountId]),
     });
+
+    logActivity(accountId: accountId, userId: userId, action: 'leave', description: 'đã rời');
 
     if (account.ownerId == userId) {
       final remaining = account.memberIds.where((id) => id != userId).toList();
