@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/constants/seed_categories.dart';
+import 'package:vintage_ledger/features/category/models/category.dart';
 
 class QuickAddResult {
   final int amount;
@@ -104,8 +105,6 @@ class QuickAddParser {
     } catch (_) {}
     _dirty = false;
   }
-
-import 'package:vintage_ledger/features/category/models/category.dart';
 
   // ── Keyword → category mapping (generated from kSeedCategories) ──
 
