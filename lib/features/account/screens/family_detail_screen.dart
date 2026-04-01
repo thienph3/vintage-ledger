@@ -80,7 +80,11 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
       _load();
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));() async {
+      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
+    }
+  }
+
+  Future<void> _leave() async {
     final confirm = await showDeleteConfirmation(
       context, titleKey: 'leaveFamily', contentKey: 'leaveFamilyConfirm',
     );
