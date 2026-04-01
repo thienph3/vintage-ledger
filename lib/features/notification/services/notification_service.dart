@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -224,6 +225,12 @@ class NotificationService {
 
   // ── Public API ──
 
+  // ── Anti-spam debounce (#2) ──
+
+  DateTime? _lastTxnNotifyTime;
+  int _pendingTxnCount = 0;
+  Timer? _txnDebounceTimer;
+
   Future<void> notifyInvite({
     required String accountId,
     required String tokenId,
@@ -237,7 +244,7 @@ class NotificationService {
     await _sendPush(
       tokens: tokens,
       title: account.name,
-      body: 'Có link mời mới',
+      body: 'Bạn được mời vào gia đình ${account.name}',
       data: {'type': 'invite', 'token_id': tokenId, 'event_id': 'invite_$tokenId'},
     );
   }
@@ -247,6 +254,7 @@ class NotificationService {
     required int amount,
     required String type,
     String? transactionId,
+    String? categoryName,
   }) async {
     final eventId = 'txn_${transactionId ?? DateTime.now().millisecondsSinceEpoch}';
     if (_isDuplicate(eventId)) return;
@@ -254,14 +262,28 @@ class NotificationService {
     final account = await sl.accountService.getAccount(accountId);
     if (account == null || account.type != 'family') return;
 
+    // Debounce: batch rapid transactions
+    _pendingTxnCount++;
+    _txnDebounceTimer?.cancel();
+    _txnDebounceTimer = Timer(const Duration(seconds: 2), () async {
+      final tokens = await _getTokensForUsers(account.memberIds);
+      final body = _pendingTxnCount > 1
+          ? 'Có $_pendingTxnCount giao dịch mới'
+          : _buildTxnBody(type, amount, categoryName);
+      await _sendPush(
+        tokens: tokens,
+        title: account.name,
+        body: body,
+        data: {'type': 'transaction', 'account_id': accountId, 'event_id': eventId},
+      );
+      _pendingTxnCount = 0;
+    });
+  }
+
+  String _buildTxnBody(String type, int amount, String? categoryName) {
     final action = type == 'income' ? 'thu' : 'chi';
-    final tokens = await _getTokensForUsers(account.memberIds);
-    await _sendPush(
-      tokens: tokens,
-      title: account.name,
-      body: 'Giao dịch mới: $action $amount',
-      data: {'type': 'transaction', 'account_id': accountId, 'event_id': eventId},
-    );
+    final cat = categoryName != null ? ' $categoryName' : '';
+    return 'Giao dịch mới: $action $amount$cat';
   }
 
   Future<void> removeToken() async {

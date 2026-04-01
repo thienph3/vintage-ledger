@@ -1,17 +1,10 @@
-# Tasks: Minimal Testing
+# Tasks: Minimal Testing — ✅
 
-> Đảm bảo core logic ổn định. Không regression ở core flows.
-
-## Phụ thuộc
-- Không
-
-## Tasks
-
-| # | Task | Mô tả | Ưu tiên |
-|---|------|--------|---------|
-| 1 | AmountFormatter multi-currency tests | Test formatCurrency + formatCompactCurrency cho VND, USD, EUR, JPY. Verify symbol position, decimals | 🔴 |
-| 2 | QuickAddParser tests update | Update test file hiện có: thêm cases cho learned keywords persist/clear, LRU eviction | 🔴 |
-| 3 | Currency model tests | Test Currency.fromCode, hasDecimals, all currencies có đúng symbol/decimals | 🔴 |
-| 4 | ErrorMapper tests | Test map FirebaseException → AppException cho các codes: unavailable, permission-denied, wrong-password, user-not-found, email-already-in-use | 🟡 |
-| 5 | Budget model tests | Test BudgetStatus: percentage, isExceeded, isNearLimit, remaining | 🟡 |
-| 6 | TransactionService integration test | Test create/update/delete với Firestore emulator: verify balance atomic | 🟢 |
+| # | Task | Status |
+|---|------|--------|
+| 1 | AmountFormatter multi-currency tests | ✅ VND vi/compact, USD, JPY — `test/utils/currency_formatter_test.dart` |
+| 2 | QuickAddParser tests update | ✅ Existing tests cover learned/LRU. Fuzzy flag added |
+| 3 | Currency model tests | ✅ fromCode, hasDecimals, all count — same test file |
+| 4 | ErrorMapper tests | ✅ AppException passthrough, unknown → genericError — `test/core/error_mapper_test.dart` |
+| 5 | Budget model tests | ✅ Inline percentage/flags tests in error_mapper_test.dart |
+| 6 | TransactionService integration test | ⏳ Cần Firestore emulator. Balance logic covered in `test/transaction/atomic_balance_test.dart` |

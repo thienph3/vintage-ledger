@@ -193,7 +193,9 @@ class TransactionService {
     final userId = sl.appState.currentUserId;
     if (accountId.isEmpty || userId == null) return;
 
-    final desc = note != null && note.isNotEmpty ? '$amount - $note' : '$amount';
+    final actionLabel = action == 'income' ? 'thu' : 'chi';
+    final noteStr = note != null && note.isNotEmpty ? ' - $note' : '';
+    final desc = 'đã $actionLabel $amount$noteStr';
     sl.accountService.logActivity(
       accountId: accountId, userId: userId, action: action, description: desc,
     );

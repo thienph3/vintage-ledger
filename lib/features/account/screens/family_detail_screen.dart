@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -11,6 +12,7 @@ import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/common/widgets/error_snackbar.dart';
+import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/features/account/models/account.dart';
 
 class FamilyDetailScreen extends StatefulWidget {
@@ -212,9 +214,18 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
 
             return Column(
               children: activities.take(10).map((a) {
+                final isMe = a['user_id'] == sl.appState.currentUserId;
+                final memberName = _members
+                    .where((m) => m['id'] == a['user_id']).firstOrNull?['name'] ?? '?';
+                final timestamp = a['created_at'];
+                final timeStr = timestamp != null
+                    ? DateFormatter.relative(timestamp is Timestamp ? timestamp.toDate() : timestamp)
+                    : '';
+
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
                         a['action'] == 'expense' ? Icons.arrow_upward
@@ -227,11 +238,19 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
-                        child: Text(
-                          a['description'] ?? '',
-                          style: AppTextStyles.bodySmall,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text.rich(TextSpan(children: [
+                              TextSpan(
+                                text: memberName,
+                                style: isMe ? AppTextStyles.bodySmall : AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              TextSpan(text: ' ${a['description'] ?? ''}', style: AppTextStyles.bodySmall),
+                            ])),
+                            if (timeStr.isNotEmpty)
+                              Text(timeStr, style: AppTextStyles.caption),
+                          ],
                         ),
                       ),
                     ],

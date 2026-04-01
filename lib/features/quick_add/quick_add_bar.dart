@@ -58,19 +58,18 @@ class _QuickAddBarState extends State<QuickAddBar> {
   Future<void> _submit() async {
     if (!_result.hasAmount) return;
 
-    // Fallback to full form if no category matched
-    if (!_result.hasCategory) {
+    // Fallback: no category or fuzzy-only match → open full form
+    if (!_result.hasCategory || QuickAddParser.lastMatchWasFuzzy) {
       _openFullForm();
       return;
     }
 
-    // Resolve wallet: passed in or first available
     final walletId = widget.walletId ?? (await sl.walletService.getWallets()).firstOrNull?.id;
     if (walletId == null) return;
 
     setState(() => _saving = true);
     try {
-      await sl.transactionService.createTransaction(
+      final txnId = await sl.transactionService.createTransaction(
         walletId: walletId,
         categoryId: _result.matchedCategoryId!,
         type: _result.type,
@@ -79,21 +78,31 @@ class _QuickAddBarState extends State<QuickAddBar> {
         date: DateTime.now().millisecondsSinceEpoch,
       );
 
-      // Learn keyword → category mapping
       if (_result.keyword != null && _result.keyword!.isNotEmpty) {
         QuickAddParser.learn(_result.keyword!, _result.matchedCategoryId!);
       }
+
+      final catName = _categories.where((c) => c.id == _result.matchedCategoryId).firstOrNull?.name ?? '';
+      final locale = Localizations.localeOf(context).languageCode;
+      final amountStr = AmountFormatter.formatCompactCurrency(_result.amount, locale);
 
       _ctrl.clear();
       _focusNode.unfocus();
       widget.onAdded();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('✓ ${S.of(context, 'addTransaction')}'),
-          duration: const Duration(seconds: 1),
+
+      // Undo snackbar
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('✓ $amountStr $catName'),
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(
+          label: S.of(context, 'undo'),
+          onPressed: () async {
+            await sl.transactionService.deleteTransaction(txnId);
+            widget.onAdded();
+          },
         ),
-      );
+      ));
     } catch (e) {
       if (!mounted) return;
       showErrorSnackBar(context, e);

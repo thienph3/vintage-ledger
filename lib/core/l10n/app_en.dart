@@ -156,6 +156,11 @@ const Map<String, String> en = {
   'inviteBody': 'You have a new invite',
   'newTransactionTitle': 'New transaction',
   'newTransactionBody': 'New transaction in family',
+  'invitedToFamily': 'You are invited to family',
+  'memberSpent': 'just spent',
+  'memberEarned': 'just earned',
+  'multipleTransactions': 'new transactions',
+  'undo': 'Undo',
 
   // Account Picker
   'chooseAccount': 'CHOOSE LEDGER',
@@ -182,6 +187,11 @@ const Map<String, String> en = {
   'justSpent': 'just spent',
   'justEarned': 'just earned',
   'createdBy': 'Created by',
+  'createdWallet': 'created wallet',
+  'deletedWallet': 'deleted wallet',
+  'memberJoined': 'joined',
+  'memberLeft': 'left',
+  'invitedMember': 'invited member',
 
   // Account
   'registerToSync': 'Register to sync data across devices',

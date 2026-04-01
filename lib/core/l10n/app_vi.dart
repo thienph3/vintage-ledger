@@ -155,6 +155,11 @@ const Map<String, String> vi = {
   'inviteBody': 'Bạn có lời mời mới',
   'newTransactionTitle': 'Giao dịch mới',
   'newTransactionBody': 'Có giao dịch mới trong gia đình',
+  'invitedToFamily': 'Bạn được mời vào gia đình',
+  'memberSpent': 'vừa chi',
+  'memberEarned': 'vừa thu',
+  'multipleTransactions': 'giao dịch mới',
+  'undo': 'Hoàn tác',
 
   // Account Picker
   'chooseAccount': 'CHỌN SỔ THU CHI',
@@ -181,6 +186,11 @@ const Map<String, String> vi = {
   'justSpent': 'vừa chi',
   'justEarned': 'vừa thu',
   'createdBy': 'Tạo bởi',
+  'createdWallet': 'đã tạo ví',
+  'deletedWallet': 'đã xóa ví',
+  'memberJoined': 'đã tham gia',
+  'memberLeft': 'đã rời',
+  'invitedMember': 'đã mời thành viên',
 
   // Account
   'registerToSync': 'Đăng ký để đồng bộ dữ liệu giữa các thiết bị',

@@ -182,8 +182,12 @@ class QuickAddParser {
     return input.replaceAll(_amountRegex, '').trim();
   }
 
+  static bool _lastFuzzy = false;
+  static bool get lastMatchWasFuzzy => _lastFuzzy;
+
   static _MatchResult? _matchCategory(String keyword, List<Category> categories) {
     if (keyword.isEmpty) return null;
+    _lastFuzzy = false;
 
     // 1. Learned mappings (highest priority)
     final learnedId = _learnedMap[keyword];
@@ -208,6 +212,7 @@ class QuickAddParser {
     // 3. Fuzzy match
     for (final cat in categories) {
       if (cat.name.toLowerCase().contains(keyword) || keyword.contains(cat.name.toLowerCase())) {
+        _lastFuzzy = true;
         return _MatchResult(categoryId: cat.id!, type: cat.type ?? TransactionType.expense);
       }
     }

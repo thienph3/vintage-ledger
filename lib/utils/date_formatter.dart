@@ -24,4 +24,25 @@ class DateFormatter {
     final dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
     return DateFormat("HH:mm").format(dt);
   }
+
+  /// Relative time: "vừa xong", "5 phút trước", "2 giờ trước", "hôm qua", "3 ngày trước"
+  static String relative(dynamic timestamp) {
+    if (timestamp == null) return '';
+    final DateTime dt;
+    if (timestamp is int) {
+      dt = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    } else if (timestamp is DateTime) {
+      dt = timestamp;
+    } else {
+      return '';
+    }
+
+    final diff = DateTime.now().difference(dt);
+    if (diff.inSeconds < 60) return 'vừa xong';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} phút trước';
+    if (diff.inHours < 24) return '${diff.inHours} giờ trước';
+    if (diff.inDays == 1) return 'hôm qua';
+    if (diff.inDays < 30) return '${diff.inDays} ngày trước';
+    return fullDate(dt.millisecondsSinceEpoch);
+  }
 }
