@@ -371,9 +371,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildWalletCard(Wallet wallet) {
-    final isDefault = wallet.id == _resolveDefaultWallet(
-      [wallet], // just check if this wallet is the resolved default
-    ) || wallet.id == _defaultWalletId;
+    final isDefault = wallet.id == _defaultWalletId;
 
     return GestureDetector(
       onTap: () async {
