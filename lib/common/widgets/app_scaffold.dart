@@ -8,6 +8,7 @@ class AppScaffold extends StatelessWidget {
   final List<Widget>? actions;
   final FloatingActionButton? fab;
   final bool showBackButton;
+  final VoidCallback? onTitleTap;
 
   const AppScaffold({
     super.key,
@@ -16,13 +17,14 @@ class AppScaffold extends StatelessWidget {
     this.actions,
     this.fab,
     this.showBackButton = true,
+    this.onTitleTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: title.isNotEmpty
-          ? LedgerHeader(title: title, showBackButton: showBackButton, actions: actions)
+          ? LedgerHeader(title: title, showBackButton: showBackButton, actions: actions, onTitleTap: onTitleTap)
           : null,
       body: SafeArea(child: body),
       floatingActionButton: fab,

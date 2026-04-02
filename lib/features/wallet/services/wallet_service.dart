@@ -29,6 +29,8 @@ class WalletService {
     await _repo.update(id, data);
   }
 
+  Future<void> renameWallet(String id, String name) => _repo.update(id, {'name': name});
+
   Future<void> deleteWallet(String id) async {
     final wallet = await _repo.getById(id);
     await _repo.delete(id);

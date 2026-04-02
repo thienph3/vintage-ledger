@@ -7,6 +7,7 @@ import 'package:vintage_ledger/core/service_locator.dart';
 
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
+import 'package:vintage_ledger/core/theme/app_colors.dart';
 
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
@@ -29,10 +30,12 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
   DashboardData? _dashboard;
   bool _loading = true;
   String? _error;
+  late String _walletName;
 
   @override
   void initState() {
     super.initState();
+    _walletName = widget.wallet.name;
     _loadData();
   }
 
@@ -56,10 +59,34 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
     }
   }
 
+  Future<void> _renameWallet() async {
+    final ctrl = TextEditingController(text: _walletName);
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(S.of(ctx, 'walletName')),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          style: AppTextStyles.body,
+          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.of(ctx, 'cancel'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: Text(S.of(ctx, 'save'))),
+        ],
+      ),
+    );
+    if (newName == null || newName.isEmpty || newName == _walletName) return;
+    await sl.walletService.renameWallet(widget.wallet.id!, newName);
+    if (mounted) setState(() => _walletName = newName);
+  }
+
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: widget.wallet.name,
+      title: _walletName,
+      onTitleTap: _renameWallet,
       body: Column(
         children: [
           Expanded(
