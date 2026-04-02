@@ -357,7 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             if (_amountVisible)
-              AmountText.fromBalance(balance: wallet.balance, currency: wallet.currency)
+              AmountText.fromBalance(balance: wallet.balance, currency: wallet.currency, compact: true)
             else
               Text('••••', style: AppTextStyles.amount),
           ],
