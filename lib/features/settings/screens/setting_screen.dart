@@ -16,6 +16,7 @@ import 'package:vintage_ledger/features/account/screens/account_picker_screen.da
 import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
+import 'package:vintage_ledger/features/recurring/screens/recurring_list_screen.dart';
 import 'package:vintage_ledger/main.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 
@@ -237,6 +238,17 @@ class _SettingScreenState extends State<SettingScreen> {
           const SizedBox(height: AppSpacing.sm),
           _buildLanguageTile('vi', S.of(context, 'vietnamese'), '🇻🇳'),
           _buildLanguageTile('en', S.of(context, 'english'), '🇺🇸'),
+          const Divider(),
+
+          // Recurring section
+          const SizedBox(height: AppSpacing.md),
+          ListTile(
+            leading: const Icon(Icons.repeat, color: AppColors.inkBlue),
+            title: Text(S.of(context, 'recurringRules')),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () => context.pushScreen(const RecurringListScreen()),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
           const Divider(),
 
           // Export section

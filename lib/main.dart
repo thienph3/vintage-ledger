@@ -84,6 +84,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           QuickAddParser.init();
           QuickAddHistory.init();
           sl.notificationService.init();
+          sl.recurringService.checkAndRun();
           return;
         }
       }
@@ -113,6 +114,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     QuickAddParser.init();
     QuickAddHistory.init();
     sl.notificationService.init();
+    sl.recurringService.checkAndRun();
   }
 
   Future<void> _ensureDefaultWallet() async {

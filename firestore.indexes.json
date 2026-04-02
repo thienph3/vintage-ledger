@@ -50,6 +50,14 @@
       ]
     },
     {
+      "collectionGroup": "recurring_rules",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "enabled", "order": "ASCENDING" },
+        { "fieldPath": "next_run_at", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "pending_invites",
       "queryScope": "COLLECTION",
       "fields": [

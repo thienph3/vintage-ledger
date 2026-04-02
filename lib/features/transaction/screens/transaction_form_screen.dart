@@ -18,6 +18,8 @@ import 'package:vintage_ledger/features/transaction/widgets/category_dropdown.da
 import 'package:vintage_ledger/features/transaction/widgets/transaction_item_list.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
+import 'package:vintage_ledger/features/recurring/models/recurring_rule.dart';
+import 'package:vintage_ledger/features/recurring/services/recurring_service.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/screens/category_form_screen.dart';
 import 'package:vintage_ledger/features/budget/models/budget_status.dart';
@@ -53,6 +55,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   TransactionType _type = TransactionType.expense;
   DateTime _date = DateTime.now();
   BudgetStatus? _budgetStatus;
+  bool _recurring = false;
+  Frequency _frequency = Frequency.monthly;
 
   @override
   void initState() {
@@ -241,6 +245,20 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       if (!mounted) return;
       // Persist last used wallet
       sl.settingService.setLastWalletId(_walletId!);
+
+      // Create recurring rule if toggled
+      if (_recurring && !widget.isEdit) {
+        await sl.recurringService.createRule(RecurringRule(
+          amount: amount,
+          categoryId: _categoryId!,
+          walletId: _walletId!,
+          type: _type,
+          frequency: _frequency,
+          note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
+          nextRunAt: RecurringService.calcNextRun(_frequency, _date.millisecondsSinceEpoch),
+        ));
+      }
+
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
@@ -318,6 +336,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               style: AppTextStyles.body,
             ),
             const SizedBox(height: AppSpacing.lg),
+            if (!widget.isEdit) _buildRecurringToggle(),
             FormSaveButton(isEdit: widget.isEdit, onPressed: _save),
             const SizedBox(height: AppSpacing.xl),
           ],
@@ -333,6 +352,34 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       items: _wallets.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name, style: AppTextStyles.body))).toList(),
       onChanged: (v) => setState(() => _walletId = v),
       validator: (v) => v == null ? S.of(context, 'selectWalletRequired') : null,
+    );
+  }
+
+  Widget _buildRecurringToggle() {
+    return Column(
+      children: [
+        SwitchListTile(
+          title: Text(S.of(context, 'recurring'), style: AppTextStyles.body),
+          secondary: const Icon(Icons.repeat, color: AppColors.inkBlue),
+          value: _recurring,
+          onChanged: (v) => setState(() => _recurring = v),
+          contentPadding: EdgeInsets.zero,
+        ),
+        if (_recurring)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: DropdownButtonFormField<Frequency>(
+              value: _frequency,
+              decoration: InputDecoration(labelText: S.of(context, 'frequency')),
+              items: [
+                DropdownMenuItem(value: Frequency.daily, child: Text(S.of(context, 'daily'), style: AppTextStyles.body)),
+                DropdownMenuItem(value: Frequency.weekly, child: Text(S.of(context, 'weekly'), style: AppTextStyles.body)),
+                DropdownMenuItem(value: Frequency.monthly, child: Text(S.of(context, 'monthly'), style: AppTextStyles.body)),
+              ],
+              onChanged: (v) { if (v != null) setState(() => _frequency = v); },
+            ),
+          ),
+      ],
     );
   }
 }

@@ -104,6 +104,15 @@ service cloud.firestore {
         allow delete: if isMember(accountId);
       }
 
+      match /recurring_rules/{docId} {
+        allow read: if isMember(accountId);
+        allow create: if isMember(accountId) &&
+          request.resource.data.amount is int &&
+          request.resource.data.amount > 0;
+        allow update: if isMember(accountId);
+        allow delete: if isMember(accountId);
+      }
+
       // ── #4: Activities ──
 
       match /activities/{docId} {
