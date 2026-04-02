@@ -182,6 +182,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: S.of(context, 'transactionLedger'),
+      showBackButton: widget.walletId != null,
       body: Column(
         children: [
           Padding(

@@ -9,7 +9,7 @@ import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/features/account/models/account.dart';
-import 'package:vintage_ledger/features/home/screens/home_screen.dart';
+import 'package:vintage_ledger/features/main_shell.dart';
 import 'package:vintage_ledger/features/account/screens/family_form_screen.dart';
 import 'package:vintage_ledger/features/account/screens/family_detail_screen.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
@@ -49,7 +49,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
     sl.settingService.setLastAccountId(account.id);
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
+      MaterialPageRoute(builder: (_) => const MainShell()),
     );
   }
 

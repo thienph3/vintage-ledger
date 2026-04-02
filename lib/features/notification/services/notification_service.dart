@@ -6,7 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/features/home/screens/home_screen.dart';
+import 'package:vintage_ledger/features/main_shell.dart';
 
 class NotificationService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
@@ -94,12 +94,12 @@ class NotificationService {
     switch (data['type']) {
       case 'invite':
         nav.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => const MainShell()),
           (_) => false,
         );
       case 'transaction':
         nav.pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(builder: (_) => const MainShell()),
           (_) => false,
         );
     }

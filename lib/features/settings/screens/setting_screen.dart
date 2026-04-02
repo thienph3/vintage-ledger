@@ -145,6 +145,7 @@ class _SettingScreenState extends State<SettingScreen> {
 
     return AppScaffold(
       title: S.of(context, 'settings'),
+      showBackButton: false,
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [

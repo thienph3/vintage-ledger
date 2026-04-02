@@ -5,7 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:vintage_ledger/firebase_options.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/features/home/screens/home_screen.dart';
+import 'package:vintage_ledger/features/main_shell.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/core/theme/app_theme.dart';
@@ -149,11 +149,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (user == null) return const LoginScreen();
 
     // Anonymous → straight to Home
-    if (user.isAnonymous) return const HomeScreen();
+    if (user.isAnonymous) return const MainShell();
 
     // Logged in with email → check account count
     sl.appState.currentUserId = user.uid;
-    if (sl.appState.hasAccount) return const HomeScreen();
+    if (sl.appState.hasAccount) return const MainShell();
     return const AccountPickerScreen();
   }
 }

@@ -217,6 +217,12 @@ const Map<String, String> en = {
 
   // Account
   'registerToSync': 'Register to sync data across devices',
+
+  // Tabs
+  'tabHome': 'Home',
+  'tabTransactions': 'Transactions',
+  'tabInsights': 'Insights',
+  'tabSettings': 'Settings',
   'userNotFoundByEmail': 'No account found with this email',
   'enterEmail': 'Enter member email',
   'send': 'Send',

@@ -15,10 +15,8 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/common/widgets/network_status_banner.dart';
-import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
-import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
-
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
+import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
 
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
@@ -26,11 +24,8 @@ import 'package:vintage_ledger/features/wallet/screens/wallet_detail_screen.dart
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
-import 'package:vintage_ledger/features/budget/widgets/budget_summary_card.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/core/constants/currency.dart' as curr;
-import 'package:vintage_ledger/common/widgets/login_prompt_card.dart';
-import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -45,7 +40,6 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
   String? _error;
   bool _amountVisible = false;
-  int _streak = 0;
   String? _defaultWalletId;
   String? _accountName;
 
@@ -58,13 +52,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadDashboard() async {
     try {
       final dashboard = await sl.transactionService.getDashboard();
-      final streak = await sl.settingService.recordDailyUsage();
       final lastWalletId = await sl.settingService.getLastWalletId();
       final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
       if (!mounted) return;
       setState(() {
         _dashboard = dashboard;
-        _streak = streak;
         _defaultWalletId = lastWalletId;
         _accountName = account?.name;
         _loading = false;
@@ -72,20 +64,13 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = e.toString();
-      });
+      setState(() { _loading = false; _error = e.toString(); });
     }
   }
 
   Future<void> _addTransaction(List<Wallet> wallets) async {
     if (wallets.isEmpty) {
-      showAppSnackBar(
-        context,
-        S.of(context, 'createWalletFirst'),
-        backgroundColor: AppColors.divider,
-      );
+      showAppSnackBar(context, S.of(context, 'createWalletFirst'), backgroundColor: AppColors.divider);
       return;
     }
     final result = await context.pushScreen(const TransactionFormScreen());
@@ -113,13 +98,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-            IconButton(
-              icon: const Icon(Icons.settings),
-              onPressed: () async {
-                await context.pushScreen(const SettingScreen());
-                _loadDashboard();
-              },
-            ),
           ],
           body: Column(
             children: [
@@ -136,15 +114,6 @@ class _HomeScreenState extends State<HomeScreen> {
                         _buildBalanceCard(wallets),
                         const SizedBox(height: AppSpacing.lg),
                         _buildWalletRow(wallets),
-                        const SizedBox(height: AppSpacing.lg),
-                        if (_dashboard != null)
-                          LedgerCard(child: ChartSection(dashboard: _dashboard!)),
-                        const SizedBox(height: AppSpacing.lg),
-                        const BudgetSummaryCard(),
-                        _buildSavingsHighlight(),
-                        if (_streak >= 2) _buildStreakCard(),
-                        const SizedBox(height: AppSpacing.lg),
-                        LoginPromptCard(transactionCount: _dashboard?.recent.length ?? 0),
                         const SizedBox(height: AppSpacing.lg),
                         LedgerCard(
                           child: TransactionSection(
@@ -259,11 +228,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildMiniStat({
-    required IconData icon,
-    required Color color,
-    required String label,
-    required int amount,
-    required TransactionType type,
+    required IconData icon, required Color color,
+    required String label, required int amount, required TransactionType type,
   }) {
     return Column(
       children: [
@@ -276,13 +242,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         const SizedBox(height: AppSpacing.xs),
-        if (_amountVisible)
-          AmountText(amount: amount, type: type)
-        else
-          Text('••••', style: AppTextStyles.amount),
+        if (_amountVisible) AmountText(amount: amount, type: type)
+        else Text('••••', style: AppTextStyles.amount),
       ],
     );
   }
+
   String? _resolveDefaultWallet(List<Wallet> wallets) {
     if (_defaultWalletId != null && wallets.any((w) => w.id == _defaultWalletId)) {
       return _defaultWalletId;
@@ -290,49 +255,8 @@ class _HomeScreenState extends State<HomeScreen> {
     return wallets.firstOrNull?.id;
   }
 
-  Widget _buildSavingsHighlight() {
-    final net = (_dashboard?.monthIncome ?? 0) - (_dashboard?.monthExpense ?? 0);
-    if (net <= 0 || _dashboard == null) return const SizedBox.shrink();
-
-    final locale = Localizations.localeOf(context).languageCode;
-    return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.sm),
-      child: LedgerCard(
-        child: Row(
-          children: [
-            const Text('\uD83C\uDF89', style: TextStyle(fontSize: 20)),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                '${S.of(context, 'savedThisMonth')} ${AmountFormatter.formatCompactCurrency(net, locale)}',
-                style: AppTextStyles.bodySmall.copyWith(color: AppColors.income),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStreakCard() {
-    return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.sm),
-      child: LedgerCard(
-        child: Row(
-          children: [
-            const Text('\uD83D\uDD25', style: TextStyle(fontSize: 20)),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              '$_streak ${S.of(context, 'streakDays')}',
-              style: AppTextStyles.bodySmall,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWalletRow(List<Wallet> wallets) {    return Column(
+  Widget _buildWalletRow(List<Wallet> wallets) {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
