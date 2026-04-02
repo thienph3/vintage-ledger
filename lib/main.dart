@@ -11,7 +11,6 @@ import 'package:vintage_ledger/features/account/screens/account_picker_screen.da
 import 'package:vintage_ledger/core/theme/app_theme.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_history.dart';
-import 'package:vintage_ledger/features/reminder/reminder_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,7 +85,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           QuickAddHistory.init();
           sl.notificationService.init();
           sl.recurringService.checkAndRun();
-          ReminderService.init();
+          if (mounted) sl.reminderService.init(context);
           return;
         }
       }
@@ -117,7 +116,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     QuickAddHistory.init();
     sl.notificationService.init();
     sl.recurringService.checkAndRun();
-    ReminderService.init();
+    if (mounted) sl.reminderService.init(context);
   }
 
   Future<void> _ensureDefaultWallet() async {

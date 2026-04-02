@@ -17,7 +17,6 @@ import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/recurring/screens/recurring_list_screen.dart';
-import 'package:vintage_ledger/features/reminder/reminder_service.dart';
 import 'package:vintage_ledger/main.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 
@@ -270,9 +269,9 @@ class _SettingScreenState extends State<SettingScreen> {
               setState(() => _reminderEnabled = v);
               await sl.settingService.setSetting('reminder_enabled', v.toString());
               if (v) {
-                await ReminderService.schedule(_reminderHour);
+                await sl.reminderService.schedule(context, _reminderHour);
               } else {
-                await ReminderService.cancel();
+                await sl.reminderService.cancel();
               }
             },
           ),
@@ -289,7 +288,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 if (picked == null) return;
                 setState(() => _reminderHour = picked.hour);
                 await sl.settingService.setSetting('reminder_hour', picked.hour.toString());
-                await ReminderService.schedule(picked.hour);
+                await sl.reminderService.schedule(context, picked.hour);
               },
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),

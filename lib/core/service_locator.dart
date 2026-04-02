@@ -8,6 +8,7 @@ import 'package:vintage_ledger/features/account/services/account_service.dart';
 import 'package:vintage_ledger/features/budget/services/budget_service.dart';
 import 'package:vintage_ledger/features/notification/services/notification_service.dart';
 import 'package:vintage_ledger/features/recurring/services/recurring_service.dart';
+import 'package:vintage_ledger/features/reminder/reminder_service.dart';
 
 class ServiceLocator {
   ServiceLocator._();
@@ -23,6 +24,7 @@ class ServiceLocator {
   final budgetService = BudgetService();
   final notificationService = NotificationService();
   final recurringService = RecurringService();
+  final reminderService = ReminderService();
 }
 
 final sl = ServiceLocator.instance;
