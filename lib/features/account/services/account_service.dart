@@ -99,10 +99,15 @@ class AccountService {
     return results;
   }
 
+  final Map<String, Account> _accountCache = {};
+
   Future<Account?> getAccount(String accountId) async {
+    if (_accountCache.containsKey(accountId)) return _accountCache[accountId];
     final doc = await _accounts.doc(accountId).get();
     if (!doc.exists) return null;
-    return Account.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+    final account = Account.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+    _accountCache[accountId] = account;
+    return account;
   }
 
   Future<String> getOrCreatePersonalAccountId(

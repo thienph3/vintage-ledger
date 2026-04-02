@@ -42,17 +42,21 @@ abstract class FirestoreRepository<T> {
 
   // ── Read (one-shot) ──
 
-  Future<T?> getById(String id) async {
-    final doc = await _collection(_accountId).doc(id).get();
+  Future<T?> getById(String id, {bool useCache = false}) async {
+    final options = useCache ? const GetOptions(source: Source.cache) : null;
+    final doc = options != null
+        ? await _collection(_accountId).doc(id).get(options)
+        : await _collection(_accountId).doc(id).get();
     ReadCounter.increment();
     if (!doc.exists || doc.data() == null) return null;
     return fromFirestore(doc.id, doc.data()!);
   }
 
-  Future<List<T>> getAll({Query<Map<String, dynamic>> Function(CollectionReference<Map<String, dynamic>>)? queryBuilder}) async {
+  Future<List<T>> getAll({Query<Map<String, dynamic>> Function(CollectionReference<Map<String, dynamic>>)? queryBuilder, bool useCache = false}) async {
     final ref = _collection(_accountId);
     final query = queryBuilder != null ? queryBuilder(ref) : ref;
-    final snapshot = await query.get();
+    final options = useCache ? const GetOptions(source: Source.cache) : null;
+    final snapshot = options != null ? await query.get(options) : await query.get();
     ReadCounter.increment(snapshot.docs.length);
     return snapshot.docs.map((d) => fromFirestore(d.id, d.data())).toList();
   }

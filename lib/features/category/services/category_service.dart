@@ -12,7 +12,17 @@ class CategoryService {
   Stream<List<Category>> watchByType(String type) => _repo.watchByType(type);
 
   Future<List<Category>> getCategories() async {
-    _cache ??= await _repo.getAll();
+    if (_cache != null) return _cache!;
+    // Try local cache first for instant load
+    try {
+      _cache = await _repo.getAll(useCache: true);
+      if (_cache!.isNotEmpty) {
+        // Background refresh from server
+        _repo.getAll().then((fresh) => _cache = fresh);
+        return _cache!;
+      }
+    } catch (_) {}
+    _cache = await _repo.getAll();
     return _cache!;
   }
 

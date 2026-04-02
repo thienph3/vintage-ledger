@@ -124,6 +124,7 @@ class _SettingScreenState extends State<SettingScreen> {
     await sl.authService.logout();
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
+    sl.settingService.clearCache();
     if (!mounted) return;
 
     Navigator.pushAndRemoveUntil(
@@ -137,6 +138,7 @@ class _SettingScreenState extends State<SettingScreen> {
     await sl.authService.logout();
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
+    sl.settingService.clearCache();
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
