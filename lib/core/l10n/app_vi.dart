@@ -91,6 +91,7 @@ const Map<String, String> vi = {
   'defaultWallet': 'Ví mặc định',
   'longPressToSetDefault': 'Nhấn giữ để đặt làm ví mặc định',
   'account': 'Tài khoản',
+  'switchAccount': 'Đổi sổ thu chi',
 
   // Chart
   'noData': 'Không có dữ liệu',

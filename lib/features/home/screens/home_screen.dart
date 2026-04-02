@@ -24,7 +24,6 @@ import 'package:vintage_ledger/features/coaching/coaching_service.dart';
 import 'package:vintage_ledger/features/coaching/coaching_tip.dart';
 import 'package:vintage_ledger/features/coaching/coaching_card.dart';
 
-import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_detail_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
@@ -108,18 +107,6 @@ class _HomeScreenState extends State<HomeScreen> {
         return AppScaffold(
           title: _accountName?.toUpperCase() ?? S.of(context, 'homeTitle'),
           showBackButton: false,
-          actions: [
-            if (sl.appState.isLoggedIn && !sl.authService.isAnonymous)
-              IconButton(
-                icon: const Icon(Icons.swap_horiz),
-                onPressed: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AccountPickerScreen()),
-                  );
-                },
-              ),
-          ],
           body: Column(
             children: [
               const NetworkStatusBanner(),

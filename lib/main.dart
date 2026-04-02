@@ -167,12 +167,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final user = sl.authService.currentUser;
     if (user == null) return const LoginScreen();
 
-    // Anonymous → straight to Home
+    // Anonymous → straight to Home (account already set in _init)
     if (user.isAnonymous) return const MainShell();
 
-    // Logged in with email → check account count
+    // Logged in with email
     sl.appState.currentUserId = user.uid;
-    if (sl.appState.hasAccount) return const MainShell();
-    return const AccountPickerScreen();
+    return sl.appState.hasAccount ? const MainShell() : const AccountPickerScreen();
   }
 }

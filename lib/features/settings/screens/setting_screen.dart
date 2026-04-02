@@ -194,6 +194,20 @@ class _SettingScreenState extends State<SettingScreen> {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
           ],
+          if (!isAnonymous)
+            ListTile(
+              leading: const Icon(Icons.swap_horiz, color: AppColors.inkBlue),
+              title: Text(S.of(context, 'switchAccount')),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AccountPickerScreen()),
+                  (_) => false,
+                );
+              },
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
           const Divider(),
 
           // Default wallet section
