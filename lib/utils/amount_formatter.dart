@@ -73,16 +73,17 @@ class AmountFormatter {
 
   static String _compactVi(int value) {
     if (value >= 1000000000) {
-      final ty = value ~/ 1000000000;
-      final remainder = (value % 1000000000) ~/ 100000000;
-      return remainder == 0 ? '$ty tỷ' : '$ty tỷ $remainder';
+      final r = value / 1000000000;
+      return r == r.roundToDouble() && r % 1 == 0 ? '${r.toInt()} tỷ' : '${r.toStringAsFixed(1)} tỷ';
     }
     if (value >= 1000000) {
-      final tr = value ~/ 1000000;
-      final remainder = (value % 1000000) ~/ 100000;
-      return remainder == 0 ? '${tr}tr' : '${tr}tr$remainder';
+      final r = value / 1000000;
+      return r % 1 == 0 ? '${r.toInt()}tr' : '${r.toStringAsFixed(1)}tr';
     }
-    if (value >= 1000) return '${value ~/ 1000}k';
+    if (value >= 1000) {
+      final r = value / 1000;
+      return r % 1 == 0 ? '${r.toInt()}k' : '${r.toStringAsFixed(1)}k';
+    }
     return value.toString();
   }
 
