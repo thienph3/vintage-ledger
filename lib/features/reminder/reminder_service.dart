@@ -27,7 +27,7 @@ class ReminderService {
     const initSettings = InitializationSettings(android: androidSettings);
 
     await _plugin.initialize(
-      initSettings,
+      settings: initSettings,
       onDidReceiveNotificationResponse: _onTap,
     );
 
@@ -42,7 +42,7 @@ class ReminderService {
   void _onTap(NotificationResponse response) {}
 
   Future<void> schedule(BuildContext context, int hour) async {
-    await _plugin.cancel(_notificationId);
+    await _plugin.cancel(id: _notificationId);
 
     final now = tz.TZDateTime.now(tz.local);
     var scheduled = tz.TZDateTime(tz.local, now.year, now.month, now.day, hour);
@@ -54,25 +54,24 @@ class ReminderService {
     final body = S.of(context, key);
 
     await _plugin.zonedSchedule(
-      _notificationId,
-      'Vintage Ledger',
-      body,
-      scheduled,
-      const NotificationDetails(
+      id: _notificationId,
+      title: 'Vintage Ledger',
+      body: body,
+      scheduledDate: scheduled,
+      notificationDetails: const NotificationDetails(
         android: AndroidNotificationDetails(
           _channelId,
           _channelName,
-          importance: Importance.defaultImportance,
-          priority: Priority.defaultPriority,
+          importance: Importance.high,
+          priority: Priority.high,
         ),
       ),
       androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       matchDateTimeComponents: DateTimeComponents.time,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
     );
   }
 
   Future<void> cancel() async {
-    await _plugin.cancel(_notificationId);
+    await _plugin.cancel(id: _notificationId);
   }
 }
