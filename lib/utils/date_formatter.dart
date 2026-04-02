@@ -16,6 +16,14 @@ class DateFormatter {
     return DateFormat("dd/MM/yyyy").format(dt);
   }
 
+  static String dayOfWeek(DateTime dt) {
+    return DateFormat('EEEE', 'vi').format(dt);
+  }
+
+  static String monthYearLong(DateTime dt) {
+    return 'Tháng ${dt.month}, ${dt.year}';
+  }
+
   static String monthYear(DateTime dt) {
     return DateFormat("MM/yyyy").format(dt);
   }

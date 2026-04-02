@@ -16,13 +16,12 @@ import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
+import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
-
-enum GroupMode { day, week, month }
 
 class TransactionListScreen extends StatefulWidget {
   final String? walletId;
@@ -35,18 +34,16 @@ class TransactionListScreen extends StatefulWidget {
 }
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
-  final ScrollController _scrollController = ScrollController();
   final TransactionRepository _txnRepo = TransactionRepository();
 
-  final List<TransactionWithItems> _transactions = [];
+  List<TransactionWithItems> _transactions = [];
   Map<String, String> _categoryNameMap = {};
   Map<String, int?> _categoryIconMap = {};
-  GroupMode _groupMode = GroupMode.day;
 
-  late DateTime _cursor;
+  late DateTime _currentMonth;
   bool _loading = false;
-  bool _loadingMore = false;
   String? _error;
+  int? _expandedDay;
 
   List<Wallet> _wallets = [];
   String? _defaultWalletId;
@@ -55,21 +52,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   void initState() {
     super.initState();
     final now = DateTime.now();
-    _cursor = DateTime(now.year, now.month, 1);
-    _scrollController.addListener(_onScroll);
+    _currentMonth = DateTime(now.year, now.month);
     _initialLoad();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 && !_loadingMore) {
-      _loadMore();
-    }
   }
 
   Future<void> _initialLoad() async {
@@ -99,7 +83,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   Future<void> _loadMonth() async {
-    final start = _cursor;
+    final start = _currentMonth;
     final end = DateTime(start.year, start.month + 1, 0, 23, 59, 59, 999);
     try {
       final txns = await _txnRepo.getByDateRange(
@@ -109,52 +93,44 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       );
       if (!mounted) return;
       setState(() {
-        _transactions.addAll(txns);
-        _cursor = DateTime(start.year, start.month - 1, 1);
+        _transactions = txns;
+        _expandedDay = null;
       });
     } catch (e) {
       if (mounted) setState(() => _error = e.toString());
     }
   }
 
-  Future<void> _loadMore() async {
-    setState(() { _loadingMore = true; _error = null; });
-    await _loadMonth();
-    if (mounted) setState(() => _loadingMore = false);
-  }
-
   Future<void> _refresh() async {
-    final now = DateTime.now();
-    _cursor = DateTime(now.year, now.month, 1);
-    _transactions.clear();
-    await _initialLoad();
+    await _loadMonth();
   }
 
-  // ── Grouping ──
-
-  String _groupKey(TransactionWithItems t) {
-    final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
-    switch (_groupMode) {
-      case GroupMode.day:
-        return DateFormatter.fullDate(t.transaction.date);
-      case GroupMode.week:
-        final monday = dt.subtract(Duration(days: dt.weekday - 1));
-        final sunday = monday.add(const Duration(days: 6));
-        return '${DateFormatter.fullDate(monday.millisecondsSinceEpoch)} - ${DateFormatter.fullDate(sunday.millisecondsSinceEpoch)}';
-      case GroupMode.month:
-        return DateFormatter.monthYear(DateTime(dt.year, dt.month));
-    }
+  void _changeMonth(int delta) {
+    setState(() {
+      _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + delta);
+      _loading = true;
+    });
+    _loadMonth().then((_) {
+      if (mounted) setState(() => _loading = false);
+    });
   }
 
-  List<_Group> _buildGroups() {
-    final map = <String, List<TransactionWithItems>>{};
-    final order = <String>[];
+  // ── Grouping by day ──
+
+  List<_DayGroup> _buildDayGroups() {
+    final map = <int, List<TransactionWithItems>>{};
     for (var t in _transactions) {
-      final key = _groupKey(t);
-      if (!map.containsKey(key)) { map[key] = []; order.add(key); }
-      map[key]!.add(t);
+      final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
+      final day = dt.day;
+      map.putIfAbsent(day, () => []);
+      map[day]!.add(t);
     }
-    return order.map((key) => _Group(key, map[key]!)).toList();
+    final days = map.keys.toList()..sort((a, b) => b.compareTo(a));
+    return days.map((d) => _DayGroup(
+      day: d,
+      date: DateTime(_currentMonth.year, _currentMonth.month, d),
+      items: map[d]!,
+    )).toList();
   }
 
   int get _totalIncome => _transactions.where((t) => t.transaction.type.isIncome).fold(0, (s, t) => s + t.transaction.amount);
@@ -186,10 +162,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       showBackButton: !widget.isTab,
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-            child: _buildGroupModeRow(),
-          ),
+          _buildMonthPicker(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
             child: LedgerCard(child: IncomeExpenseSummaryRow(income: _totalIncome, expense: _totalExpense)),
@@ -201,8 +174,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                 : _error != null
                     ? Center(child: Text(_error!, style: AppTextStyles.error))
                     : _transactions.isEmpty
-                        ? Center(child: Text(S.of(context, 'noTransactions')))
-                        : RefreshIndicator(onRefresh: _refresh, child: _buildList()),
+                        ? Center(child: Text(S.of(context, 'noTransactions'), style: AppTextStyles.hint))
+                        : RefreshIndicator(onRefresh: _refresh, child: _buildTimeline()),
           ),
           QuickAddBar(
             walletId: widget.walletId ?? _defaultWalletId,
@@ -218,69 +191,118 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     );
   }
 
-  Widget _buildGroupModeRow() {
-    final labels = {
-      GroupMode.day: S.of(context, 'byDay'),
-      GroupMode.week: S.of(context, 'byWeek'),
-      GroupMode.month: S.of(context, 'byMonth'),
-    };
-    return Row(
-      children: GroupMode.values.map((m) {
-        final selected = m == _groupMode;
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: ElevatedButton(
-              onPressed: () => setState(() => _groupMode = m),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: selected ? AppColors.inkBlue : AppColors.paper,
-                foregroundColor: selected ? Colors.white : AppColors.inkBlack,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  side: BorderSide(color: AppColors.divider),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-              ),
-              child: Text(labels[m]!),
+  Widget _buildMonthPicker() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left, color: AppColors.inkBlue),
+            onPressed: () => _changeMonth(-1),
+          ),
+          GestureDetector(
+            onTap: _pickMonth,
+            child: Text(
+              DateFormatter.monthYearLong(_currentMonth),
+              style: AppTextStyles.titleSmall,
             ),
           ),
-        );
-      }).toList(),
+          IconButton(
+            icon: const Icon(Icons.chevron_right, color: AppColors.inkBlue),
+            onPressed: () => _changeMonth(1),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildList() {
-    final groups = _buildGroups();
+  Future<void> _pickMonth() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _currentMonth,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDatePickerMode: DatePickerMode.year,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _currentMonth = DateTime(picked.year, picked.month);
+      _loading = true;
+    });
+    _loadMonth().then((_) {
+      if (mounted) setState(() => _loading = false);
+    });
+  }
+
+  Widget _buildTimeline() {
+    final groups = _buildDayGroups();
+    final locale = Localizations.localeOf(context).languageCode;
+
     return ListView.builder(
-      controller: _scrollController,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      itemCount: groups.length + 1,
-      itemBuilder: (context, index) {
-        if (index == groups.length) {
-          return _loadingMore
-              ? const Padding(padding: EdgeInsets.all(AppSpacing.md), child: Center(child: CircularProgressIndicator()))
-              : const SizedBox(height: 80);
-        }
-        return _buildGroupSection(groups[index]);
-      },
+      itemCount: groups.length,
+      itemBuilder: (context, index) => _buildDayEntry(groups[index], locale),
     );
   }
 
-  Widget _buildGroupSection(_Group group) {
+  Widget _buildDayEntry(_DayGroup group, String locale) {
+    final isExpanded = _expandedDay == group.day;
+    final net = group.income - group.expense;
+    final netStr = AmountFormatter.formatCompactCurrency(net.abs(), locale);
+    final dayLabel = '${group.day}';
+    final weekday = DateFormatter.dayOfWeek(group.date);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Expanded(child: Text(group.label, style: AppTextStyles.titleSmall)),
-            if (group.income > 0) AmountText(amount: group.income, type: TransactionType.income, compact: true),
-            if (group.income > 0 && group.expense > 0) const SizedBox(width: AppSpacing.sm),
-            if (group.expense > 0) AmountText(amount: group.expense, type: TransactionType.expense, compact: true),
-          ],
+        // Day header — tappable
+        InkWell(
+          onTap: () => setState(() => _expandedDay = isExpanded ? null : group.day),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: Row(
+              children: [
+                // Day number
+                SizedBox(
+                  width: 36,
+                  child: Text(dayLabel, style: AppTextStyles.title.copyWith(fontSize: 22)),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                // Weekday + txn count
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(weekday, style: AppTextStyles.bodySmall),
+                      Text(
+                        '${group.items.length} ${S.of(context, 'transactionCount').toLowerCase()}',
+                        style: AppTextStyles.caption,
+                      ),
+                    ],
+                  ),
+                ),
+                // Net amount
+                Text(
+                  '${net >= 0 ? '+' : '-'}$netStr',
+                  style: AppTextStyles.amount.copyWith(
+                    color: net >= 0 ? AppColors.income : AppColors.expense,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Icon(
+                  isExpanded ? Icons.expand_less : Icons.expand_more,
+                  size: 20, color: AppColors.divider,
+                ),
+              ],
+            ),
+          ),
         ),
-        const Divider(),
-        ...group.items.map((t) => _buildTransactionTile(t)),
+        // Expanded transactions
+        if (isExpanded)
+          ...group.items.map((t) => _buildTransactionTile(t)),
+        const Divider(height: 1),
       ],
     );
   }
@@ -295,28 +317,22 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       confirmDelete: _confirmDelete,
       onDelete: () => _deleteTransaction(txn.transaction.id!),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.only(left: 44, right: 12, top: 6, bottom: 6),
         child: Row(
           children: [
-            Icon(getCategoryIcon(catIcon), size: 22, color: AppColors.inkBlue),
-            const SizedBox(width: 12),
+            Icon(getCategoryIcon(catIcon), size: 18, color: AppColors.inkBlue),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(catName, style: AppTextStyles.bodyBold),
+                  Text(catName, style: AppTextStyles.body),
                   if (txn.transaction.note != null && txn.transaction.note!.isNotEmpty)
                     Text(txn.transaction.note!, style: AppTextStyles.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                AmountText(amount: txn.transaction.amount, type: txn.transaction.type),
-                Text(DateFormatter.short(txn.transaction.date), style: AppTextStyles.caption),
-              ],
-            ),
+            AmountText(amount: txn.transaction.amount, type: txn.transaction.type, compact: true),
           ],
         ),
       ),
@@ -324,10 +340,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 }
 
-class _Group {
-  final String label;
+class _DayGroup {
+  final int day;
+  final DateTime date;
   final List<TransactionWithItems> items;
-  _Group(this.label, this.items);
+  _DayGroup({required this.day, required this.date, required this.items});
   int get income => items.where((t) => t.transaction.type.isIncome).fold(0, (s, t) => s + t.transaction.amount);
   int get expense => items.where((t) => t.transaction.type.isExpense).fold(0, (s, t) => s + t.transaction.amount);
 }
