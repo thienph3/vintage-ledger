@@ -20,6 +20,9 @@ import 'package:vintage_ledger/features/transaction/widgets/transaction_section.
 import 'package:vintage_ledger/features/insights/services/insight_service.dart';
 import 'package:vintage_ledger/features/insights/widgets/insight_card.dart';
 import 'package:vintage_ledger/features/insights/models/insight.dart';
+import 'package:vintage_ledger/features/coaching/coaching_service.dart';
+import 'package:vintage_ledger/features/coaching/coaching_tip.dart';
+import 'package:vintage_ledger/features/coaching/coaching_card.dart';
 
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
@@ -46,6 +49,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _defaultWalletId;
   String? _accountName;
   Insight? _topInsight;
+  CoachingTip? _coachingTip;
 
   @override
   void initState() {
@@ -69,6 +73,16 @@ class _HomeScreenState extends State<HomeScreen> {
         _loading = false;
         _error = null;
       });
+      // Load coaching tip (needs context, so after setState)
+      final budgets = await sl.budgetService.getBudgets();
+      if (!mounted) return;
+      final tip = await CoachingService.getTip(
+        context: context,
+        dashboard: dashboard,
+        streak: await sl.settingService.recordDailyUsage(),
+        budgetCount: budgets.length,
+      );
+      if (mounted) setState(() => _coachingTip = tip);
     } catch (e) {
       if (!mounted) return;
       setState(() { _loading = false; _error = e.toString(); });
@@ -124,6 +138,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: AppSpacing.lg),
                         if (_topInsight != null)
                           InsightCard(insight: _topInsight!),
+                        if (_coachingTip != null)
+                          CoachingCard(
+                            tip: _coachingTip!,
+                            onDismissed: () => setState(() => _coachingTip = null),
+                          ),
                         LedgerCard(
                           child: TransactionSection(
                             transactions: _dashboard?.recent ?? [],

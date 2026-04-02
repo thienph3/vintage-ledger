@@ -252,6 +252,12 @@ const Map<String, String> en = {
   'weeklyLess': 'You spent {pct}% less this week',
   'savingsInsight': 'You saved {amount} 🎉',
   'noInsights': 'Not enough data to analyze',
+
+  // Coaching
+  'coachBudgetSuggestion': 'Want to set a budget for {category}?',
+  'coachTopCategory': 'You spend the most on {category} ☕',
+  'coachWeeklyMore': 'You spent {pct}% more than last week',
+  'coachWeeklyLess': 'You spent {pct}% less than last week 🎉',
   'userNotFoundByEmail': 'No account found with this email',
   'enterEmail': 'Enter member email',
   'send': 'Send',

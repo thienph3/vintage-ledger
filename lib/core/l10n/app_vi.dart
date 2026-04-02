@@ -251,6 +251,12 @@ const Map<String, String> vi = {
   'weeklyLess': 'Tuần này bạn chi ít hơn {pct}%',
   'savingsInsight': 'Bạn đã tiết kiệm được {amount} 🎉',
   'noInsights': 'Chưa có dữ liệu để phân tích',
+
+  // Coaching
+  'coachBudgetSuggestion': 'Bạn có muốn đặt ngân sách cho {category} không?',
+  'coachTopCategory': 'Bạn đang chi nhiều nhất vào {category} ☕',
+  'coachWeeklyMore': 'Tuần này bạn chi nhiều hơn {pct}% so với tuần trước',
+  'coachWeeklyLess': 'Tuần này bạn chi ít hơn {pct}% so với tuần trước 🎉',
   'userNotFoundByEmail': 'Không tìm thấy tài khoản với email này',
   'enterEmail': 'Nhập email thành viên',
   'send': 'Gửi',
