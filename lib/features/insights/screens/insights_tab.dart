@@ -2,15 +2,18 @@ import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
+import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
+import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 import 'package:vintage_ledger/features/budget/widgets/budget_summary_card.dart';
-import 'package:vintage_ledger/utils/amount_formatter.dart';
+import 'package:vintage_ledger/features/insights/models/insight.dart';
+import 'package:vintage_ledger/features/insights/services/insight_service.dart';
+import 'package:vintage_ledger/features/insights/widgets/insight_card.dart';
 
 class InsightsTab extends StatefulWidget {
   const InsightsTab({super.key});
@@ -21,6 +24,7 @@ class InsightsTab extends StatefulWidget {
 
 class _InsightsTabState extends State<InsightsTab> {
   DashboardData? _dashboard;
+  List<Insight> _insights = [];
   int _streak = 0;
   bool _loading = true;
 
@@ -34,11 +38,30 @@ class _InsightsTabState extends State<InsightsTab> {
     try {
       final dashboard = await sl.transactionService.getDashboard();
       final streak = await sl.settingService.recordDailyUsage();
+      final lastWeekTxns = await _loadLastWeek();
+      final locale = Localizations.localeOf(context).languageCode;
+      final insights = InsightService.generate(dashboard, lastWeekTxns, locale);
       if (!mounted) return;
-      setState(() { _dashboard = dashboard; _streak = streak; _loading = false; });
+      setState(() {
+        _dashboard = dashboard;
+        _streak = streak;
+        _insights = insights;
+        _loading = false;
+      });
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<List<TransactionWithItems>> _loadLastWeek() async {
+    final now = DateTime.now();
+    final weekStart = now.subtract(Duration(days: now.weekday - 1));
+    final lastWeekStart = weekStart.subtract(const Duration(days: 7));
+    final lastWeekEnd = weekStart.subtract(const Duration(milliseconds: 1));
+    return TransactionRepository().getByDateRange(
+      lastWeekStart.millisecondsSinceEpoch,
+      lastWeekEnd.millisecondsSinceEpoch,
+    );
   }
 
   @override
@@ -53,40 +76,24 @@ class _InsightsTabState extends State<InsightsTab> {
               child: ListView(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 children: [
+                  if (_insights.isNotEmpty) ...[
+                    ..._insights.map((i) => InsightCard(insight: i)),
+                    const SizedBox(height: AppSpacing.sm),
+                  ],
                   if (_dashboard != null)
                     LedgerCard(child: ChartSection(dashboard: _dashboard!)),
                   const SizedBox(height: AppSpacing.lg),
                   const BudgetSummaryCard(),
-                  _buildSavingsHighlight(),
                   if (_streak >= 2) _buildStreakCard(),
+                  if (_insights.isEmpty && _dashboard == null)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
+                      child: Text(S.of(context, 'noInsights'), style: AppTextStyles.hint, textAlign: TextAlign.center),
+                    ),
                   const SizedBox(height: AppSpacing.xl),
                 ],
               ),
             ),
-    );
-  }
-
-  Widget _buildSavingsHighlight() {
-    final net = (_dashboard?.monthIncome ?? 0) - (_dashboard?.monthExpense ?? 0);
-    if (net <= 0 || _dashboard == null) return const SizedBox.shrink();
-
-    final locale = Localizations.localeOf(context).languageCode;
-    return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.sm),
-      child: LedgerCard(
-        child: Row(
-          children: [
-            const Text('\uD83C\uDF89', style: TextStyle(fontSize: 20)),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                '${S.of(context, 'savedThisMonth')} ${AmountFormatter.formatCompactCurrency(net, locale)}',
-                style: AppTextStyles.bodySmall.copyWith(color: AppColors.income),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -98,10 +105,7 @@ class _InsightsTabState extends State<InsightsTab> {
           children: [
             const Text('\uD83D\uDD25', style: TextStyle(fontSize: 20)),
             const SizedBox(width: AppSpacing.sm),
-            Text(
-              '$_streak ${S.of(context, 'streakDays')}',
-              style: AppTextStyles.bodySmall,
-            ),
+            Text('$_streak ${S.of(context, 'streakDays')}', style: AppTextStyles.bodySmall),
           ],
         ),
       ),

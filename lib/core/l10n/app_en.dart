@@ -245,6 +245,13 @@ const Map<String, String> en = {
   'reminderMsg2': 'Log your expenses in just 5 seconds 👇',
   'reminderMsg3': 'Don\'t forget to track your spending today!',
   'reminderMsg4': 'Another day passed — have you logged yet?',
+
+  // Insights
+  'topSpendingInsight': 'You spent the most on {category} ({amount})',
+  'weeklyMore': 'You spent {pct}% more this week',
+  'weeklyLess': 'You spent {pct}% less this week',
+  'savingsInsight': 'You saved {amount} 🎉',
+  'noInsights': 'Not enough data to analyze',
   'userNotFoundByEmail': 'No account found with this email',
   'enterEmail': 'Enter member email',
   'send': 'Send',

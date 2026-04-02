@@ -244,6 +244,13 @@ const Map<String, String> vi = {
   'reminderMsg2': 'Ghi lại chi tiêu hôm nay chỉ mất 5 giây 👇',
   'reminderMsg3': 'Đừng quên ghi chép thu chi hôm nay nhé!',
   'reminderMsg4': 'Một ngày nữa trôi qua — bạn đã ghi chép chưa?',
+
+  // Insights
+  'topSpendingInsight': 'Bạn chi nhiều nhất vào {category} ({amount})',
+  'weeklyMore': 'Tuần này bạn chi nhiều hơn {pct}%',
+  'weeklyLess': 'Tuần này bạn chi ít hơn {pct}%',
+  'savingsInsight': 'Bạn đã tiết kiệm được {amount} 🎉',
+  'noInsights': 'Chưa có dữ liệu để phân tích',
   'userNotFoundByEmail': 'Không tìm thấy tài khoản với email này',
   'enterEmail': 'Nhập email thành viên',
   'send': 'Gửi',

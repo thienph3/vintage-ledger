@@ -17,6 +17,9 @@ import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/common/widgets/network_status_banner.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
+import 'package:vintage_ledger/features/insights/services/insight_service.dart';
+import 'package:vintage_ledger/features/insights/widgets/insight_card.dart';
+import 'package:vintage_ledger/features/insights/models/insight.dart';
 
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
@@ -42,6 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _amountVisible = false;
   String? _defaultWalletId;
   String? _accountName;
+  Insight? _topInsight;
 
   @override
   void initState() {
@@ -54,11 +58,14 @@ class _HomeScreenState extends State<HomeScreen> {
       final dashboard = await sl.transactionService.getDashboard();
       final lastWalletId = await sl.settingService.getLastWalletId();
       final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
+      final locale = Localizations.localeOf(context).languageCode;
+      final insights = InsightService.generate(dashboard, const [], locale);
       if (!mounted) return;
       setState(() {
         _dashboard = dashboard;
         _defaultWalletId = lastWalletId;
         _accountName = account?.name;
+        _topInsight = insights.isNotEmpty ? insights.first : null;
         _loading = false;
         _error = null;
       });
@@ -115,6 +122,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         const SizedBox(height: AppSpacing.lg),
                         _buildWalletRow(wallets),
                         const SizedBox(height: AppSpacing.lg),
+                        if (_topInsight != null)
+                          InsightCard(insight: _topInsight!),
                         LedgerCard(
                           child: TransactionSection(
                             transactions: _dashboard?.recent ?? [],
