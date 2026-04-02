@@ -25,7 +25,7 @@ class _MainShellState extends State<MainShell> {
         index: _index,
         children: const [
           HomeScreen(),
-          TransactionListScreen(),
+          TransactionListScreen(isTab: true),
           InsightsTab(),
           SettingScreen(),
         ],

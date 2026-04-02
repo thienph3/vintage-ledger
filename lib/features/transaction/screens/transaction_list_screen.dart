@@ -26,8 +26,9 @@ enum GroupMode { day, week, month }
 
 class TransactionListScreen extends StatefulWidget {
   final String? walletId;
+  final bool isTab;
 
-  const TransactionListScreen({super.key, this.walletId});
+  const TransactionListScreen({super.key, this.walletId, this.isTab = false});
 
   @override
   State<TransactionListScreen> createState() => _TransactionListScreenState();
@@ -182,7 +183,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: S.of(context, 'transactionLedger'),
-      showBackButton: widget.walletId != null,
+      showBackButton: !widget.isTab,
       body: Column(
         children: [
           Padding(
