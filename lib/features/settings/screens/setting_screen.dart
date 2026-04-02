@@ -17,6 +17,7 @@ import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/recurring/screens/recurring_list_screen.dart';
+import 'package:vintage_ledger/features/reminder/reminder_service.dart';
 import 'package:vintage_ledger/main.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 
@@ -33,6 +34,8 @@ class _SettingScreenState extends State<SettingScreen> {
   bool _exporting = false;
   String? _defaultWalletId;
   List<Wallet> _wallets = [];
+  bool _reminderEnabled = false;
+  int _reminderHour = 20;
 
   @override
   void initState() {
@@ -45,11 +48,15 @@ class _SettingScreenState extends State<SettingScreen> {
     final currency = await sl.settingService.getDefaultCurrency();
     final walletId = await sl.settingService.getLastWalletId();
     final wallets = await sl.walletService.getWallets();
+    final reminderEnabled = await sl.settingService.getSetting('reminder_enabled');
+    final reminderHour = await sl.settingService.getSetting('reminder_hour');
     setState(() {
       _currentLocale = locale;
       _defaultCurrency = currency;
       _defaultWalletId = walletId;
       _wallets = wallets;
+      _reminderEnabled = reminderEnabled == 'true';
+      _reminderHour = int.tryParse(reminderHour ?? '20') ?? 20;
     });
   }
 
@@ -249,6 +256,43 @@ class _SettingScreenState extends State<SettingScreen> {
             onTap: () => context.pushScreen(const RecurringListScreen()),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
+          const Divider(),
+
+          // Reminder section
+          const SizedBox(height: AppSpacing.md),
+          Text(S.of(context, 'dailyReminder'), style: AppTextStyles.title),
+          const SizedBox(height: AppSpacing.sm),
+          SwitchListTile(
+            secondary: const Icon(Icons.notifications_outlined, color: AppColors.inkBlue),
+            title: Text(S.of(context, 'dailyReminder')),
+            value: _reminderEnabled,
+            onChanged: (v) async {
+              setState(() => _reminderEnabled = v);
+              await sl.settingService.setSetting('reminder_enabled', v.toString());
+              if (v) {
+                await ReminderService.schedule(_reminderHour);
+              } else {
+                await ReminderService.cancel();
+              }
+            },
+          ),
+          if (_reminderEnabled)
+            ListTile(
+              leading: const Icon(Icons.access_time, color: AppColors.inkBlue),
+              title: Text(S.of(context, 'reminderTime')),
+              trailing: Text('${_reminderHour.toString().padLeft(2, '0')}:00', style: AppTextStyles.bodyBold),
+              onTap: () async {
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay(hour: _reminderHour, minute: 0),
+                );
+                if (picked == null) return;
+                setState(() => _reminderHour = picked.hour);
+                await sl.settingService.setSetting('reminder_hour', picked.hour.toString());
+                await ReminderService.schedule(picked.hour);
+              },
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
           const Divider(),
 
           // Export section

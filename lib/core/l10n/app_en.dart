@@ -237,6 +237,14 @@ const Map<String, String> en = {
   'frequency': 'Frequency',
   'deleteRecurring': 'Delete recurring',
   'deleteRecurringConfirm': 'Are you sure you want to delete this recurring transaction?',
+
+  // Reminder
+  'dailyReminder': 'Daily reminder',
+  'reminderTime': 'Reminder time',
+  'reminderMsg1': 'What did you spend today?',
+  'reminderMsg2': 'Log your expenses in just 5 seconds 👇',
+  'reminderMsg3': 'Don\'t forget to track your spending today!',
+  'reminderMsg4': 'Another day passed — have you logged yet?',
   'userNotFoundByEmail': 'No account found with this email',
   'enterEmail': 'Enter member email',
   'send': 'Send',

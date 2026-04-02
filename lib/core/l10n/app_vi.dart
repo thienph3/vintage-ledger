@@ -236,6 +236,14 @@ const Map<String, String> vi = {
   'frequency': 'Tần suất',
   'deleteRecurring': 'Xóa giao dịch lặp lại',
   'deleteRecurringConfirm': 'Bạn có chắc muốn xóa giao dịch lặp lại này?',
+
+  // Reminder
+  'dailyReminder': 'Nhắc nhở hàng ngày',
+  'reminderTime': 'Giờ nhắc',
+  'reminderMsg1': 'Hôm nay bạn đã tiêu gì chưa?',
+  'reminderMsg2': 'Ghi lại chi tiêu hôm nay chỉ mất 5 giây 👇',
+  'reminderMsg3': 'Đừng quên ghi chép thu chi hôm nay nhé!',
+  'reminderMsg4': 'Một ngày nữa trôi qua — bạn đã ghi chép chưa?',
   'userNotFoundByEmail': 'Không tìm thấy tài khoản với email này',
   'enterEmail': 'Nhập email thành viên',
   'send': 'Gửi',

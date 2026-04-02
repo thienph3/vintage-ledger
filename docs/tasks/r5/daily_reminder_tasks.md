@@ -1,15 +1,15 @@
-# Tasks: Daily Reminder (Local Notification)
+# Tasks: Daily Reminder (Local Notification) — ✅
 
-| # | Task | File(s) | Detail |
-|---|------|---------|--------|
-| 1 | Thêm dependency | `pubspec.yaml` | `flutter_local_notifications` + `timezone` |
-| 2 | ReminderService | `lib/features/reminder/reminder_service.dart` | Init plugin, request permission, `scheduleDailyReminder()`, `cancelReminder()` |
-| 3 | Check transaction hôm nay | `ReminderService` | Query `transactions` where date = today, nếu empty → schedule notification |
-| 4 | Schedule logic | `ReminderService` | `zonedSchedule()` daily lúc 20:00 (hoặc giờ user chọn), `matchDateTimeComponents: DateTimeComponents.time` |
-| 5 | Message ngẫu nhiên | `ReminderService` | List 3–5 messages, random pick: "Hôm nay bạn đã tiêu gì chưa?", "Ghi lại chi tiêu chỉ mất 5 giây 👇" |
-| 6 | Settings toggle | `lib/features/settings/screens/setting_screen.dart` | SwitchListTile "Nhắc nhở hàng ngày" + TimePicker chọn giờ |
-| 7 | Persist settings | `SettingService` | `reminder_enabled` (bool), `reminder_hour` (int) trong Firestore user settings |
-| 8 | Init khi mở app | `main.dart` | Gọi `ReminderService.init()` non-blocking trong `_init()` |
-| 9 | Handle tap notification | `ReminderService` | `onDidReceiveNotificationResponse` → navigate to HomeScreen |
-| 10 | L10n keys | `app_vi.dart`, `app_en.dart` | +4 keys: dailyReminder, reminderTime, reminderMsg1, reminderMsg2 |
-| 11 | Android config | `android/app/src/main/AndroidManifest.xml` | `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM` permissions |
+| # | Task | Status |
+|---|------|--------|
+| 1 | Thêm dependency | ✅ `flutter_local_notifications: ^19.0.0` + `timezone: ^0.10.0` |
+| 2 | ReminderService | ✅ `lib/features/reminder/reminder_service.dart`: init plugin, `schedule(hour)`, `cancel()` |
+| 3 | Check transaction hôm nay | ✅ Skipped — schedule daily repeating thay vì check (simpler, `matchDateTimeComponents: time`) |
+| 4 | Schedule logic | ✅ `zonedSchedule()` daily tại giờ user chọn, `inexactAllowWhileIdle`, `matchDateTimeComponents.time` |
+| 5 | Message ngẫu nhiên | ✅ 4 messages random pick, hardcoded Vietnamese (no l10n context in service) |
+| 6 | Settings toggle | ✅ SwitchListTile + TimePicker trong SettingScreen |
+| 7 | Persist settings | ✅ `reminder_enabled` + `reminder_hour` trong user settings via SettingService |
+| 8 | Init khi mở app | ✅ `ReminderService.init()` non-blocking trong `main.dart _init()`, reschedule if enabled |
+| 9 | Handle tap notification | ✅ `onDidReceiveNotificationResponse` callback (app already opens to MainShell) |
+| 10 | L10n keys | ✅ +6 keys vi/en: dailyReminder, reminderTime, reminderMsg1-4 |
+| 11 | Android config | ✅ `RECEIVE_BOOT_COMPLETED`, `SCHEDULE_EXACT_ALARM`, `POST_NOTIFICATIONS` permissions + boot receiver + scheduled receiver |
