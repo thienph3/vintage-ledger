@@ -50,6 +50,7 @@ class _LoginScreenState extends State<LoginScreen> {
         user.uid, user.email!, user.displayName ?? '',
       );
       sl.appState.currentAccountId = accountId;
+      sl.settingService.setLastAccountId(accountId);
 
       // Migrate anonymous data if coming from anonymous → login flow
       if (widget.anonAccountIdToMigrate != null && widget.anonAccountIdToMigrate!.isNotEmpty) {

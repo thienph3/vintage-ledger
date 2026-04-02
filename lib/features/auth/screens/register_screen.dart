@@ -68,6 +68,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           );
           sl.appState.currentUserId = user.uid;
           sl.appState.currentAccountId = accountId;
+          sl.settingService.setLastAccountId(accountId);
 
           // Migrate anonymous data if available
           if (_hasMigrationData) {

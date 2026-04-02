@@ -78,7 +78,18 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               .timeout(const Duration(seconds: 5), onTimeout: () => 'vi');
           final lastAccountId = await sl.settingService.getLastAccountId()
               .timeout(const Duration(seconds: 5), onTimeout: () => null);
-          if (lastAccountId != null) sl.appState.currentAccountId = lastAccountId;
+          if (lastAccountId != null) {
+            sl.appState.currentAccountId = lastAccountId;
+          } else {
+            // No saved account — resolve from user doc
+            final accountId = await sl.accountService.getOrCreatePersonalAccountId(
+              user.uid, user.email ?? '', user.displayName ?? '',
+            ).timeout(const Duration(seconds: 5), onTimeout: () => '');
+            if (accountId.isNotEmpty) {
+              sl.appState.currentAccountId = accountId;
+              sl.settingService.setLastAccountId(accountId);
+            }
+          }
           setState(() { _locale = Locale(locale); _ready = true; });
           // Non-blocking init
           QuickAddParser.init();
