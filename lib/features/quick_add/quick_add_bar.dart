@@ -11,6 +11,8 @@ import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
+import 'package:vintage_ledger/features/quick_add/quick_add_history.dart';
+import 'package:vintage_ledger/features/quick_add/models/quick_add_entry.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
@@ -40,12 +42,16 @@ class _QuickAddBarState extends State<QuickAddBar> {
   List<Category> _categories = [];
   QuickAddResult _result = QuickAddResult(amount: 0);
   bool _saving = false;
+  bool _focused = false;
+  List<QuickAddEntry> _suggestions = [];
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
     _ctrl.addListener(_onChanged);
+    _focusNode.addListener(_onFocusChanged);
+    _suggestions = QuickAddHistory.suggest();
   }
 
   @override
@@ -61,7 +67,23 @@ class _QuickAddBarState extends State<QuickAddBar> {
   }
 
   void _onChanged() {
-    setState(() => _result = QuickAddParser.parse(_ctrl.text, _categories));
+    final text = _ctrl.text.trim();
+    setState(() {
+      _result = QuickAddParser.parse(_ctrl.text, _categories);
+      _suggestions = text.isEmpty
+          ? QuickAddHistory.suggest()
+          : QuickAddHistory.suggest(filter: text);
+    });
+  }
+
+  void _onFocusChanged() {
+    setState(() => _focused = _focusNode.hasFocus);
+  }
+
+  void _applySuggestion(QuickAddEntry entry) {
+    _ctrl.text = entry.text;
+    _ctrl.selection = TextSelection.collapsed(offset: entry.text.length);
+    _submit();
   }
 
   String? get _currentWalletName {
@@ -124,6 +146,8 @@ class _QuickAddBarState extends State<QuickAddBar> {
       if (_result.keyword != null && _result.keyword!.isNotEmpty) {
         QuickAddParser.learn(_result.keyword!, _result.matchedCategoryId!);
       }
+
+      QuickAddHistory.record(_ctrl.text.trim(), _result.matchedCategoryId!, _result.amount);
 
       // Persist as last used wallet
       sl.settingService.setLastWalletId(walletId);
@@ -197,6 +221,30 @@ class _QuickAddBarState extends State<QuickAddBar> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Suggestion chips
+            if (_focused && _suggestions.isNotEmpty && !_result.hasAmount)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                child: SizedBox(
+                  height: 32,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _suggestions.length,
+                    separatorBuilder: (_, _) => const SizedBox(width: 6),
+                    itemBuilder: (_, i) {
+                      final e = _suggestions[i];
+                      return ActionChip(
+                        label: Text(e.text, style: AppTextStyles.caption),
+                        backgroundColor: AppColors.inkBlue.withValues(alpha: 0.08),
+                        side: BorderSide.none,
+                        padding: EdgeInsets.zero,
+                        visualDensity: VisualDensity.compact,
+                        onPressed: () => _applySuggestion(e),
+                      );
+                    },
+                  ),
+                ),
+              ),
             // Preview + wallet selector
             if (hasInput && _result.hasAmount)
               Padding(

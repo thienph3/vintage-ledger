@@ -1,14 +1,14 @@
-# Tasks: Quick Add V2 — Smart Suggestions
+# Tasks: Quick Add V2 — Smart Suggestions — ✅
 
-| # | Task | File(s) | Detail |
-|---|------|---------|--------|
-| 1 | QuickAddHistory model | `lib/features/quick_add/models/quick_add_entry.dart` | `{text, categoryId, amount, count, lastUsed}` |
-| 2 | Lưu history khi submit | `quick_add_bar.dart` | Sau `_submit()` thành công → upsert entry vào Firestore `users/{uid}/quick_add_history/{hash}` |
-| 3 | Firestore collection | `SettingService` hoặc riêng | `quick_add_history` subcollection dưới user, doc id = hash(text.lowercase), fields: text, category_id, amount, count, last_used |
-| 4 | Load suggestions | `quick_add_bar.dart` | `_loadSuggestions()` trong initState → query top 5 by count desc, cache in-memory |
-| 5 | Suggestion chips UI | `quick_add_bar.dart` | Hiện khi focus vào TextField + text rỗng. Row of `ActionChip` dưới input: "cafe 30k", "ăn trưa 50k" |
-| 6 | Tap chip → auto submit | `quick_add_bar.dart` | Set `_ctrl.text = entry.text` → gọi `_submit()` trực tiếp |
-| 7 | Filter khi đang gõ | `quick_add_bar.dart` | Khi text không rỗng → filter suggestions startsWith text → hiện matching chips |
-| 8 | Limit entries | `SettingService` | Giữ tối đa 20 entries, xóa least recently used khi vượt |
-| 9 | Firestore rules | `firestore.rules` | `users/{userId}/quick_add_history/{docId}`: read/write if isCurrentUser |
-| 10 | L10n keys | `app_vi.dart`, `app_en.dart` | +1 key: recentEntries |
+| # | Task | Status |
+|---|------|--------|
+| 1 | QuickAddEntry model | ✅ `lib/features/quick_add/models/quick_add_entry.dart`: text, categoryId, amount, count, lastUsed + encode/decode |
+| 2 | Lưu history khi submit | ✅ `QuickAddHistory.record()` gọi sau submit thành công trong `quick_add_bar.dart` |
+| 3 | Persist vào settings | ✅ `QuickAddHistory`: lưu vào `users/{uid}/settings` key `quick_add_history`, pipe-delimited entries, newline-separated |
+| 4 | Load suggestions | ✅ `QuickAddHistory.init()` trong `main.dart`, `suggest()` sort by count desc |
+| 5 | Suggestion chips UI | ✅ `ActionChip` row hiện khi focus + text rỗng + có suggestions. Compact style |
+| 6 | Tap chip → auto submit | ✅ `_applySuggestion()`: set text → trigger `_submit()` |
+| 7 | Filter khi đang gõ | ✅ `_onChanged()` gọi `suggest(filter: text)` khi text không rỗng |
+| 8 | Limit 20 entries | ✅ `_maxEntries = 20`, xóa least recently used khi vượt |
+| 9 | Firestore rules | ✅ Dùng `users/{uid}/settings` — đã có rule |
+| 10 | Flush on pause | ✅ `QuickAddHistory.flush()` trong `didChangeAppLifecycleState` |

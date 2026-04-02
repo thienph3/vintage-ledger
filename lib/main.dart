@@ -10,6 +10,7 @@ import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/core/theme/app_theme.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
+import 'package:vintage_ledger/features/quick_add/quick_add_history.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -60,6 +61,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       QuickAddParser.flush();
+      QuickAddHistory.flush();
     }
   }
 
@@ -80,6 +82,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           setState(() { _locale = Locale(locale); _ready = true; });
           // Non-blocking init
           QuickAddParser.init();
+          QuickAddHistory.init();
           sl.notificationService.init();
           return;
         }
@@ -108,6 +111,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
     if (mounted) setState(() => _ready = true);
     QuickAddParser.init();
+    QuickAddHistory.init();
     sl.notificationService.init();
   }
 
