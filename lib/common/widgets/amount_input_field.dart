@@ -29,79 +29,81 @@ class AmountInputField extends StatefulWidget {
 
 class _AmountInputFieldState extends State<AmountInputField> {
   final _focusNode = FocusNode();
-  final _displayCtrl = TextEditingController();
+  final _fieldCtrl = TextEditingController();
   OverlayEntry? _overlay;
-  bool _editing = false;
+
+  int get _rawAmount => int.tryParse(widget.controller.text) ?? 0;
+  String get _locale => 'vi';
 
   @override
   void initState() {
     super.initState();
     _focusNode.addListener(_onFocusChanged);
-    _syncDisplay();
-    widget.controller.addListener(_onRawChanged);
+    // Show formatted on init
+    _setFormatted(_rawAmount);
   }
 
   @override
   void dispose() {
     _removeOverlay();
     _focusNode.dispose();
-    _displayCtrl.dispose();
-    widget.controller.removeListener(_onRawChanged);
+    _fieldCtrl.dispose();
     super.dispose();
   }
 
-  void _syncDisplay() {
-    final amount = int.tryParse(widget.controller.text) ?? 0;
-    if (!_editing) {
-      final locale = 'vi';
-      _displayCtrl.text = amount > 0
-          ? AmountFormatter.formatCurrency(amount, locale, currencyCode: widget.currency)
-          : (widget.showZero ? AmountFormatter.formatCurrency(0, locale, currencyCode: widget.currency) : '');
-    }
-  }
-
-  void _onRawChanged() {
-    if (!_editing) _syncDisplay();
+  void _setFormatted(int amount) {
+    _fieldCtrl.text = AmountFormatter.formatCurrency(amount, _locale, currencyCode: widget.currency);
   }
 
   void _onFocusChanged() {
     if (_focusNode.hasFocus) {
-      _editing = true;
-      // Show raw number for editing, clear if 0
-      final raw = int.tryParse(widget.controller.text) ?? 0;
-      _displayCtrl.text = raw > 0 ? raw.toString() : '';
-      _displayCtrl.selection = TextSelection.collapsed(offset: _displayCtrl.text.length);
+      if (_rawAmount == 0) {
+        _fieldCtrl.clear();
+      } else {
+        // Show formatted, cursor at end
+        _setFormatted(_rawAmount);
+        _fieldCtrl.selection = TextSelection.collapsed(offset: _fieldCtrl.text.length);
+      }
       _showOverlay();
     } else {
-      // Parse back, restore formatted
-      final parsed = int.tryParse(_displayCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-      widget.controller.text = parsed.toString();
-      _editing = false;
-      _syncDisplay();
+      // Restore 0 if empty
+      if (_fieldCtrl.text.replaceAll(RegExp(r'[^0-9]'), '').isEmpty) {
+        widget.controller.text = '0';
+      }
+      _setFormatted(_rawAmount);
       _removeOverlay();
     }
   }
 
-  void _onDisplayChanged(String value) {
-    // Strip non-digits, enforce max
-    final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
-    final clamped = digits.length > _maxDigits ? digits.substring(0, _maxDigits) : digits;
+  void _onChanged(String value) {
+    // Extract digits only, enforce max
+    var digits = value.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length > _maxDigits) digits = digits.substring(0, _maxDigits);
 
-    if (clamped != value) {
-      _displayCtrl.text = clamped;
-      _displayCtrl.selection = TextSelection.collapsed(offset: clamped.length);
+    final amount = int.tryParse(digits) ?? 0;
+    widget.controller.text = amount.toString();
+
+    // Re-format display, preserve cursor at end
+    if (amount > 0) {
+      final formatted = AmountFormatter.formatCurrency(amount, _locale, currencyCode: widget.currency);
+      _fieldCtrl.value = TextEditingValue(
+        text: formatted,
+        selection: TextSelection.collapsed(offset: formatted.length),
+      );
+    } else {
+      _fieldCtrl.value = const TextEditingValue(text: '', selection: TextSelection.collapsed(offset: 0));
     }
 
-    widget.controller.text = clamped.isEmpty ? '0' : clamped;
     _overlay?.markNeedsBuild();
   }
 
   void _selectAmount(int amount) {
-    final str = amount.toString();
-    final clamped = str.length > _maxDigits ? str.substring(0, _maxDigits) : str;
-    _displayCtrl.text = clamped;
-    _displayCtrl.selection = TextSelection.collapsed(offset: clamped.length);
-    widget.controller.text = clamped;
+    final clamped = amount.toString().length > _maxDigits
+        ? int.parse(amount.toString().substring(0, _maxDigits))
+        : amount;
+    widget.controller.text = clamped.toString();
+    _setFormatted(clamped);
+    _fieldCtrl.selection = TextSelection.collapsed(offset: _fieldCtrl.text.length);
     _overlay?.markNeedsBuild();
   }
 
@@ -121,18 +123,15 @@ class _AmountInputFieldState extends State<AmountInputField> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _focusNode.requestFocus(),
-      child: TextField(
-        controller: _displayCtrl,
-        focusNode: _focusNode,
-        keyboardType: TextInputType.number,
-        style: AppTextStyles.amount,
-        onChanged: _onDisplayChanged,
-        onTapOutside: (_) => _focusNode.unfocus(),
-        decoration: InputDecoration(
-          labelText: widget.label ?? S.of(context, 'amount'),
-        ),
+    return TextField(
+      controller: _fieldCtrl,
+      focusNode: _focusNode,
+      keyboardType: TextInputType.number,
+      style: AppTextStyles.amount,
+      onChanged: _onChanged,
+      onTapOutside: (_) => _focusNode.unfocus(),
+      decoration: InputDecoration(
+        labelText: widget.label ?? S.of(context, 'amount'),
       ),
     );
   }
@@ -148,17 +147,9 @@ class _ChipsBar extends StatelessWidget {
     if (base <= 0) return AmountHistory.topAmounts();
 
     final digits = base.toString().length;
-
-    // 8+ digits: show history defaults
     if (digits >= _maxDigits) return AmountHistory.topAmounts();
-
-    // 7 digits: 1 chip (×10)
     if (digits == 7) return [base * 10];
-
-    // 6 digits: 2 chips (×10, ×100)
     if (digits == 6) return [base * 10, base * 100];
-
-    // 1-5 digits: 3 chips
     if (digits <= 2) return [base * 1000, base * 10000, base * 100000];
     return [base * 10, base * 100, base * 1000];
   }
