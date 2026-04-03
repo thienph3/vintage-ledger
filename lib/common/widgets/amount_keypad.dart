@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 
 class AmountKeypad extends StatelessWidget {
@@ -6,50 +7,43 @@ class AmountKeypad extends StatelessWidget {
 
   const AmountKeypad({super.key, required this.onInput});
 
-  Widget buildKey(String value) {
+  Widget _key(String value) {
     return Expanded(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
+      child: GestureDetector(
         onTap: () => onInput(value),
         child: Container(
-          height: 60,
-          margin: const EdgeInsets.all(4),
+          height: 52,
+          margin: const EdgeInsets.all(3),
           decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(8),
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(12),
           ),
           alignment: Alignment.center,
-          child: Text(
-            value,
-            style: AppTextStyles.keypad,
-          ),
+          child: Text(value, style: AppTextStyles.keypad),
         ),
       ),
     );
-  }
-
-  Widget buildRow(List<String> values) {
-    return Row(children: values.map((v) => buildKey(v)).toList());
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        buildRow(["1", "2", "3"]),
-        buildRow(["4", "5", "6"]),
-        buildRow(["7", "8", "9"]),
+        Row(children: [_key("1"), _key("2"), _key("3")]),
+        Row(children: [_key("4"), _key("5"), _key("6")]),
+        Row(children: [_key("7"), _key("8"), _key("9")]),
         Row(
           children: [
-            buildKey("000"),
-            buildKey("0"),
+            _key("000"),
+            _key("0"),
             Expanded(
-              child: InkWell(
+              child: GestureDetector(
                 onTap: () => onInput("BACKSPACE"),
                 child: Container(
-                  height: 60,
+                  height: 52,
+                  margin: const EdgeInsets.all(3),
                   alignment: Alignment.center,
-                  child: const Icon(Icons.backspace),
+                  child: Icon(Icons.backspace_outlined, color: AppColors.textSecondary, size: 22),
                 ),
               ),
             ),

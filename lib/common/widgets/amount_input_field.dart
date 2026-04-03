@@ -55,6 +55,12 @@ class AmountInputField extends StatelessWidget {
                   value: tempValue,
                   onInput: handleInput,
                   onDone: () => Navigator.pop(context, tempValue),
+                  onQuickSelect: (amount) {
+                    setState(() {
+                      tempValue = amount;
+                      controller.text = tempValue.toString();
+                    });
+                  },
                 );
               },
             );
