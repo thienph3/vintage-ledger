@@ -210,24 +210,25 @@ class _QuickAddBarState extends State<QuickAddBar> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = Localizations.localeOf(context).languageCode;
     final hasInput = _ctrl.text.trim().isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
       decoration: BoxDecoration(
-        color: AppColors.paper,
-        border: Border(top: BorderSide(color: AppColors.divider.withValues(alpha: 0.4))),
+        color: AppColors.surface,
+        boxShadow: [
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, -2)),
+        ],
       ),
       child: SafeArea(
         top: false,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Suggestion chips
+            // Suggestion chips (above input, like quick replies)
             if (_focused && _suggestions.isNotEmpty && !_result.hasAmount)
               Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: SizedBox(
                   height: 32,
                   child: ListView.separated(
@@ -238,7 +239,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
                       final e = _suggestions[i];
                       return ActionChip(
                         label: Text(e.text, style: AppTextStyles.caption),
-                        backgroundColor: AppColors.inkBlue.withValues(alpha: 0.08),
+                        backgroundColor: AppColors.primary.withValues(alpha: 0.08),
                         side: BorderSide.none,
                         padding: EdgeInsets.zero,
                         visualDensity: VisualDensity.compact,
@@ -248,42 +249,40 @@ class _QuickAddBarState extends State<QuickAddBar> {
                   ),
                 ),
               ),
-            // Preview + wallet selector
-            if (hasInput && _result.hasAmount)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-                child: _buildPreview(locale),
-              )
-            else if (widget.wallets.length > 1)
+            // Wallet chip (compact, only when multiple wallets + no input)
+            if (!hasInput && widget.wallets.length > 1)
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                 child: _buildWalletChip(),
               ),
-            // Input row
+            // Chat-like input row
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _ctrl,
-                    focusNode: _focusNode,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => _submit(),
-                    style: AppTextStyles.body,
-                    decoration: InputDecoration(
-                      hintText: S.of(context, 'quickAddHint'),
-                      hintStyle: AppTextStyles.hint,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide(color: AppColors.divider),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.background,
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: TextField(
+                      controller: _ctrl,
+                      focusNode: _focusNode,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _submit(),
+                      style: AppTextStyles.body,
+                      decoration: InputDecoration(
+                        hintText: S.of(context, 'quickAddHint'),
+                        hintStyle: AppTextStyles.hint,
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        isDense: true,
+                        suffixIcon: hasInput
+                            ? IconButton(
+                                icon: const Icon(Icons.close, size: 16, color: AppColors.textSecondary),
+                                onPressed: () { _ctrl.clear(); _focusNode.unfocus(); },
+                              )
+                            : null,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      isDense: true,
-                      suffixIcon: hasInput
-                          ? IconButton(
-                              icon: const Icon(Icons.close, size: 18),
-                              onPressed: () { _ctrl.clear(); _focusNode.unfocus(); },
-                            )
-                          : null,
                     ),
                   ),
                 ),
@@ -296,9 +295,9 @@ class _QuickAddBarState extends State<QuickAddBar> {
                     : IconButton(
                         onPressed: hasInput ? _submit : _openFullForm,
                         icon: Icon(
-                          hasInput && _result.isComplete ? Icons.check_circle : Icons.add_circle,
-                          color: AppColors.inkBlue,
-                          size: 32,
+                          hasInput ? Icons.send_rounded : Icons.add_circle_outline,
+                          color: AppColors.primary,
+                          size: 28,
                         ),
                       ),
               ],
@@ -324,62 +323,6 @@ class _QuickAddBarState extends State<QuickAddBar> {
           ],
         ],
       ),
-    );
-  }
-
-  Widget _buildPreview(String locale) {
-    final amountStr = AmountFormatter.formatCurrency(_result.amount, locale);
-    final catName = _result.hasCategory
-        ? _categories.where((c) => c.id == _result.matchedCategoryId).firstOrNull?.name
-        : null;
-    final isIncome = _result.type == TransactionType.income;
-
-    return Row(
-      children: [
-        // Wallet chip (compact)
-        if (widget.wallets.length > 1) ...[
-          GestureDetector(
-            onTap: _showWalletPicker,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.account_balance_wallet, size: 12, color: AppColors.divider),
-                const SizedBox(width: 2),
-                Text(_currentWalletName ?? '', style: AppTextStyles.caption),
-                const Icon(Icons.unfold_more, size: 10, color: AppColors.divider),
-              ],
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-        ],
-        Icon(
-          isIncome ? Icons.arrow_downward : Icons.arrow_upward,
-          size: 14,
-          color: isIncome ? AppColors.income : AppColors.expense,
-        ),
-        const SizedBox(width: 4),
-        Text(
-          amountStr,
-          style: AppTextStyles.bodyBold.copyWith(
-            color: isIncome ? AppColors.income : AppColors.expense,
-          ),
-        ),
-        if (catName != null) ...[
-          const SizedBox(width: AppSpacing.sm),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: AppColors.inkBlue.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(catName, style: AppTextStyles.caption),
-          ),
-        ],
-        if (!_result.hasCategory && _result.keyword != null && _result.keyword!.isNotEmpty) ...[
-          const SizedBox(width: AppSpacing.sm),
-          Text('?', style: AppTextStyles.caption.copyWith(color: AppColors.divider)),
-        ],
-      ],
     );
   }
 }

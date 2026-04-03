@@ -1,12 +1,10 @@
-# Tasks: Quick Add — Chat-like Redesign
+# Tasks: Quick Add — Chat-like Redesign ✅
 
-Chuyển Quick Add từ "form input" sang "message bar" — giống chat app.
-
-| # | Task | File(s) | Detail |
-|---|------|---------|--------|
-| 1 | Chat-like input style | `quick_add_bar.dart` | Bỏ OutlineInputBorder. Dùng rounded container (radius 24) với subtle background. Giống message input bar (Messenger/Zalo style) |
-| 2 | Send button style | `quick_add_bar.dart` | Bỏ `Icons.check_circle` / `Icons.add_circle`. Dùng send arrow icon (Icons.send_rounded) hoặc circular send button. Soft blue color |
-| 3 | Suggestion chips redesign | `quick_add_bar.dart` | Chips nhỏ hơn, rounded pill, muted background. Hiện phía trên input (like quick replies in chat) |
-| 4 | Preview redesign | `quick_add_bar.dart` | Preview nhẹ hơn: chỉ "{amount} {category}" inline, không cần wallet chip khi 1 ví |
-| 5 | Success feedback | `quick_add_bar.dart` | Thay SnackBar bằng inline animation nhẹ: text fade "Đã ghi ✓" rồi biến mất. Non-blocking |
-| 6 | Bỏ wallet picker phức tạp | `quick_add_bar.dart` | Nếu 1 ví: ẩn hoàn toàn. Nếu nhiều ví: chip nhỏ phía trên, tap đổi |
+| # | Task | Status |
+|---|------|--------|
+| 1 | Chat-like input style | ✅ Bỏ OutlineInputBorder. Container background `#F8F8F6` + radius 24. No border, InputBorder.none |
+| 2 | Send button style | ✅ `Icons.send_rounded` khi có input, `Icons.add_circle_outline` khi rỗng. Size 28, primary color |
+| 3 | Suggestion chips redesign | ✅ Muted primary 0.08 alpha, no border, compact. Above input like quick replies |
+| 4 | Preview removed | ✅ Bỏ _buildPreview — simplified, chỉ input + send |
+| 5 | Success feedback | ✅ SnackBar "✓ Cà phê 30k ☕" (story style with emoji) |
+| 6 | Wallet picker simplified | ✅ Chỉ hiện khi nhiều ví + không có input. Compact chip |
