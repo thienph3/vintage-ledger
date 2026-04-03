@@ -10,6 +10,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/export/export_service.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
+import 'package:vintage_ledger/core/debug/read_counter.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
 import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
@@ -193,6 +194,18 @@ class _SettingScreenState extends State<SettingScreen> {
               color: AppColors.expense,
               onTap: () async { await QuickAddParser.clearLearned(); setState(() {}); },
             ),
+
+          // Debug
+          const SizedBox(height: AppSpacing.lg),
+          _sectionLabel('Debug'),
+          _tile(Icons.bug_report_outlined, 'Firestore reads',
+            subtitle: '${ReadCounter.count} reads',
+            trailing: IconButton(
+              icon: const Icon(Icons.refresh, size: 16, color: AppColors.textSecondary),
+              onPressed: () { ReadCounter.reset(); setState(() {}); },
+            ),
+            onTap: () {},
+          ),
           const SizedBox(height: AppSpacing.xl),
         ],
       ),
