@@ -36,6 +36,8 @@ const Map<String, String> vi = {
   'today': 'Hôm nay',
   'yesterday': 'Hôm qua',
   'tapToReact': 'Nhấn giữ để react',
+  'allWallets': 'Tất cả ví',
+  'allCategories': 'Tất cả',
   'addTransaction': 'Ghi thu chi',
   'editTransaction': 'Sửa thu chi',
   'addNewTransaction': 'Ghi thu chi mới',

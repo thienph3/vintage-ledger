@@ -36,6 +36,8 @@ const Map<String, String> en = {
   'today': 'Today',
   'yesterday': 'Yesterday',
   'tapToReact': 'Long press to react',
+  'allWallets': 'All wallets',
+  'allCategories': 'All',
   'addTransaction': 'Log transaction',
   'editTransaction': 'Edit transaction',
   'addNewTransaction': 'New transaction',
