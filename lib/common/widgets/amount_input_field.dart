@@ -9,8 +9,9 @@ class AmountInputField extends StatelessWidget {
   final TextEditingController controller;
   final String currency;
   final String? label;
+  final bool showZero;
 
-  const AmountInputField({super.key, required this.controller, this.currency = 'VND', this.label});
+  const AmountInputField({super.key, required this.controller, this.currency = 'VND', this.label, this.showZero = false});
 
   int _parseAmount() {
     final text = controller.text.replaceAll('.', '');
@@ -72,10 +73,10 @@ class AmountInputField extends StatelessWidget {
                 suffixIcon: const Icon(Icons.dialpad, size: 20),
               ),
               child: Text(
-                amount > 0
+                amount > 0 || showZero
                     ? AmountFormatter.formatCurrency(amount, locale, currencyCode: currency)
                     : S.of(context, 'enterAmount'),
-                style: amount > 0 ? AppTextStyles.amount : AppTextStyles.hint,
+                style: amount > 0 || showZero ? AppTextStyles.amount : AppTextStyles.hint,
               ),
             );
           },

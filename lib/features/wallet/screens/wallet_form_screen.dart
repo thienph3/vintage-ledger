@@ -101,6 +101,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
               AmountInputField(
                 controller: _initialBalanceCtrl,
                 label: S.of(context, 'initialBalance'),
+                showZero: true,
               ),
               const SizedBox(height: AppSpacing.lg),
               FormSaveButton(isEdit: isEdit, onPressed: _save),
