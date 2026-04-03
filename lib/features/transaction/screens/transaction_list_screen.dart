@@ -272,44 +272,44 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         children: [
           // Wallet filter
           if (widget.walletId == null && _wallets.length > 1) ...[
-            _buildDropdownChip(
+            _buildDropdownChip<String>(
               label: _filterWalletId == null
                   ? S.of(context, 'allWallets')
                   : _wallets.where((w) => w.id == _filterWalletId).firstOrNull?.name ?? '',
               active: _filterWalletId != null,
               items: [
-                PopupMenuItem(value: null, child: Text(S.of(context, 'allWallets'), style: AppTextStyles.body)),
-                ..._wallets.map((w) => PopupMenuItem(value: w.id, child: Text(w.name, style: AppTextStyles.body))),
+                PopupMenuItem(value: '_all', child: Text(S.of(context, 'allWallets'), style: AppTextStyles.body)),
+                ..._wallets.map((w) => PopupMenuItem(value: w.id!, child: Text(w.name, style: AppTextStyles.body))),
               ],
-              onSelected: (id) => setState(() => _filterWalletId = id),
+              onSelected: (id) => setState(() => _filterWalletId = id == '_all' ? null : id),
             ),
             const SizedBox(width: 8),
           ],
           // Category filter
-          _buildDropdownChip(
+          _buildDropdownChip<String>(
             label: _filterCategoryId == null
                 ? S.of(context, 'allCategories')
                 : _categoryNameMap[_filterCategoryId] ?? '',
             active: _filterCategoryId != null,
             items: [
-              PopupMenuItem(value: null, child: Text(S.of(context, 'allCategories'), style: AppTextStyles.body)),
-              ..._categories.map((c) => PopupMenuItem(value: c.id, child: Text(c.name, style: AppTextStyles.body))),
+              PopupMenuItem(value: '_all', child: Text(S.of(context, 'allCategories'), style: AppTextStyles.body)),
+              ..._categories.map((c) => PopupMenuItem(value: c.id!, child: Text(c.name, style: AppTextStyles.body))),
             ],
-            onSelected: (id) => setState(() => _filterCategoryId = id),
+            onSelected: (id) => setState(() => _filterCategoryId = id == '_all' ? null : id),
           ),
           // Member filter (family only)
           if (_members.length > 1) ...[
             const SizedBox(width: 8),
-            _buildDropdownChip<String?>(
+            _buildDropdownChip<String>(
               label: _filterUserId == null
                   ? S.of(context, 'everyone')
                   : _members.where((m) => m['id'] == _filterUserId).firstOrNull?['name'] ?? '',
               active: _filterUserId != null,
               items: [
-                PopupMenuItem(value: null, child: Text(S.of(context, 'everyone'), style: AppTextStyles.body)),
-                ..._members.map((m) => PopupMenuItem(value: m['id'], child: Text(m['name'] ?? '?', style: AppTextStyles.body))),
+                PopupMenuItem(value: '_all', child: Text(S.of(context, 'everyone'), style: AppTextStyles.body)),
+                ..._members.map((m) => PopupMenuItem(value: m['id']!, child: Text(m['name'] ?? '?', style: AppTextStyles.body))),
               ],
-              onSelected: (id) => setState(() => _filterUserId = id),
+              onSelected: (id) => setState(() => _filterUserId = id == '_all' ? null : id),
             ),
           ],
         ],
