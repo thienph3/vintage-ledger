@@ -82,6 +82,12 @@ service cloud.firestore {
           request.resource.data.amount > 0 &&
           request.resource.data.type in ['income', 'expense'];
         allow delete: if isMember(accountId);
+
+        match /reactions/{userId} {
+          allow read: if isMember(accountId);
+          allow create, update: if isMember(accountId) && isCurrentUser(userId);
+          allow delete: if isCurrentUser(userId);
+        }
       }
 
       match /categories/{docId} {

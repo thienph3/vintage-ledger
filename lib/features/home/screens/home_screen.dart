@@ -22,6 +22,8 @@ import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/utils/transaction_story.dart';
+import 'package:vintage_ledger/features/transaction/widgets/reaction_picker.dart';
+import 'package:vintage_ledger/features/transaction/widgets/reaction_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -207,17 +209,37 @@ class _HomeScreenState extends State<HomeScreen> {
       note: txn.transaction.note,
     );
 
-    return FeedItem(
-      actorName: actor,
-      text: story,
-      time: time,
-      onTap: () async {
-        final result = await context.pushScreen(TransactionFormScreen(
-          walletId: txn.transaction.walletId,
-          existing: txn,
-        ));
-        if (result == true) _load();
-      },
+    return Column(
+      children: [
+        FeedItem(
+          actorName: actor,
+          text: story,
+          time: time,
+          onTap: () async {
+            final result = await context.pushScreen(TransactionFormScreen(
+              walletId: txn.transaction.walletId,
+              existing: txn,
+            ));
+            if (result == true) _load();
+          },
+        ),
+        if (txn.transaction.id != null)
+          StreamBuilder<Map<String, String>>(
+            stream: sl.reactionService.watchReactions(txn.transaction.id!),
+            builder: (context, snap) {
+              final reactions = snap.data ?? {};
+              return GestureDetector(
+                onLongPress: () async {
+                  final emoji = await ReactionPicker.show(context);
+                  if (emoji != null) {
+                    sl.reactionService.addReaction(txn.transaction.id!, emoji);
+                  }
+                },
+                child: ReactionBar(reactions: reactions),
+              );
+            },
+          ),
+      ],
     );
   }
 }

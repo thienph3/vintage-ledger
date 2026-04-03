@@ -34,6 +34,7 @@ const Map<String, String> vi = {
   'youActor': 'Bạn',
   'today': 'Hôm nay',
   'yesterday': 'Hôm qua',
+  'tapToReact': 'Nhấn giữ để react',
   'addTransaction': 'Ghi thu chi',
   'editTransaction': 'Sửa thu chi',
   'addNewTransaction': 'Ghi thu chi mới',

@@ -34,6 +34,7 @@ const Map<String, String> en = {
   'youActor': 'You',
   'today': 'Today',
   'yesterday': 'Yesterday',
+  'tapToReact': 'Long press to react',
   'addTransaction': 'Log transaction',
   'editTransaction': 'Edit transaction',
   'addNewTransaction': 'New transaction',
