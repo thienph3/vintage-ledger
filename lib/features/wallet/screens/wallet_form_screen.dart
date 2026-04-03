@@ -93,7 +93,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
               DropdownButtonFormField<String>(
                 initialValue: _currency,
                 decoration: InputDecoration(labelText: S.of(context, 'currency')),
-                items: Currency.all.map((c) => DropdownMenuItem(
+                items: Currency.all.where((c) => c.code == 'VND').map((c) => DropdownMenuItem(
                   value: c.code,
                   child: Text('${c.symbol}  ${c.code}', style: AppTextStyles.body),
                 )).toList(),

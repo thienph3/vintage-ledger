@@ -236,22 +236,22 @@ class _SettingScreenState extends State<SettingScreen> {
           ],
           const Divider(),
 
-          // Currency section
+          // Currency section (VND only for now)
           const SizedBox(height: AppSpacing.md),
           Text(S.of(context, 'currency'), style: AppTextStyles.title),
           const SizedBox(height: AppSpacing.sm),
-          ...Currency.all.map((c) {
+          ...Currency.all.where((c) => c.code == 'VND').map((c) {
             final isSelected = _defaultCurrency == c.code;
             return ListTile(
               leading: Text(c.symbol, style: AppTextStyles.emoji),
               title: Text(c.code),
-              trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.inkBlue) : null,
+              trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.primary) : null,
               onTap: () async {
                 await sl.settingService.setDefaultCurrency(c.code);
                 setState(() => _defaultCurrency = c.code);
               },
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              tileColor: isSelected ? AppColors.inkBlue.withValues(alpha: 0.1) : null,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              tileColor: isSelected ? AppColors.primary.withValues(alpha: 0.08) : null,
             );
           }),
           const Divider(),
