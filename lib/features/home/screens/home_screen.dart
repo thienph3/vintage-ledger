@@ -17,6 +17,7 @@ import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/features/feed/feed_helper.dart';
 import 'package:vintage_ledger/features/feed/widgets/feed_item.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
+import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
@@ -135,8 +136,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               else
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Text(S.of(context, 'firstRunHint'), style: AppTextStyles.hint, textAlign: TextAlign.center),
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  child: Column(
+                    children: [
+                      Text(S.of(context, 'firstRunHint'), style: AppTextStyles.hint, textAlign: TextAlign.center),
+                      const SizedBox(height: AppSpacing.md),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          final result = await context.pushScreen(const WalletFormScreen());
+                          if (result == true) _load();
+                        },
+                        icon: const Icon(Icons.add, size: 18),
+                        label: Text(S.of(context, 'addWallet')),
+                      ),
+                    ],
+                  ),
                 ),
             ],
           ),

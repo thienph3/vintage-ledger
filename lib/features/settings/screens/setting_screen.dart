@@ -17,6 +17,8 @@ import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/recurring/screens/recurring_list_screen.dart';
+import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
+import 'package:vintage_ledger/features/category/screens/category_list_screen.dart';
 import 'package:vintage_ledger/main.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 
@@ -252,6 +254,24 @@ class _SettingScreenState extends State<SettingScreen> {
               tileColor: isSelected ? AppColors.inkBlue.withValues(alpha: 0.1) : null,
             );
           }),
+          const Divider(),
+
+          // Wallet & Category management
+          const SizedBox(height: AppSpacing.md),
+          ListTile(
+            leading: const Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary),
+            title: Text(S.of(context, 'manageWallets')),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () => context.pushScreen(const WalletListScreen()),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+          ListTile(
+            leading: const Icon(Icons.category_outlined, color: AppColors.primary),
+            title: Text(S.of(context, 'manageCategories')),
+            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+            onTap: () => context.pushScreen(const CategoryListScreen()),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          ),
           const Divider(),
 
           // Language section

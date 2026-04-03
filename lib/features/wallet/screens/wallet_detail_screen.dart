@@ -16,6 +16,7 @@ import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
+import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 
 class WalletDetailScreen extends StatefulWidget {
   final Wallet wallet;
@@ -87,6 +88,15 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
     return AppScaffold(
       title: _walletName,
       onTitleTap: _renameWallet,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.edit_outlined, size: 20),
+          onPressed: () async {
+            final result = await context.pushScreen(WalletFormScreen(wallet: widget.wallet));
+            if (result == true) _loadData();
+          },
+        ),
+      ],
       body: Column(
         children: [
           Expanded(

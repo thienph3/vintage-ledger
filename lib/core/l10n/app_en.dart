@@ -96,6 +96,8 @@ const Map<String, String> en = {
   'longPressToSetDefault': 'Long press to set as default',
   'account': 'Account',
   'switchAccount': 'Switch ledger',
+  'manageWallets': 'Manage wallets',
+  'manageCategories': 'Categories',
 
   // Chart
   'noData': 'No data yet',
