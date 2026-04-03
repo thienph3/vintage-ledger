@@ -13,7 +13,6 @@ import 'package:vintage_ledger/features/export/export_service.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 import 'package:vintage_ledger/core/debug/read_counter.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
-import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/category/screens/category_list_screen.dart';
@@ -66,6 +65,30 @@ class _SettingScreenState extends State<SettingScreen> {
       );
       if (mounted) setState(() {});
       showAppSnackBar(context, S.of(context, 'googleLinked'));
+    } catch (e) {
+      if (!mounted) return;
+      final mapped = ErrorMapper.map(e);
+      showAppSnackBar(context, S.of(context, mapped.message), backgroundColor: AppColors.expense);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      final user = await sl.authService.linkWithGoogle();
+      if (user == null || !mounted) return;
+      sl.appState.currentUserId = user.uid;
+      final accountId = await sl.accountService.getOrCreatePersonalAccountId(
+        user.uid, user.email ?? '', user.displayName ?? '',
+      );
+      sl.appState.currentAccountId = accountId;
+      sl.settingService.setLastAccountId(accountId);
+      await sl.accountService.updateUserProfile(
+        userId: user.uid,
+        email: user.email ?? '',
+        displayName: user.displayName ?? '',
+        photoUrl: user.photoURL,
+      );
+      if (mounted) setState(() {});
     } catch (e) {
       if (!mounted) return;
       final mapped = ErrorMapper.map(e);
@@ -249,25 +272,22 @@ class _SettingScreenState extends State<SettingScreen> {
             const SizedBox(height: AppSpacing.sm),
             Text(S.of(context, 'anonymousExplanation'), style: AppTextStyles.hint, textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () async {
-                      final result = await context.pushScreen(const RegisterScreen());
-                      if (result == true && mounted) setState(() {});
-                    },
-                    child: Text(S.of(context, 'register')),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _loginExisting,
-                    child: Text(S.of(context, 'login')),
-                  ),
-                ),
-              ],
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _signInWithGoogle,
+                icon: const Icon(Icons.g_mobiledata, size: 24),
+                label: Text(S.of(context, 'signInWithGoogle')),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: _loginExisting,
+                child: Text(S.of(context, 'loginWithEmail')),
+              ),
+            ),
             ),
           ],
         ),

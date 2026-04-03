@@ -54,36 +54,13 @@ class AuthService {
     }
   }
 
-  // ── Email (deprecated) ──
+  // ── Email (deprecated — login only, no register) ──
 
   Future<User?> loginWithEmail(String email, String password) async {
     try {
       final result = await _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
       await result.user?.getIdToken(true);
       return result.user;
-    } on FirebaseAuthException catch (e) {
-      throw ErrorMapper.map(e);
-    }
-  }
-
-  Future<User?> registerWithEmail(String email, String password, String displayName) async {
-    try {
-      final result = await _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
-      await result.user?.updateDisplayName(displayName);
-      await result.user?.getIdToken(true);
-      return result.user;
-    } on FirebaseAuthException catch (e) {
-      throw ErrorMapper.map(e);
-    }
-  }
-
-  Future<User?> linkWithEmail(String email, String password, String displayName) async {
-    try {
-      final credential = EmailAuthProvider.credential(email: email, password: password);
-      final result = await _firebaseAuth.currentUser?.linkWithCredential(credential);
-      await result?.user?.updateDisplayName(displayName);
-      await result?.user?.getIdToken(true);
-      return result?.user;
     } on FirebaseAuthException catch (e) {
       throw ErrorMapper.map(e);
     }
