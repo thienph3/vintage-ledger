@@ -5,23 +5,27 @@ import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
-import 'package:vintage_ledger/common/widgets/amount_keypad.dart';
-
-const _quickAmounts = [10000, 20000, 50000, 100000, 200000, 500000];
+import 'package:vintage_ledger/common/widgets/amount_history.dart';
 
 class AmountPickerSheet extends StatelessWidget {
-  final int value;
-  final ValueChanged<String> onInput;
+  final TextEditingController controller;
   final VoidCallback onDone;
-  final ValueChanged<int>? onQuickSelect;
 
   const AmountPickerSheet({
     super.key,
-    required this.value,
-    required this.onInput,
+    required this.controller,
     required this.onDone,
-    this.onQuickSelect,
   });
+
+  List<int> _dynamicChips(String text) {
+    final base = int.tryParse(text) ?? 0;
+    if (base <= 0) return const [];
+    final chips = <int>[];
+    if (base < 1000) chips.add(base * 1000);
+    if (base < 100) chips.add(base * 10000);
+    if (base < 10) chips.add(base * 100000);
+    return chips;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,21 +33,29 @@ class AmountPickerSheet extends StatelessWidget {
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: EdgeInsets.only(
+          left: AppSpacing.md,
+          right: AppSpacing.md,
+          top: AppSpacing.md,
+          bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.md,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Amount display + done button
+            // Input row
             Row(
               children: [
                 Expanded(
-                  child: Text(
-                    value > 0
-                        ? AmountFormatter.formatCurrency(value, locale)
-                        : S.of(context, 'enterAmount'),
-                    style: value > 0
-                        ? AppTextStyles.title.copyWith(color: AppColors.primary)
-                        : AppTextStyles.hint,
+                  child: TextField(
+                    controller: controller,
+                    autofocus: true,
+                    keyboardType: TextInputType.number,
+                    style: AppTextStyles.title,
+                    decoration: InputDecoration(
+                      hintText: S.of(context, 'enterAmount'),
+                      hintStyle: AppTextStyles.hint,
+                      border: InputBorder.none,
+                    ),
                   ),
                 ),
                 TextButton(
@@ -52,40 +64,53 @@ class AmountPickerSheet extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
 
-            // Quick amount chips
-            if (onQuickSelect != null)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _quickAmounts.map((amount) {
-                    final selected = value == amount;
-                    return GestureDetector(
-                      onTap: () => onQuickSelect!(amount),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: selected ? AppColors.primary : AppColors.primary.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          AmountFormatter.formatCompact(amount, locale),
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: selected ? Colors.white : AppColors.primary,
-                            fontWeight: FontWeight.w600,
+            // Chips
+            ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller,
+              builder: (context, value, _) {
+                final text = value.text.trim();
+                final chips = text.isEmpty
+                    ? AmountHistory.topAmounts()
+                    : _dynamicChips(text);
+
+                if (chips.isEmpty) return const SizedBox.shrink();
+
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: chips.map((amount) {
+                      final selected = (int.tryParse(text) ?? 0) == amount;
+                      return GestureDetector(
+                        onTap: () {
+                          controller.text = amount.toString();
+                          controller.selection = TextSelection.collapsed(offset: controller.text.length);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? AppColors.primary
+                                : AppColors.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            AmountFormatter.formatCurrency(amount, locale),
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: selected ? Colors.white : AppColors.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-
-            // Keypad
-            AmountKeypad(onInput: onInput),
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),

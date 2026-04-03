@@ -11,6 +11,7 @@ import 'package:vintage_ledger/features/account/screens/account_picker_screen.da
 import 'package:vintage_ledger/core/theme/app_theme.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_history.dart';
+import 'package:vintage_ledger/common/widgets/amount_history.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +63,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       QuickAddParser.flush();
       QuickAddHistory.flush();
+      AmountHistory.flush();
     }
   }
 
@@ -94,6 +96,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           // Non-blocking init
           QuickAddParser.init();
           QuickAddHistory.init();
+          AmountHistory.init();
           sl.notificationService.init();
           sl.recurringService.checkAndRun();
           if (mounted) sl.reminderService.init(context);
@@ -125,6 +128,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (mounted) setState(() => _ready = true);
     QuickAddParser.init();
     QuickAddHistory.init();
+    AmountHistory.init();
     sl.notificationService.init();
     sl.recurringService.checkAndRun();
     if (mounted) sl.reminderService.init(context);

@@ -10,6 +10,7 @@ import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
+import 'package:vintage_ledger/common/widgets/amount_history.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 
 class WalletFormScreen extends StatefulWidget {
@@ -65,6 +66,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
         await sl.walletService.createWallet(name, initialBalance, currency: _currency);
       }
       if (!mounted) return;
+      if (initialBalance > 0) AmountHistory.record(initialBalance);
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;

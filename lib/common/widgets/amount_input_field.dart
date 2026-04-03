@@ -11,12 +11,13 @@ class AmountInputField extends StatelessWidget {
   final String? label;
   final bool showZero;
 
-  const AmountInputField({super.key, required this.controller, this.currency = 'VND', this.label, this.showZero = false});
-
-  int _parseAmount() {
-    final text = controller.text.replaceAll('.', '');
-    return int.tryParse(text) ?? 0;
-  }
+  const AmountInputField({
+    super.key,
+    required this.controller,
+    this.currency = 'VND',
+    this.label,
+    this.showZero = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,43 +29,15 @@ class AmountInputField extends StatelessWidget {
           alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
         );
 
-        int tempValue = _parseAmount();
-
         if (!context.mounted) return;
-        await showModalBottomSheet<int>(
+        await showModalBottomSheet(
           context: context,
           isScrollControlled: true,
           isDismissible: true,
-          builder: (_) {
-            return StatefulBuilder(
-              builder: (context, setState) {
-                void handleInput(String input) {
-                  setState(() {
-                    if (input == "BACKSPACE") {
-                      tempValue = tempValue ~/ 10;
-                    } else if (input == "000") {
-                      tempValue *= 1000;
-                    } else {
-                      tempValue = tempValue * 10 + (int.tryParse(input) ?? 0);
-                    }
-                    controller.text = tempValue.toString();
-                  });
-                }
-
-                return AmountPickerSheet(
-                  value: tempValue,
-                  onInput: handleInput,
-                  onDone: () => Navigator.pop(context, tempValue),
-                  onQuickSelect: (amount) {
-                    setState(() {
-                      tempValue = amount;
-                      controller.text = tempValue.toString();
-                    });
-                  },
-                );
-              },
-            );
-          },
+          builder: (_) => AmountPickerSheet(
+            controller: controller,
+            onDone: () => Navigator.pop(context),
+          ),
         );
       },
       child: AbsorbPointer(

@@ -20,6 +20,7 @@ import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
 import 'package:vintage_ledger/features/recurring/models/recurring_rule.dart';
 import 'package:vintage_ledger/features/recurring/services/recurring_service.dart';
+import 'package:vintage_ledger/common/widgets/amount_history.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/screens/category_form_screen.dart';
 import 'package:vintage_ledger/features/budget/models/budget_status.dart';
@@ -259,6 +260,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         ));
       }
 
+      AmountHistory.record(amount);
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;

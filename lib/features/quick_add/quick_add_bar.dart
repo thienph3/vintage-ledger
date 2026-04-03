@@ -14,6 +14,7 @@ import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_history.dart';
 import 'package:vintage_ledger/features/quick_add/models/quick_add_entry.dart';
+import 'package:vintage_ledger/common/widgets/amount_history.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
@@ -149,6 +150,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
       }
 
       QuickAddHistory.record(_ctrl.text.trim(), _result.matchedCategoryId!, _result.amount);
+      AmountHistory.record(_result.amount);
 
       // Persist as last used wallet
       sl.settingService.setLastWalletId(walletId);
