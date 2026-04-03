@@ -7,6 +7,8 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/common/widgets/amount_history.dart';
 
+const _maxDigits = 8;
+
 class AmountInputField extends StatefulWidget {
   final TextEditingController controller;
   final String currency;
@@ -27,45 +29,87 @@ class AmountInputField extends StatefulWidget {
 
 class _AmountInputFieldState extends State<AmountInputField> {
   final _focusNode = FocusNode();
+  final _displayCtrl = TextEditingController();
   OverlayEntry? _overlay;
+  bool _editing = false;
 
   @override
   void initState() {
     super.initState();
     _focusNode.addListener(_onFocusChanged);
+    _syncDisplay();
+    widget.controller.addListener(_onRawChanged);
   }
 
   @override
   void dispose() {
     _removeOverlay();
     _focusNode.dispose();
+    _displayCtrl.dispose();
+    widget.controller.removeListener(_onRawChanged);
     super.dispose();
+  }
+
+  void _syncDisplay() {
+    final amount = int.tryParse(widget.controller.text) ?? 0;
+    if (!_editing) {
+      final locale = 'vi';
+      _displayCtrl.text = amount > 0
+          ? AmountFormatter.formatCurrency(amount, locale, currencyCode: widget.currency)
+          : (widget.showZero ? AmountFormatter.formatCurrency(0, locale, currencyCode: widget.currency) : '');
+    }
+  }
+
+  void _onRawChanged() {
+    if (!_editing) _syncDisplay();
   }
 
   void _onFocusChanged() {
     if (_focusNode.hasFocus) {
-      // Clear "0" so user can type fresh
-      if (widget.controller.text == '0') {
-        widget.controller.clear();
-      }
+      _editing = true;
+      // Show raw number for editing, clear if 0
+      final raw = int.tryParse(widget.controller.text) ?? 0;
+      _displayCtrl.text = raw > 0 ? raw.toString() : '';
+      _displayCtrl.selection = TextSelection.collapsed(offset: _displayCtrl.text.length);
       _showOverlay();
     } else {
-      // Restore "0" if empty
-      if (widget.controller.text.trim().isEmpty) {
-        widget.controller.text = '0';
-      }
+      // Parse back, restore formatted
+      final parsed = int.tryParse(_displayCtrl.text.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+      widget.controller.text = parsed.toString();
+      _editing = false;
+      _syncDisplay();
       _removeOverlay();
     }
+  }
+
+  void _onDisplayChanged(String value) {
+    // Strip non-digits, enforce max
+    final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
+    final clamped = digits.length > _maxDigits ? digits.substring(0, _maxDigits) : digits;
+
+    if (clamped != value) {
+      _displayCtrl.text = clamped;
+      _displayCtrl.selection = TextSelection.collapsed(offset: clamped.length);
+    }
+
+    widget.controller.text = clamped.isEmpty ? '0' : clamped;
+    _overlay?.markNeedsBuild();
+  }
+
+  void _selectAmount(int amount) {
+    final str = amount.toString();
+    final clamped = str.length > _maxDigits ? str.substring(0, _maxDigits) : str;
+    _displayCtrl.text = clamped;
+    _displayCtrl.selection = TextSelection.collapsed(offset: clamped.length);
+    widget.controller.text = clamped;
+    _overlay?.markNeedsBuild();
   }
 
   void _showOverlay() {
     _removeOverlay();
     _overlay = OverlayEntry(builder: (_) => _ChipsBar(
       controller: widget.controller,
-      onSelect: (amount) {
-        widget.controller.text = amount.toString();
-        widget.controller.selection = TextSelection.collapsed(offset: widget.controller.text.length);
-      },
+      onSelect: _selectAmount,
     ));
     Overlay.of(context).insert(_overlay!);
   }
@@ -77,13 +121,18 @@ class _AmountInputFieldState extends State<AmountInputField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: widget.controller,
-      focusNode: _focusNode,
-      keyboardType: TextInputType.number,
-      style: AppTextStyles.amount,
-      decoration: InputDecoration(
-        labelText: widget.label ?? S.of(context, 'amount'),
+    return GestureDetector(
+      onTap: () => _focusNode.requestFocus(),
+      child: TextField(
+        controller: _displayCtrl,
+        focusNode: _focusNode,
+        keyboardType: TextInputType.number,
+        style: AppTextStyles.amount,
+        onChanged: _onDisplayChanged,
+        onTapOutside: (_) => _focusNode.unfocus(),
+        decoration: InputDecoration(
+          labelText: widget.label ?? S.of(context, 'amount'),
+        ),
       ),
     );
   }
@@ -95,26 +144,23 @@ class _ChipsBar extends StatelessWidget {
 
   const _ChipsBar({required this.controller, required this.onSelect});
 
-  /// Always return exactly 3 chips: base × 10^3, × 10^4, × 10^5
-  /// For larger numbers: × 10, × 100, × 1000
-  List<int> _dynamicChips(int base) {
-    if (base <= 0) return const [];
+  List<int> _chips(int base) {
+    if (base <= 0) return AmountHistory.topAmounts();
 
-    final chips = <int>[];
     final digits = base.toString().length;
 
-    if (digits <= 2) {
-      // 1-99: ×1000, ×10000, ×100000
-      chips.addAll([base * 1000, base * 10000, base * 100000]);
-    } else if (digits <= 4) {
-      // 100-9999: ×10, ×100, ×1000
-      chips.addAll([base * 10, base * 100, base * 1000]);
-    } else {
-      // 10000+: ×10, ×100, ×1000
-      chips.addAll([base * 10, base * 100, base * 1000]);
-    }
+    // 8+ digits: show history defaults
+    if (digits >= _maxDigits) return AmountHistory.topAmounts();
 
-    return chips;
+    // 7 digits: 1 chip (×10)
+    if (digits == 7) return [base * 10];
+
+    // 6 digits: 2 chips (×10, ×100)
+    if (digits == 6) return [base * 10, base * 100];
+
+    // 1-5 digits: 3 chips
+    if (digits <= 2) return [base * 1000, base * 10000, base * 100000];
+    return [base * 10, base * 100, base * 1000];
   }
 
   @override
@@ -137,11 +183,8 @@ class _ChipsBar extends StatelessWidget {
           child: ValueListenableBuilder<TextEditingValue>(
             valueListenable: controller,
             builder: (context, value, _) {
-              final text = value.text.trim();
-              final base = int.tryParse(text) ?? 0;
-              final chips = base > 0
-                  ? _dynamicChips(base)
-                  : AmountHistory.topAmounts();
+              final base = int.tryParse(value.text) ?? 0;
+              final chips = _chips(base);
 
               if (chips.isEmpty) return const SizedBox.shrink();
 
