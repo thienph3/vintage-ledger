@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
@@ -136,6 +137,34 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
+  Future<void> _editDisplayName(User user) async {
+    final ctrl = TextEditingController(text: user.displayName ?? '');
+    final newName = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(S.of(ctx, 'displayName')),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          style: AppTextStyles.body,
+          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.of(ctx, 'cancel'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: Text(S.of(ctx, 'save'))),
+        ],
+      ),
+    );
+    if (newName == null || newName.isEmpty || newName == user.displayName) return;
+    await user.updateDisplayName(newName);
+    await sl.accountService.updateUserProfile(
+      userId: user.uid,
+      email: user.email ?? '',
+      displayName: newName,
+    );
+    if (mounted) setState(() {});
+  }
+
   Future<void> _logout() async {    await sl.notificationService.removeToken();
     await sl.authService.logout();
     sl.appState.currentUserId = null;
@@ -185,10 +214,12 @@ class _SettingScreenState extends State<SettingScreen> {
             ),
           ] else if (user != null) ...[
             ListTile(
-              leading: const Icon(Icons.email_outlined),
-              title: Text(user.email ?? ''),
-              subtitle: Text(user.displayName ?? ''),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              leading: const Icon(Icons.person_outline),
+              title: Text(user.displayName ?? ''),
+              subtitle: Text(user.email ?? ''),
+              trailing: const Icon(Icons.edit, size: 16, color: AppColors.textSecondary),
+              onTap: () => _editDisplayName(user),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             ),
             ListTile(
               leading: const Icon(Icons.logout, color: AppColors.inkRed),
