@@ -13,6 +13,8 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/network_status_banner.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
+import 'package:vintage_ledger/features/feed/feed_helper.dart';
+import 'package:vintage_ledger/features/feed/widgets/feed_item.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
@@ -56,6 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
       final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
       final walletId = await sl.settingService.getLastWalletId();
       sl.settingService.recordDailyUsage();
+
+      // Preload member names for family accounts
+      final userIds = txns.map((t) => t.transaction.createdBy).whereType<String>().toSet().toList();
+      await FeedHelper.preloadNames(userIds);
 
       if (!mounted) return;
       setState(() {
@@ -191,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final catName = _categoryNames[txn.transaction.categoryId] ?? S.of(context, 'other');
     final time = DateFormatter.time(txn.transaction.date);
     final locale = Localizations.localeOf(context).languageCode;
-    final actor = S.of(context, 'youActor');
+    final actor = FeedHelper.resolveName(txn.transaction.createdBy, S.of(context, 'youActor'));
     final story = TransactionStory.format(
       actorName: actor,
       categoryName: catName,
@@ -201,7 +207,10 @@ class _HomeScreenState extends State<HomeScreen> {
       note: txn.transaction.note,
     );
 
-    return GestureDetector(
+    return FeedItem(
+      actorName: actor,
+      text: story,
+      time: time,
       onTap: () async {
         final result = await context.pushScreen(TransactionFormScreen(
           walletId: txn.transaction.walletId,
@@ -209,17 +218,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ));
         if (result == true) _load();
       },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(story, style: AppTextStyles.body),
-            ),
-            Text(time, style: AppTextStyles.caption),
-          ],
-        ),
-      ),
     );
   }
 }

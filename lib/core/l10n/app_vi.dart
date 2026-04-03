@@ -32,6 +32,8 @@ const Map<String, String> vi = {
   'noTransactions': 'Chưa có gì hôm nay',
   'todaySpent': 'Hôm nay chi {amount}',
   'youActor': 'Bạn',
+  'today': 'Hôm nay',
+  'yesterday': 'Hôm qua',
   'addTransaction': 'Ghi thu chi',
   'editTransaction': 'Sửa thu chi',
   'addNewTransaction': 'Ghi thu chi mới',
