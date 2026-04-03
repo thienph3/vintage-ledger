@@ -290,6 +290,21 @@ class NotificationService {
     );
   }
 
+  Future<void> notifyReaction({
+    required String targetUserId,
+    required String emoji,
+    String? actorName,
+  }) async {
+    final tokens = await _getTokensForUsers([targetUserId]);
+    final name = actorName ?? 'Ai đó';
+    await _sendPush(
+      tokens: tokens,
+      title: 'Vintage Ledger',
+      body: '$name đã react $emoji',
+      data: {'type': 'reaction'},
+    );
+  }
+
   Future<void> notifyTransaction({
     required String accountId,
     required int amount,

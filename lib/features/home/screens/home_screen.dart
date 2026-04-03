@@ -13,6 +13,7 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/network_status_banner.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
+import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/features/feed/feed_helper.dart';
 import 'package:vintage_ledger/features/feed/widgets/feed_item.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
@@ -33,41 +34,33 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<TransactionWithItems> _todayTxns = [];
   Map<String, String> _categoryNames = {};
   Map<String, int?> _categoryIcons = {};
   bool _loading = true;
   String? _accountName;
   String? _defaultWalletId;
 
+  late final DateTime _todayStart;
+  late final DateTime _todayEnd;
+
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    _todayStart = DateTime(now.year, now.month, now.day);
+    _todayEnd = _todayStart.add(const Duration(days: 1)).subtract(const Duration(milliseconds: 1));
     _load();
   }
 
   Future<void> _load() async {
     try {
-      final now = DateTime.now();
-      final todayStart = DateTime(now.year, now.month, now.day);
-      final todayEnd = todayStart.add(const Duration(days: 1)).subtract(const Duration(milliseconds: 1));
-
-      final txns = await TransactionRepository().getByDateRange(
-        todayStart.millisecondsSinceEpoch,
-        todayEnd.millisecondsSinceEpoch,
-      );
       final cats = await sl.categoryService.getCategories();
       final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
       final walletId = await sl.settingService.getLastWalletId();
       sl.settingService.recordDailyUsage();
 
-      // Preload member names for family accounts
-      final userIds = txns.map((t) => t.transaction.createdBy).whereType<String>().toSet().toList();
-      await FeedHelper.preloadNames(userIds);
-
       if (!mounted) return;
       setState(() {
-        _todayTxns = txns;
         _categoryNames = {for (var c in cats) if (c.id != null) c.id!: c.name};
         _categoryIcons = {for (var c in cats) if (c.id != null) c.id!: c.icon};
         _accountName = account?.name;
@@ -79,7 +72,13 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  int get _todayExpense => _todayTxns
+  Stream<List<TransactionWithItems>> get _todayStream =>
+      TransactionRepository().watchByDateRange(
+        _todayStart.millisecondsSinceEpoch,
+        _todayEnd.millisecondsSinceEpoch,
+      );
+
+  int _todayExpense(List<TransactionWithItems> txns) => txns
       .where((t) => t.transaction.type == TransactionType.expense)
       .fold(0, (s, t) => s + t.transaction.amount);
 
@@ -105,17 +104,23 @@ class _HomeScreenState extends State<HomeScreen> {
               const NetworkStatusBanner(),
               Expanded(
                 child: _loading
-                    ? const Center(child: CircularProgressIndicator())
-                    : RefreshIndicator(
-                        onRefresh: _load,
-                        child: ListView(
-                          padding: const EdgeInsets.all(AppSpacing.md),
-                          children: [
-                            _buildTodayTotal(),
-                            const SizedBox(height: AppSpacing.lg),
-                            _buildFeed(),
-                          ],
-                        ),
+                    ? const ShimmerPlaceholder()
+                    : StreamBuilder<List<TransactionWithItems>>(
+                        stream: _todayStream,
+                        builder: (context, txnSnap) {
+                          final todayTxns = txnSnap.data ?? [];
+                          return RefreshIndicator(
+                            onRefresh: _load,
+                            child: ListView(
+                              padding: const EdgeInsets.all(AppSpacing.md),
+                              children: [
+                                _buildTodayTotal(todayTxns),
+                                const SizedBox(height: AppSpacing.lg),
+                                _buildFeed(todayTxns),
+                              ],
+                            ),
+                          );
+                        },
                       ),
               ),
               if (wallets.isNotEmpty)
@@ -140,9 +145,10 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTodayTotal() {
+  Widget _buildTodayTotal(List<TransactionWithItems> todayTxns) {
     final locale = Localizations.localeOf(context).languageCode;
-    final hasExpense = _todayExpense > 0;
+    final expense = _todayExpense(todayTxns);
+    final hasExpense = expense > 0;
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.md),
@@ -157,18 +163,18 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(
             hasExpense
-                ? S.of(context, 'todaySpent').replaceAll('{amount}', AmountFormatter.formatCompactCurrency(_todayExpense, locale))
+                ? S.of(context, 'todaySpent').replaceAll('{amount}', AmountFormatter.formatCompactCurrency(expense, locale))
                 : S.of(context, 'noTransactions'),
             style: hasExpense
                 ? AppTextStyles.title.copyWith(fontSize: 20)
                 : AppTextStyles.hint,
             textAlign: TextAlign.center,
           ),
-          if (_todayTxns.isNotEmpty)
+          if (todayTxns.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.xs),
               child: Text(
-                '${_todayTxns.length} ${S.of(context, 'transactionCount')}',
+                '${todayTxns.length} ${S.of(context, 'transactionCount')}',
                 style: AppTextStyles.caption,
               ),
             ),
@@ -177,21 +183,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildFeed() {
-    if (_todayTxns.isEmpty) {
+  Widget _buildFeed(List<TransactionWithItems> todayTxns) {
+    if (todayTxns.isEmpty) {
       return EmptyState(
         emoji: '📝',
         message: S.of(context, 'emptyTransactionHint'),
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(S.of(context, 'recentTransactions'), style: AppTextStyles.titleSmall),
-        const SizedBox(height: AppSpacing.sm),
-        ..._todayTxns.map((t) => _buildFeedItem(t)),
-      ],
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      alignment: Alignment.topCenter,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(S.of(context, 'recentTransactions'), style: AppTextStyles.titleSmall),
+          const SizedBox(height: AppSpacing.sm),
+          ...todayTxns.map((t) => _buildFeedItem(t)),
+        ],
+      ),
     );
   }
 

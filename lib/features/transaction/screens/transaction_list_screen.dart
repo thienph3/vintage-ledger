@@ -22,6 +22,8 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
+import 'package:vintage_ledger/features/feed/feed_helper.dart';
+import 'package:vintage_ledger/utils/transaction_story.dart';
 
 class TransactionListScreen extends StatefulWidget {
   final String? walletId;
@@ -62,6 +64,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       await _loadCategories();
       if (widget.walletId == null) await _loadWallets();
       await _loadMonth();
+      // Preload member names
+      final userIds = _transactions.map((t) => t.transaction.createdBy).whereType<String>().toSet().toList();
+      await FeedHelper.preloadNames(userIds);
     } catch (e) {
       _error = e.toString();
     }
@@ -309,7 +314,16 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
   Widget _buildTransactionTile(TransactionWithItems txn) {
     final catName = _categoryNameMap[txn.transaction.categoryId] ?? S.of(context, 'other');
-    final catIcon = _categoryIconMap[txn.transaction.categoryId];
+    final locale = Localizations.localeOf(context).languageCode;
+    final actor = FeedHelper.resolveName(txn.transaction.createdBy, S.of(context, 'youActor'));
+    final story = TransactionStory.format(
+      actorName: actor,
+      categoryName: catName,
+      amount: txn.transaction.amount,
+      type: txn.transaction.type,
+      locale: locale,
+      note: txn.transaction.note,
+    );
 
     return SwipeListItem(
       itemKey: Key(txn.transaction.id!),
@@ -317,24 +331,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       confirmDelete: _confirmDelete,
       onDelete: () => _deleteTransaction(txn.transaction.id!),
       child: Padding(
-        padding: const EdgeInsets.only(left: 44, right: 12, top: 6, bottom: 6),
-        child: Row(
-          children: [
-            Icon(getCategoryIcon(catIcon), size: 18, color: AppColors.inkBlue),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(catName, style: AppTextStyles.body),
-                  if (txn.transaction.note != null && txn.transaction.note!.isNotEmpty)
-                    Text(txn.transaction.note!, style: AppTextStyles.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
-                ],
-              ),
-            ),
-            AmountText(amount: txn.transaction.amount, type: txn.transaction.type, compact: true),
-          ],
-        ),
+        padding: const EdgeInsets.only(left: 44, right: 12, top: 8, bottom: 8),
+        child: Text(story, style: AppTextStyles.body),
       ),
     );
   }

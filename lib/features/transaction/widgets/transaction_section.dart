@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
-import 'package:vintage_ledger/features/category/screens/category_list_screen.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
-import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
-import 'package:vintage_ledger/core/theme/app_colors.dart';
+import 'package:vintage_ledger/utils/transaction_story.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/core/constants/category_icons.dart';
+import 'package:vintage_ledger/features/feed/feed_helper.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_list_screen.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
@@ -31,27 +29,6 @@ class TransactionSection extends StatelessWidget {
     required this.onDataChanged,
   });
 
-  Future<void> _addTransaction(BuildContext context) async {
-    final result = await context.pushScreen(TransactionFormScreen(walletId: walletId));
-    if (result == true) onDataChanged();
-  }
-
-  Future<void> _editTransaction(BuildContext context, TransactionWithItems txn) async {
-    final result = await context.pushScreen(TransactionFormScreen(
-      walletId: txn.transaction.walletId,
-      existing: txn,
-    ));
-    if (result == true) onDataChanged();
-  }
-
-  Future<void> _deleteTransaction(BuildContext context, TransactionWithItems txn) async {
-    final confirm = await showDeleteConfirmation(context, titleKey: 'deleteTransaction', contentKey: 'deleteTransactionConfirm');
-    if (confirm == true) {
-      await sl.transactionService.deleteTransaction(txn.transaction.id!);
-      onDataChanged();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -60,7 +37,7 @@ class TransactionSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(S.of(context, 'recentTransactions'), style: AppTextStyles.title),
+            Text(S.of(context, 'recentTransactions'), style: AppTextStyles.titleSmall),
             InkWell(
               onTap: () => context.pushScreen(TransactionListScreen(walletId: walletId)),
               child: Row(
@@ -68,67 +45,59 @@ class TransactionSection extends StatelessWidget {
                 children: [
                   Text(S.of(context, 'viewAll'), style: AppTextStyles.link),
                   const SizedBox(width: 4),
-                  const Icon(Icons.arrow_forward, size: 16),
+                  const Icon(Icons.arrow_forward, size: 14),
                 ],
               ),
             ),
           ],
         ),
         const SizedBox(height: AppSpacing.sm),
-        Row(
+        if (transactions.isEmpty)
+          EmptyState(emoji: '📝', message: S.of(context, 'emptyTransactionHint')),
+        ...transactions.map((txn) => _buildItem(context, txn)),
+      ],
+    );
+  }
+
+  Widget _buildItem(BuildContext context, TransactionWithItems txn) {
+    final cat = categoryMap[txn.transaction.categoryId];
+    final catName = cat?.name ?? S.of(context, 'other');
+    final locale = Localizations.localeOf(context).languageCode;
+    final actor = FeedHelper.resolveName(txn.transaction.createdBy, S.of(context, 'youActor'));
+    final story = TransactionStory.format(
+      actorName: actor,
+      categoryName: catName,
+      amount: txn.transaction.amount,
+      type: txn.transaction.type,
+      locale: locale,
+      note: txn.transaction.note,
+    );
+    final time = DateFormatter.short(txn.transaction.date);
+
+    return InkWell(
+      onTap: () async {
+        final result = await context.pushScreen(TransactionFormScreen(
+          walletId: txn.transaction.walletId,
+          existing: txn,
+        ));
+        if (result == true) onDataChanged();
+      },
+      onLongPress: () async {
+        final confirm = await showDeleteConfirmation(context, titleKey: 'deleteTransaction', contentKey: 'deleteTransactionConfirm');
+        if (confirm == true) {
+          await sl.transactionService.deleteTransaction(txn.transaction.id!);
+          onDataChanged();
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Row(
           children: [
-            SizedBox(width: 120, child: Text(S.of(context, 'date'), style: AppTextStyles.body)),
-            Expanded(
-              child: InkWell(
-                onTap: () => context.pushScreen(const CategoryListScreen()),
-                child: Row(
-                  children: [
-                    Text(S.of(context, 'category'), style: AppTextStyles.columnHeader),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.arrow_outward, size: 16),
-                  ],
-                ),
-              ),
-            ),
-            Text(S.of(context, 'amount'), textAlign: TextAlign.right, style: AppTextStyles.body),
+            Expanded(child: Text(story, style: AppTextStyles.body)),
+            Text(time, style: AppTextStyles.caption),
           ],
         ),
-        const Divider(),
-        if (transactions.isEmpty) EmptyState(message: S.of(context, 'emptyTransactionHint')),
-        if (transactions.isNotEmpty)
-          ...transactions.map((txn) {
-            final category = categoryMap[txn.transaction.categoryId];
-            return InkWell(
-              onTap: () => _editTransaction(context, txn),
-              onLongPress: () => _deleteTransaction(context, txn),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                child: Row(
-                  children: [
-                    SizedBox(width: 120, child: Text(DateFormatter.short(txn.transaction.date), style: AppTextStyles.body)),
-                    Expanded(
-                      child: Row(
-                        children: [
-                          if (category?.icon != null) ...[
-                            Icon(getCategoryIcon(category?.icon), size: 20, color: AppColors.inkBlue),
-                            const SizedBox(width: 6),
-                          ],
-                          Text(category?.name ?? S.of(context, 'other'), style: AppTextStyles.body),
-                          if (txn.transaction.createdBy != null && txn.transaction.createdBy != sl.appState.currentUserId)
-                            Padding(
-                              padding: const EdgeInsets.only(left: 4),
-                              child: Icon(Icons.people_outline, size: 14, color: AppColors.divider),
-                            ),
-                        ],
-                      ),
-                    ),
-                    AmountText(amount: txn.transaction.amount, type: txn.transaction.type, compact: true),
-                  ],
-                ),
-              ),
-            );
-          }),
-      ],
+      ),
     );
   }
 }

@@ -19,6 +19,20 @@ class ReactionService {
       'emoji': emoji,
       'created_at': FieldValue.serverTimestamp(),
     });
+
+    // Notify transaction owner
+    try {
+      final txnDoc = await _firestore
+          .collection('accounts').doc(sl.appState.currentAccountId)
+          .collection('transactions').doc(txnId).get();
+      final ownerId = txnDoc.data()?['created_by'] as String?;
+      if (ownerId != null && ownerId != userId) {
+        sl.notificationService.notifyReaction(
+          targetUserId: ownerId,
+          emoji: emoji,
+        );
+      }
+    } catch (_) {}
   }
 
   Future<void> removeReaction(String txnId) async {

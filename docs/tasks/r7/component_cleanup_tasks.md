@@ -2,14 +2,14 @@
 
 | # | Task | Status |
 |---|------|--------|
-| 1 | LedgerHeader cleanup | ✅ Bỏ Divider bottom. Clean AppBar. arrow_back_ios_new icon. preferredSize = kToolbarHeight |
-| 2 | LedgerCard soft style | ✅ Bỏ border. Shadow 0.04 alpha. Surface white. Radius 16 |
-| 3 | AmountText color | ✅ Via AppColors: income `#5BA37C`, expense `#D4845A` (warm orange) |
-| 4 | SwipeListItem | ✅ Delete background: warm orange 0.15 alpha + rounded 16. Card: elevation 0, surface, radius 16 |
-| 5 | EmptyState | ✅ Optional emoji prop (fontSize 40). Padding xl. Centered. hint style |
-| 6 | IncomeExpenseSummaryRow | ✅ Via l10n: "Thu" / "Chi" (casual). Colors via AppColors |
-| 7 | TypeSelector | ✅ Via AppColors: softer primary/expense colors |
-| 8 | FormSaveButton | ✅ Via AppTheme: soft blue, rounded 20, w600 |
-| 9 | DeleteConfirmation | ✅ Via l10n: "Xóa ví này luôn hả?" casual tone |
-| 10 | NetworkStatusBanner | ✅ Muted accent background (0.15 alpha). Friendly offline text |
-| 11 | LoginPromptCard | ⏳ Pending — evaluate if still needed after Home V3 |
+| 1 | LedgerHeader cleanup | ✅ Bỏ Divider bottom, arrow_back_ios_new |
+| 2 | LedgerCard soft style | ✅ Bỏ border, subtle shadow, radius 16 |
+| 3 | AmountText color | ✅ income `#5BA37C`, expense `#D4845A` |
+| 4 | SwipeListItem | ✅ Warm orange delete, rounded 16 |
+| 5 | EmptyState | ✅ Optional emoji, padding xl |
+| 6 | IncomeExpenseSummaryRow | ✅ Via l10n casual labels |
+| 7 | TypeSelector | ✅ Via AppColors softer |
+| 8 | FormSaveButton | ✅ Via theme soft blue, rounded 20 |
+| 9 | DeleteConfirmation | ✅ Via l10n casual tone |
+| 10 | NetworkStatusBanner | ✅ Muted accent background |
+| 11 | LoginPromptCard | ✅ Removed — no longer used after Home V3 |
