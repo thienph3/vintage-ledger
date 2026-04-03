@@ -43,10 +43,13 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   late DateTime _currentMonth;
   bool _loading = false;
   String? _error;
+  int? _expandedDay;
 
   String? _filterWalletId;
   String? _filterCategoryId;
+  String? _filterUserId;
   String? _defaultWalletId;
+  List<Map<String, String>> _members = [];
 
   @override
   void initState() {
@@ -69,6 +72,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           _defaultWalletId = _wallets.firstOrNull?.id;
         }
       }
+      // Load members for family filter
+      final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
+      if (account != null && account.memberIds.length > 1) {
+        _members = await sl.accountService.getMemberProfiles(account.memberIds);
+      }
       await _loadMonth();
     } catch (e) {
       _error = e.toString();
@@ -87,7 +95,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     final userIds = txns.map((t) => t.transaction.createdBy).whereType<String>().toSet().toList();
     await FeedHelper.preloadNames(userIds);
     if (!mounted) return;
-    setState(() => _allTransactions = txns);
+    setState(() { _allTransactions = txns; _expandedDay = null; });
   }
 
   List<TransactionWithItems> get _filtered {
@@ -97,6 +105,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }
     if (_filterCategoryId != null) {
       list = list.where((t) => t.transaction.categoryId == _filterCategoryId).toList();
+    }
+    if (_filterUserId != null) {
+      list = list.where((t) => t.transaction.createdBy == _filterUserId).toList();
     }
     return list;
   }
@@ -286,6 +297,21 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             ],
             onSelected: (id) => setState(() => _filterCategoryId = id),
           ),
+          // Member filter (family only)
+          if (_members.length > 1) ...[
+            const SizedBox(width: 8),
+            _buildDropdownChip<String?>(
+              label: _filterUserId == null
+                  ? S.of(context, 'everyone')
+                  : _members.where((m) => m['id'] == _filterUserId).firstOrNull?['name'] ?? '',
+              active: _filterUserId != null,
+              items: [
+                PopupMenuItem(value: null, child: Text(S.of(context, 'everyone'), style: AppTextStyles.body)),
+                ..._members.map((m) => PopupMenuItem(value: m['id'], child: Text(m['name'] ?? '?', style: AppTextStyles.body))),
+              ],
+              onSelected: (id) => setState(() => _filterUserId = id),
+            ),
+          ],
         ],
       ),
     );
@@ -346,34 +372,53 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     final locale = Localizations.localeOf(context).languageCode;
     final net = group.income - group.expense;
     final weekday = DateFormatter.dayOfWeek(group.date);
+    final isExpanded = _expandedDay == group.day;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Day header
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 36,
-                child: Text('${group.day}', style: AppTextStyles.title.copyWith(fontSize: 20)),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(weekday, style: AppTextStyles.bodySmall),
-              ),
-              Text(
-                '${net >= 0 ? '+' : '-'}${AmountFormatter.formatCompactCurrency(net.abs(), locale)}',
-                style: AppTextStyles.caption.copyWith(
-                  color: net >= 0 ? AppColors.income : AppColors.expense,
+        // Day header — tappable
+        InkWell(
+          onTap: () => setState(() => _expandedDay = isExpanded ? null : group.day),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 36,
+                  child: Text('${group.day}', style: AppTextStyles.title.copyWith(fontSize: 20)),
                 ),
-              ),
-            ],
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(weekday, style: AppTextStyles.bodySmall),
+                      Text(
+                        '${group.items.length} ${S.of(context, 'transactionCount')}',
+                        style: AppTextStyles.caption,
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '${net >= 0 ? '+' : '-'}${AmountFormatter.formatCompactCurrency(net.abs(), locale)}',
+                  style: AppTextStyles.caption.copyWith(
+                    color: net >= 0 ? AppColors.income : AppColors.expense,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Icon(
+                  isExpanded ? Icons.expand_less : Icons.expand_more,
+                  size: 18, color: AppColors.textSecondary,
+                ),
+              ],
+            ),
           ),
         ),
-        // Transactions
-        ...group.items.map((t) => _buildTile(t, locale)),
+        // Expanded transactions
+        if (isExpanded)
+          ...group.items.map((t) => _buildTile(t, locale)),
         const Divider(height: 1),
       ],
     );
