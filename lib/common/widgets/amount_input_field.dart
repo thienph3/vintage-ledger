@@ -62,18 +62,10 @@ class _AmountInputFieldState extends State<AmountInputField> {
 
   void _onFocusChanged() {
     if (_focusNode.hasFocus) {
-      if (_rawAmount == 0) {
-        _fieldCtrl.clear();
-      } else {
-        _setFormatted(_rawAmount);
-        _fieldCtrl.selection = TextSelection.collapsed(offset: _cursorBeforeSuffix);
-      }
+      _setFormatted(_rawAmount);
+      _fieldCtrl.selection = TextSelection.collapsed(offset: _cursorBeforeSuffix);
       _showOverlay();
     } else {
-      // Restore 0 if empty
-      if (_fieldCtrl.text.replaceAll(RegExp(r'[^0-9]'), '').isEmpty) {
-        widget.controller.text = '0';
-      }
       _setFormatted(_rawAmount);
       _removeOverlay();
     }
@@ -87,17 +79,12 @@ class _AmountInputFieldState extends State<AmountInputField> {
     final amount = int.tryParse(digits) ?? 0;
     widget.controller.text = amount.toString();
 
-    // Re-format display, cursor before suffix (e.g. before "đ")
-    if (amount > 0) {
-      final formatted = AmountFormatter.formatCurrency(amount, _locale, currencyCode: widget.currency);
-      final pos = formatted.lastIndexOf(RegExp(r'[0-9]'));
-      _fieldCtrl.value = TextEditingValue(
-        text: formatted,
-        selection: TextSelection.collapsed(offset: pos >= 0 ? pos + 1 : formatted.length),
-      );
-    } else {
-      _fieldCtrl.value = const TextEditingValue(text: '', selection: TextSelection.collapsed(offset: 0));
-    }
+    final formatted = AmountFormatter.formatCurrency(amount, _locale, currencyCode: widget.currency);
+    final pos = formatted.lastIndexOf(RegExp(r'[0-9]'));
+    _fieldCtrl.value = TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: pos >= 0 ? pos + 1 : formatted.length),
+    );
 
     _overlay?.markNeedsBuild();
   }
