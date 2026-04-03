@@ -70,6 +70,7 @@ class AccountService {
     await accountRef.collection('wallets').add({
       'name': 'Ví chung',
       'balance': 0,
+      'initial_balance': 0,
       'currency': 'VND',
       'created_at': FieldValue.serverTimestamp(),
       'updated_at': FieldValue.serverTimestamp(),

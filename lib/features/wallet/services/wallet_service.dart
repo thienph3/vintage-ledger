@@ -7,7 +7,6 @@ import 'package:vintage_ledger/features/wallet/repositories/wallet_repository.da
 class WalletService {
   final WalletRepository _repo = WalletRepository();
 
-  /// Exposed for atomic Firestore transactions
   WalletRepository get repo => _repo;
 
   Stream<List<Wallet>> watchWallets() => _repo.watchWallets();
@@ -16,27 +15,41 @@ class WalletService {
 
   Future<Wallet?> getWallet(String id) => _repo.getById(id);
 
-  Future<String> createWallet(String name, int balance, {String currency = 'VND'}) async {
+  Future<String> createWallet(String name, int initialBalance, {String currency = 'VND'}) async {
     if (name.trim().isEmpty) throw Exception("Wallet name cannot be empty");
-    final id = await _repo.add(Wallet(name: name, balance: balance, currency: currency));
+    final id = await _repo.add(Wallet(
+      name: name,
+      balance: initialBalance,
+      initialBalance: initialBalance,
+      currency: currency,
+    ));
     _log('wallet', 'đã tạo ví $name');
     return id;
   }
 
-  Future<void> updateWallet(String id, String name, int balance, {String? currency}) async {
-    final data = <String, dynamic>{'name': name, 'balance': balance};
+  Future<void> updateWallet(String id, String name, {String? currency, int? initialBalance}) async {
+    final data = <String, dynamic>{'name': name};
     if (currency != null) data['currency'] = currency;
+    if (initialBalance != null) {
+      data['initial_balance'] = initialBalance;
+      // Recalculate balance with new initialBalance
+      await _recalcWithInitial(id, initialBalance);
+      return;
+    }
     await _repo.update(id, data);
   }
 
   Future<void> renameWallet(String id, String name) => _repo.update(id, {'name': name});
+
+  Future<void> updateInitialBalance(String id, int initialBalance) async {
+    await _recalcWithInitial(id, initialBalance);
+  }
 
   Future<void> deleteWallet(String id) async {
     final wallet = await _repo.getById(id);
     await _repo.delete(id);
     if (wallet != null) _log('wallet', 'đã xóa ví ${wallet.name}');
 
-    // Clear default wallet if deleted
     final lastWalletId = await sl.settingService.getLastWalletId();
     if (lastWalletId == id) {
       final remaining = await _repo.getAll();
@@ -45,23 +58,31 @@ class WalletService {
     }
   }
 
-  /// Recalculate balance from all transactions (fix tool for inconsistent data)
   Future<void> recalculateBalance(String walletId) async {
+    final wallet = await _repo.getById(walletId);
+    final initial = wallet?.initialBalance ?? 0;
+    await _recalcWithInitial(walletId, initial);
+  }
+
+  Future<void> _recalcWithInitial(String walletId, int initialBalance) async {
     final allTxns = await FirebaseFirestore.instance
         .collection('accounts').doc(sl.appState.currentAccountId)
         .collection('transactions')
         .where('wallet_id', isEqualTo: walletId)
         .get();
 
-    int balance = 0;
+    int txnSum = 0;
     for (final doc in allTxns.docs) {
       final data = doc.data();
       final type = TransactionType.fromString(data['type'] ?? 'expense');
       final amount = data['amount'] as int? ?? 0;
-      balance += type.isIncome ? amount : -amount;
+      txnSum += type.isIncome ? amount : -amount;
     }
 
-    await _repo.update(walletId, {'balance': balance});
+    await _repo.update(walletId, {
+      'initial_balance': initialBalance,
+      'balance': initialBalance + txnSum,
+    });
   }
 
   void _log(String action, String description) {

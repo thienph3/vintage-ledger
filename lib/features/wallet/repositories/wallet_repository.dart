@@ -10,6 +10,7 @@ class WalletRepository extends FirestoreRepository<Wallet> {
     id: id,
     name: data['name'] ?? '',
     balance: data['balance'] ?? 0,
+    initialBalance: data['initial_balance'] ?? 0,
     currency: data['currency'] ?? 'VND',
   );
 
@@ -17,6 +18,7 @@ class WalletRepository extends FirestoreRepository<Wallet> {
   Map<String, dynamic> toFirestore(Wallet item) => {
     'name': item.name,
     'balance': item.balance,
+    'initial_balance': item.initialBalance,
     'currency': item.currency,
   };
 

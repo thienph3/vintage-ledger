@@ -24,7 +24,7 @@ class WalletFormScreen extends StatefulWidget {
 class _WalletFormScreenState extends State<WalletFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
-  final _balanceCtrl = TextEditingController();
+  final _initialBalanceCtrl = TextEditingController();
   String _currency = Currency.defaultCurrency.code;
 
   bool get isEdit => widget.wallet != null;
@@ -34,16 +34,17 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
     super.initState();
     if (isEdit) {
       _nameCtrl.text = widget.wallet!.name;
+      _initialBalanceCtrl.text = widget.wallet!.initialBalance.toString();
       _currency = widget.wallet!.currency;
     } else {
-      _balanceCtrl.text = '0';
+      _initialBalanceCtrl.text = '0';
     }
   }
 
   @override
   void dispose() {
     _nameCtrl.dispose();
-    _balanceCtrl.dispose();
+    _initialBalanceCtrl.dispose();
     super.dispose();
   }
 
@@ -51,13 +52,17 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final name = _nameCtrl.text.trim();
-    final balance = int.tryParse(_balanceCtrl.text) ?? 0;
+    final initialBalance = int.tryParse(_initialBalanceCtrl.text) ?? 0;
 
     try {
       if (isEdit) {
-        await sl.walletService.updateWallet(widget.wallet!.id!, name, balance, currency: _currency);
+        await sl.walletService.updateWallet(
+          widget.wallet!.id!, name,
+          currency: _currency,
+          initialBalance: initialBalance != widget.wallet!.initialBalance ? initialBalance : null,
+        );
       } else {
-        await sl.walletService.createWallet(name, balance, currency: _currency);
+        await sl.walletService.createWallet(name, initialBalance, currency: _currency);
       }
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -82,7 +87,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
                 decoration: InputDecoration(labelText: S.of(context, 'walletName')),
                 validator: (v) => v == null || v.trim().isEmpty ? S.of(context, 'walletNameRequired') : null,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String>(
                 initialValue: _currency,
                 decoration: InputDecoration(labelText: S.of(context, 'currency')),
@@ -92,14 +97,12 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
                 )).toList(),
                 onChanged: (v) => setState(() => _currency = v ?? _currency),
               ),
-              const SizedBox(height: 16),
-              if (!isEdit) ...[
-                AmountInputField(
-                  controller: _balanceCtrl,
-                  label: S.of(context, 'initialBalance'),
-                ),
-                const SizedBox(height: 16),
-              ],
+              const SizedBox(height: AppSpacing.md),
+              AmountInputField(
+                controller: _initialBalanceCtrl,
+                label: S.of(context, 'initialBalance'),
+              ),
+              const SizedBox(height: AppSpacing.lg),
               FormSaveButton(isEdit: isEdit, onPressed: _save),
             ],
           ),
