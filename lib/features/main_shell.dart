@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
-import 'package:vintage_ledger/core/theme/app_colors.dart';
-import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/home/screens/home_screen.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_list_screen.dart';
 import 'package:vintage_ledger/features/insights/screens/insights_tab.dart';
@@ -18,27 +16,26 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _index = 0;
 
+  static const _tabs = [
+    HomeScreen(),
+    TransactionListScreen(isTab: true),
+    InsightsTab(),
+    SettingScreen(),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _index,
-        children: const [
-          HomeScreen(),
-          TransactionListScreen(isTab: true),
-          InsightsTab(),
-          SettingScreen(),
-        ],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 150),
+        child: KeyedSubtree(
+          key: ValueKey(_index),
+          child: _tabs[_index],
+        ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: AppColors.paper,
-        selectedItemColor: AppColors.inkBlue,
-        unselectedItemColor: AppColors.divider,
-        selectedLabelStyle: AppTextStyles.caption,
-        unselectedLabelStyle: AppTextStyles.caption,
         items: [
           BottomNavigationBarItem(
             icon: const Icon(Icons.home_outlined),
