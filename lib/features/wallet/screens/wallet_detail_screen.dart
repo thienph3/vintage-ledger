@@ -17,6 +17,7 @@ import 'package:vintage_ledger/features/transaction/widgets/transaction_section.
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
+import 'package:vintage_ledger/utils/navigator_x.dart';
 
 class WalletDetailScreen extends StatefulWidget {
   final Wallet wallet;
