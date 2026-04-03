@@ -15,7 +15,7 @@ class FeedHelper {
   }
 
   static String resolveName(String? userId, String youLabel) {
-    if (userId == null) return '';
+    if (userId == null) return '?';
     if (userId == sl.appState.currentUserId) return youLabel;
     return _nameCache[userId] ?? '?';
   }

@@ -53,11 +53,13 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   String? _walletId;
   String? _categoryId;
+  String? _createdBy;
   TransactionType _type = TransactionType.expense;
   DateTime _date = DateTime.now();
   BudgetStatus? _budgetStatus;
   bool _recurring = false;
   Frequency _frequency = Frequency.monthly;
+  List<Map<String, String>> _members = [];
 
   @override
   void initState() {
@@ -73,6 +75,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       if (t.walletId.isNotEmpty) _walletId = t.walletId;
       _date = DateTime.fromMillisecondsSinceEpoch(t.date);
       _noteCtrl.text = t.note ?? '';
+      _createdBy = t.createdBy;
       _items = source.items.map((i) => TransactionItemEntry(
         item: i,
         amountController: TextEditingController(text: i.amount.toString()),
@@ -84,6 +87,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
     _loadCategories();
     if (widget.walletId == null) _loadWallets();
+    _loadMembers();
   }
 
   @override
@@ -125,6 +129,16 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       }
       _walletId ??= _wallets.isNotEmpty ? _wallets.first.id : null;
     });
+  }
+
+  Future<void> _loadMembers() async {
+    try {
+      final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
+      if (account != null && account.memberIds.length > 1) {
+        final members = await sl.accountService.getMemberProfiles(account.memberIds);
+        if (mounted) setState(() => _members = members);
+      }
+    } catch (_) {}
   }
 
   void _onTypeChanged(String type) {
@@ -229,6 +243,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             type: _type,
             date: _date.millisecondsSinceEpoch,
             note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
+            createdBy: _createdBy ?? widget.existing!.transaction.createdBy,
           ),
           items: items,
         ));
@@ -338,6 +353,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               style: AppTextStyles.body,
             ),
             const SizedBox(height: AppSpacing.lg),
+            if (widget.isEdit && _members.length > 1) _buildMemberDropdown(),
             if (!widget.isEdit) _buildRecurringToggle(),
             FormSaveButton(isEdit: widget.isEdit, onPressed: _save),
             const SizedBox(height: AppSpacing.xl),
@@ -354,6 +370,25 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       items: _wallets.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name, style: AppTextStyles.body))).toList(),
       onChanged: (v) => setState(() => _walletId = v),
       validator: (v) => v == null ? S.of(context, 'selectWalletRequired') : null,
+    );
+  }
+
+  Widget _buildMemberDropdown() {
+    final currentName = _members.where((m) => m['id'] == _createdBy).firstOrNull?['name'] ?? '?';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.md),
+      child: DropdownButtonFormField<String>(
+        value: _createdBy,
+        decoration: InputDecoration(
+          labelText: S.of(context, 'member'),
+          prefixIcon: const Icon(Icons.person_outline, size: 20),
+        ),
+        items: _members.map((m) => DropdownMenuItem(
+          value: m['id'],
+          child: Text(m['name'] ?? '?', style: AppTextStyles.body),
+        )).toList(),
+        onChanged: (v) => setState(() => _createdBy = v),
+      ),
     );
   }
 
