@@ -44,8 +44,16 @@ class _AmountInputFieldState extends State<AmountInputField> {
 
   void _onFocusChanged() {
     if (_focusNode.hasFocus) {
+      // Clear "0" so user can type fresh
+      if (widget.controller.text == '0') {
+        widget.controller.clear();
+      }
       _showOverlay();
     } else {
+      // Restore "0" if empty
+      if (widget.controller.text.trim().isEmpty) {
+        widget.controller.text = '0';
+      }
       _removeOverlay();
     }
   }
@@ -87,13 +95,25 @@ class _ChipsBar extends StatelessWidget {
 
   const _ChipsBar({required this.controller, required this.onSelect});
 
-  List<int> _dynamicChips(String text) {
-    final base = int.tryParse(text) ?? 0;
+  /// Always return exactly 3 chips: base × 10^3, × 10^4, × 10^5
+  /// For larger numbers: × 10, × 100, × 1000
+  List<int> _dynamicChips(int base) {
     if (base <= 0) return const [];
+
     final chips = <int>[];
-    if (base < 1000) chips.add(base * 1000);
-    if (base < 100) chips.add(base * 10000);
-    if (base < 10) chips.add(base * 100000);
+    final digits = base.toString().length;
+
+    if (digits <= 2) {
+      // 1-99: ×1000, ×10000, ×100000
+      chips.addAll([base * 1000, base * 10000, base * 100000]);
+    } else if (digits <= 4) {
+      // 100-9999: ×10, ×100, ×1000
+      chips.addAll([base * 10, base * 100, base * 1000]);
+    } else {
+      // 10000+: ×10, ×100, ×1000
+      chips.addAll([base * 10, base * 100, base * 1000]);
+    }
+
     return chips;
   }
 
@@ -118,41 +138,37 @@ class _ChipsBar extends StatelessWidget {
             valueListenable: controller,
             builder: (context, value, _) {
               final text = value.text.trim();
-              final chips = text.isEmpty
-                  ? AmountHistory.topAmounts()
-                  : _dynamicChips(text);
+              final base = int.tryParse(text) ?? 0;
+              final chips = base > 0
+                  ? _dynamicChips(base)
+                  : AmountHistory.topAmounts();
 
               if (chips.isEmpty) return const SizedBox.shrink();
 
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: chips.map((amount) {
-                    final selected = (int.tryParse(text) ?? 0) == amount;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: GestureDetector(
-                        onTap: () => onSelect(amount),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: selected
-                                ? AppColors.primary
-                                : AppColors.primary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            AmountFormatter.formatCurrency(amount, locale),
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: selected ? Colors.white : AppColors.primary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: chips.map((amount) {
+                  final selected = base == amount;
+                  return GestureDetector(
+                    onTap: () => onSelect(amount),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppColors.primary
+                            : AppColors.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        AmountFormatter.formatCurrency(amount, locale),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: selected ? Colors.white : AppColors.primary,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                    );
-                  }).toList(),
-                ),
+                    ),
+                  );
+                }).toList(),
               );
             },
           ),
