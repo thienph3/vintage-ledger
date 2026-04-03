@@ -255,41 +255,56 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   }
 
   Widget _buildFilterRow() {
-    return SizedBox(
-      height: 36,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Row(
         children: [
           // Wallet filter
           if (widget.walletId == null && _wallets.length > 1) ...[
-            _buildFilterChip(
+            _buildDropdownChip(
               label: _filterWalletId == null
                   ? S.of(context, 'allWallets')
                   : _wallets.where((w) => w.id == _filterWalletId).firstOrNull?.name ?? '',
               active: _filterWalletId != null,
-              onTap: _showWalletFilter,
+              items: [
+                PopupMenuItem(value: null, child: Text(S.of(context, 'allWallets'), style: AppTextStyles.body)),
+                ..._wallets.map((w) => PopupMenuItem(value: w.id, child: Text(w.name, style: AppTextStyles.body))),
+              ],
+              onSelected: (id) => setState(() => _filterWalletId = id),
             ),
             const SizedBox(width: 8),
           ],
           // Category filter
-          _buildFilterChip(
+          _buildDropdownChip(
             label: _filterCategoryId == null
                 ? S.of(context, 'allCategories')
                 : _categoryNameMap[_filterCategoryId] ?? '',
             active: _filterCategoryId != null,
-            onTap: _showCategoryFilter,
+            items: [
+              PopupMenuItem(value: null, child: Text(S.of(context, 'allCategories'), style: AppTextStyles.body)),
+              ..._categories.map((c) => PopupMenuItem(value: c.id, child: Text(c.name, style: AppTextStyles.body))),
+            ],
+            onSelected: (id) => setState(() => _filterCategoryId = id),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFilterChip({required String label, required bool active, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
+  Widget _buildDropdownChip<T>({
+    required String label,
+    required bool active,
+    required List<PopupMenuEntry<T>> items,
+    required ValueChanged<T?> onSelected,
+  }) {
+    return PopupMenuButton<T>(
+      onSelected: onSelected,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: AppColors.surface,
+      position: PopupMenuPosition.under,
+      itemBuilder: (_) => items,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
           color: active ? AppColors.primary : AppColors.primary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(20),
@@ -304,75 +319,12 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            if (active) ...[
-              const SizedBox(width: 4),
-              Icon(Icons.close, size: 14, color: Colors.white),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showWalletFilter() {
-    if (_filterWalletId != null) {
-      setState(() => _filterWalletId = null);
-      return;
-    }
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Text(S.of(ctx, 'selectWallet'), style: AppTextStyles.titleSmall),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.expand_more,
+              size: 16,
+              color: active ? Colors.white : AppColors.primary,
             ),
-            ..._wallets.map((w) => ListTile(
-              title: Text(w.name, style: AppTextStyles.body),
-              trailing: _filterWalletId == w.id ? const Icon(Icons.check, color: AppColors.primary, size: 20) : null,
-              onTap: () {
-                Navigator.pop(ctx);
-                setState(() => _filterWalletId = w.id);
-              },
-            )),
-            const SizedBox(height: AppSpacing.md),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showCategoryFilter() {
-    if (_filterCategoryId != null) {
-      setState(() => _filterCategoryId = null);
-      return;
-    }
-    showModalBottomSheet(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Text(S.of(ctx, 'category'), style: AppTextStyles.titleSmall),
-            ),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                children: _categories.map((c) => ListTile(
-                  title: Text(c.name, style: AppTextStyles.body),
-                  trailing: _filterCategoryId == c.id ? const Icon(Icons.check, color: AppColors.primary, size: 20) : null,
-                  onTap: () {
-                    Navigator.pop(ctx);
-                    setState(() => _filterCategoryId = c.id);
-                  },
-                )).toList(),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
           ],
         ),
       ),
