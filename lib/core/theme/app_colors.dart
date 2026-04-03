@@ -1,19 +1,30 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const paper = Color(0xFFFAF3E0);
+  // Base
+  static const background = Color(0xFFF8F8F6);
+  static const surface = Color(0xFFFFFFFF);
 
-  static const inkBlue = Color(0xFF1F3A5F);
+  // Primary
+  static const primary = Color(0xFF5B7FA2);
+  static const accent = Color(0xFFE8A87C);
 
-  static const inkPurple = Color(0xFF4A2C5A);
+  // Text
+  static const textPrimary = Color(0xFF3D3D3D);
+  static const textSecondary = Color(0xFF8E8E8E);
 
-  static const inkBlack = Color(0xFF2B2B2B);
+  // Semantic
+  static const income = Color(0xFF5BA37C);
+  static const expense = Color(0xFFD4845A);
 
-  static const inkRed = Color(0xFF8B1E1E);
+  // Utility
+  static const divider = Color(0xFFE8E5DE);
+  static const error = Color(0xFFD4845A);
 
-  static const income = Color(0xFF2E7D32);
-
-  static const expense = Color(0xFFC62828);
-
-  static const divider = Color(0xFF8B6F47);
+  // Legacy aliases (gradual migration)
+  static const paper = background;
+  static const inkBlue = primary;
+  static const inkPurple = primary;
+  static const inkBlack = textPrimary;
+  static const inkRed = error;
 }
