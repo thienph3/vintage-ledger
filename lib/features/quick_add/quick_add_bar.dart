@@ -8,6 +8,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
+import 'package:vintage_ledger/core/constants/category_emojis.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
@@ -163,7 +164,9 @@ class _QuickAddBarState extends State<QuickAddBar> {
       final locale = Localizations.localeOf(context).languageCode;
       final amountStr = AmountFormatter.formatCompactCurrency(savedAmount, locale);
 
-      showAppSnackBar(context, '✓ $amountStr $catName',
+      final emoji = getCategoryEmoji(catName);
+
+      showAppSnackBar(context, '✓ $catName $amountStr $emoji',
         action: SnackBarAction(
           label: S.of(context, 'undo'),
           onPressed: () async {

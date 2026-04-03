@@ -13,14 +13,13 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/network_status_banner.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
-import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
+import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
-import 'package:vintage_ledger/core/constants/category_icons.dart';
-import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
+import 'package:vintage_ledger/utils/transaction_story.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -190,8 +189,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildFeedItem(TransactionWithItems txn) {
     final catName = _categoryNames[txn.transaction.categoryId] ?? S.of(context, 'other');
-    final catIcon = _categoryIcons[txn.transaction.categoryId];
     final time = DateFormatter.time(txn.transaction.date);
+    final locale = Localizations.localeOf(context).languageCode;
+    final actor = S.of(context, 'youActor');
+    final story = TransactionStory.format(
+      actorName: actor,
+      categoryName: catName,
+      amount: txn.transaction.amount,
+      type: txn.transaction.type,
+      locale: locale,
+      note: txn.transaction.note,
+    );
 
     return GestureDetector(
       onTap: () async {
@@ -205,25 +213,10 @@ class _HomeScreenState extends State<HomeScreen> {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         child: Row(
           children: [
-            Icon(getCategoryIcon(catIcon), size: 20, color: AppColors.primary),
-            const SizedBox(width: AppSpacing.md2),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(catName, style: AppTextStyles.body),
-                  if (txn.transaction.note != null && txn.transaction.note!.isNotEmpty)
-                    Text(txn.transaction.note!, style: AppTextStyles.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
-                ],
-              ),
+              child: Text(story, style: AppTextStyles.body),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                AmountText(amount: txn.transaction.amount, type: txn.transaction.type, compact: true),
-                Text(time, style: AppTextStyles.caption),
-              ],
-            ),
+            Text(time, style: AppTextStyles.caption),
           ],
         ),
       ),

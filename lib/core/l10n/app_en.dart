@@ -31,6 +31,7 @@ const Map<String, String> en = {
   'amount': 'Amount',
   'noTransactions': 'Nothing yet today',
   'todaySpent': 'Spent {amount} today',
+  'youActor': 'You',
   'addTransaction': 'Log transaction',
   'editTransaction': 'Edit transaction',
   'addNewTransaction': 'New transaction',
