@@ -15,6 +15,7 @@ const Map<String, String> vi = {
   'addWallet': 'Thêm ví',
   'editWallet': 'Sửa ví',
   'addNewWallet': 'Thêm ví mới',
+  'initialBalance': 'Số dư ban đầu',
   'walletName': 'Tên ví',
   'walletNameRequired': 'Nhập tên ví nhé',
   'deleteWallet': 'Xóa ví',

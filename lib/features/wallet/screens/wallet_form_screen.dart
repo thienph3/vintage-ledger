@@ -34,7 +34,6 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
     super.initState();
     if (isEdit) {
       _nameCtrl.text = widget.wallet!.name;
-      _balanceCtrl.text = widget.wallet!.balance.toString();
       _currency = widget.wallet!.currency;
     } else {
       _balanceCtrl.text = '0';
@@ -94,8 +93,13 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
                 onChanged: (v) => setState(() => _currency = v ?? _currency),
               ),
               const SizedBox(height: 16),
-              AmountInputField(controller: _balanceCtrl),
-              const SizedBox(height: 24),
+              if (!isEdit) ...[
+                AmountInputField(
+                  controller: _balanceCtrl,
+                  label: S.of(context, 'initialBalance'),
+                ),
+                const SizedBox(height: 16),
+              ],
               FormSaveButton(isEdit: isEdit, onPressed: _save),
             ],
           ),

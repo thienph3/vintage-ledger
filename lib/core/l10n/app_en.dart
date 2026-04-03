@@ -15,6 +15,7 @@ const Map<String, String> en = {
   'addWallet': 'Add wallet',
   'editWallet': 'Edit wallet',
   'addNewWallet': 'New wallet',
+  'initialBalance': 'Initial balance',
   'walletName': 'Wallet name',
   'walletNameRequired': 'Enter a wallet name',
   'deleteWallet': 'Delete wallet',

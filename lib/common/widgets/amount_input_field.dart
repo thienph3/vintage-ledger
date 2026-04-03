@@ -8,8 +8,9 @@ import 'package:vintage_ledger/common/widgets/amount_picker_sheet.dart';
 class AmountInputField extends StatelessWidget {
   final TextEditingController controller;
   final String currency;
+  final String? label;
 
-  const AmountInputField({super.key, required this.controller, this.currency = 'VND'});
+  const AmountInputField({super.key, required this.controller, this.currency = 'VND', this.label});
 
   int _parseAmount() {
     final text = controller.text.replaceAll('.', '');
@@ -67,7 +68,7 @@ class AmountInputField extends StatelessWidget {
             final locale = Localizations.localeOf(context).languageCode;
             return InputDecorator(
               decoration: InputDecoration(
-                labelText: S.of(context, 'amount'),
+                labelText: label ?? S.of(context, 'amount'),
                 suffixIcon: const Icon(Icons.dialpad, size: 20),
               ),
               child: Text(
