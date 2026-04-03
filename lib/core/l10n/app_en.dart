@@ -257,7 +257,7 @@ const Map<String, String> en = {
   'reminderTime': 'Reminder time',
   'reminderMsg1': 'What did you spend today?',
   'reminderMsg2': 'Log your expenses in just 5 seconds 👇',
-  'reminderMsg3': 'Don\\'t forget to log today!',
+  'reminderMsg3': 'Don''t forget to log today!',
   'reminderMsg4': 'Another day — have you logged yet?',
 
   // Insights
