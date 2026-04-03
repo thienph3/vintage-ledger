@@ -18,16 +18,13 @@ class LedgerHeader extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final titleWidget = Text(
-      title,
-      style: AppTextStyles.title.copyWith(fontWeight: FontWeight.bold),
-    );
+    final titleWidget = Text(title, style: AppTextStyles.title);
 
     return AppBar(
       automaticallyImplyLeading: false,
       leading: showBackButton
           ? IconButton(
-              icon: const Icon(Icons.arrow_back),
+              icon: const Icon(Icons.arrow_back_ios_new, size: 20),
               onPressed: () => Navigator.pop(context),
             )
           : null,
@@ -45,13 +42,9 @@ class LedgerHeader extends StatelessWidget implements PreferredSizeWidget {
             )
           : titleWidget,
       actions: actions,
-      bottom: const PreferredSize(
-        preferredSize: Size.fromHeight(1.2),
-        child: Divider(),
-      ),
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 1.2);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }

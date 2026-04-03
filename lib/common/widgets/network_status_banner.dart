@@ -16,21 +16,20 @@ class NetworkStatusBanner extends StatelessWidget {
           .snapshots(includeMetadataChanges: true),
       builder: (context, snap) {
         final isOffline = snap.hasData && snap.data!.metadata.isFromCache;
-
         if (!isOffline) return const SizedBox.shrink();
 
         return Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
-          color: AppColors.divider,
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+          color: AppColors.accent.withValues(alpha: 0.15),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.cloud_off, size: 14, color: Colors.white),
+              Icon(Icons.cloud_off, size: 14, color: AppColors.accent),
               const SizedBox(width: 6),
               Text(
                 S.of(context, 'offline'),
-                style: AppTextStyles.caption.copyWith(color: Colors.white),
+                style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
               ),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/theme/app_colors.dart';
 
 class SwipeListItem extends StatelessWidget {
   final Key itemKey;
@@ -20,33 +21,32 @@ class SwipeListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dismissible(
       key: itemKey,
-
       direction: onDelete == null
           ? DismissDirection.none
           : DismissDirection.endToStart,
-
       background: Container(
-        color: Colors.red,
+        decoration: BoxDecoration(
+          color: AppColors.expense.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(16),
+        ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: const Icon(Icons.delete, color: Colors.white),
+        child: Icon(Icons.delete_outline, color: AppColors.expense),
       ),
-
       confirmDismiss: (_) async {
-        if (confirmDelete != null) {
-          return await confirmDelete!();
-        }
+        if (confirmDelete != null) return await confirmDelete!();
         return true;
       },
-
-      onDismissed: (_) {
-        if (onDelete != null) {
-          onDelete!();
-        }
-      },
-
+      onDismissed: (_) => onDelete?.call(),
       child: Card(
-        child: InkWell(onTap: onTap, child: child),
+        elevation: 0,
+        color: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: child,
+        ),
       ),
     );
   }
