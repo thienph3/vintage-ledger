@@ -16,6 +16,7 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
 import 'wallet_form_screen.dart';
+import 'wallet_detail_screen.dart';
 
 class WalletListScreen extends StatefulWidget {
   const WalletListScreen({super.key});
@@ -75,7 +76,7 @@ class _WalletListScreenState extends State<WalletListScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: SwipeListItem(
                         itemKey: Key(w.id!),
-                        onTap: () => context.pushScreen(WalletFormScreen(wallet: w)),
+                        onTap: () => context.pushScreen(WalletDetailScreen(wallet: w)),
                         confirmDelete: () => showDeleteConfirmation(context, titleKey: 'deleteWallet', contentKey: 'deleteWalletConfirm'),
                         onDelete: () async {
                           try {
