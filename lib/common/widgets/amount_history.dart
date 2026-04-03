@@ -43,9 +43,11 @@ class AmountHistory {
     _persistTimer = Timer(const Duration(seconds: 3), _persist);
   }
 
-  /// Top 3 most used amounts
+  static const _defaultChips = [10000, 20000, 50000];
+
+  /// Top 3 most used amounts, fallback to defaults
   static List<int> topAmounts({int limit = 3}) {
-    if (_counts.isEmpty) return const [];
+    if (_counts.isEmpty) return _defaultChips;
     final sorted = _counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
     return sorted.take(limit).map((e) => e.key).toList();
   }
