@@ -4,24 +4,21 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/core/constants/currency.dart';
-import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
-import 'package:vintage_ledger/core/debug/read_counter.dart';
 import 'package:vintage_ledger/features/export/export_service.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
-import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/features/auth/screens/register_screen.dart';
-import 'package:vintage_ledger/utils/navigator_x.dart';
-import 'package:vintage_ledger/features/wallet/models/wallet.dart';
-import 'package:vintage_ledger/features/recurring/screens/recurring_list_screen.dart';
+import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/category/screens/category_list_screen.dart';
+import 'package:vintage_ledger/features/recurring/screens/recurring_list_screen.dart';
+import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/main.dart';
-import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
+import 'package:share_plus/share_plus.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({super.key});
@@ -32,10 +29,7 @@ class SettingScreen extends StatefulWidget {
 
 class _SettingScreenState extends State<SettingScreen> {
   String _currentLocale = 'vi';
-  String _defaultCurrency = 'VND';
   bool _exporting = false;
-  String? _defaultWalletId;
-  List<Wallet> _wallets = [];
   bool _reminderEnabled = false;
   int _reminderHour = 20;
 
@@ -47,70 +41,41 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _load() async {
     final locale = await sl.settingService.getLocale();
-    final currency = await sl.settingService.getDefaultCurrency();
-    final walletId = await sl.settingService.getLastWalletId();
-    final wallets = await sl.walletService.getWallets();
     final reminderEnabled = await sl.settingService.getSetting('reminder_enabled');
     final reminderHour = await sl.settingService.getSetting('reminder_hour');
     setState(() {
       _currentLocale = locale;
-      _defaultCurrency = currency;
-      _defaultWalletId = walletId;
-      _wallets = wallets;
       _reminderEnabled = reminderEnabled == 'true';
       _reminderHour = int.tryParse(reminderHour ?? '20') ?? 20;
     });
   }
 
-  Future<void> _changeLocale(String locale) async {
-    await sl.settingService.setLocale(locale);
-    if (!mounted) return;
-    setState(() => _currentLocale = locale);
-    MyApp.setLocale(context, Locale(locale));
-  }
+  // ── Actions ──
 
-  Future<void> _exportCsv() async {
-    setState(() => _exporting = true);
-    try {
-      final path = await ExportService().exportTransactionsCsv();
-      if (!mounted) return;
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile(path)],
-        subject: 'Vintage Ledger Export',
-      ));
-      if (!mounted) return;
-      showAppSnackBar(context, S.of(context, 'exportSuccess'));
-    } catch (e) {
-      if (!mounted) return;
-      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
-    } finally {
-      if (mounted) setState(() => _exporting = false);
-    }
-  }
-
-  void _showPrivacyInfo() {
-    showModalBottomSheet(
+  Future<void> _editDisplayName(User user) async {
+    final ctrl = TextEditingController(text: user.displayName ?? '');
+    final newName = await showDialog<String>(
       context: context,
-      builder: (ctx) => Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(S.of(ctx, 'privacy'), style: AppTextStyles.title),
-            const SizedBox(height: AppSpacing.md),
-            Text(S.of(ctx, 'privacyDetail'), style: AppTextStyles.body),
-            const SizedBox(height: AppSpacing.lg),
-          ],
+      builder: (ctx) => AlertDialog(
+        title: Text(S.of(ctx, 'displayName')),
+        content: TextField(
+          controller: ctrl, autofocus: true, style: AppTextStyles.body,
+          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
         ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.of(ctx, 'cancel'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: Text(S.of(ctx, 'save'))),
+        ],
       ),
     );
+    if (newName == null || newName.isEmpty || newName == user.displayName) return;
+    await user.updateDisplayName(newName);
+    await sl.accountService.updateUserProfile(userId: user.uid, email: user.email ?? '', displayName: newName);
+    if (mounted) setState(() {});
   }
 
   Future<void> _loginExisting() async {
     final anonAccountId = sl.appState.currentAccountId;
-    final anonUserId = sl.appState.currentUserId;
-
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -123,59 +88,38 @@ class _SettingScreenState extends State<SettingScreen> {
       ),
     );
     if (confirm != true || !mounted) return;
-
     await sl.authService.logout();
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
     sl.settingService.clearCache();
     if (!mounted) return;
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => LoginScreen(anonAccountIdToMigrate: anonAccountId)),
-      (_) => false,
-    );
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => LoginScreen(anonAccountIdToMigrate: anonAccountId)), (_) => false);
   }
 
-  Future<void> _editDisplayName(User user) async {
-    final ctrl = TextEditingController(text: user.displayName ?? '');
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(S.of(ctx, 'displayName')),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          style: AppTextStyles.body,
-          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.of(ctx, 'cancel'))),
-          TextButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: Text(S.of(ctx, 'save'))),
-        ],
-      ),
-    );
-    if (newName == null || newName.isEmpty || newName == user.displayName) return;
-    await user.updateDisplayName(newName);
-    await sl.accountService.updateUserProfile(
-      userId: user.uid,
-      email: user.email ?? '',
-      displayName: newName,
-    );
-    if (mounted) setState(() {});
-  }
-
-  Future<void> _logout() async {    await sl.notificationService.removeToken();
+  Future<void> _logout() async {
+    await sl.notificationService.removeToken();
     await sl.authService.logout();
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
     sl.settingService.clearCache();
     if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-      (_) => false,
-    );
+    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
+  }
+
+  Future<void> _exportCsv() async {
+    setState(() => _exporting = true);
+    try {
+      final path = await ExportService().exportTransactionsCsv();
+      if (!mounted) return;
+      await SharePlus.instance.share(ShareParams(files: [XFile(path)], subject: 'Vintage Ledger Export'));
+      if (!mounted) return;
+      showAppSnackBar(context, S.of(context, 'exportSuccess'));
+    } catch (e) {
+      if (!mounted) return;
+      showAppSnackBar(context, e.toString(), backgroundColor: AppColors.expense);
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
   }
 
   @override
@@ -187,247 +131,266 @@ class _SettingScreenState extends State<SettingScreen> {
       title: S.of(context, 'settings'),
       showBackButton: false,
       body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         children: [
-          // Account section
-          const SizedBox(height: AppSpacing.md),
-          Text(S.of(context, 'account'), style: AppTextStyles.title),
-          const SizedBox(height: AppSpacing.sm),
+          // ── Profile ──
+          _buildProfileCard(user, isAnonymous),
+          const SizedBox(height: AppSpacing.lg),
 
-          if (isAnonymous) ...[
-            ListTile(
-              leading: const Icon(Icons.person_add, color: AppColors.inkBlue),
-              title: Text(S.of(context, 'register')),
-              subtitle: Text(S.of(context, 'registerToSync')),
-              onTap: () async {
-                final result = await context.pushScreen(const RegisterScreen());
-                if (result == true && mounted) setState(() {});
-              },
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.login, color: AppColors.inkBlue),
-              title: Text(S.of(context, 'login')),
-              subtitle: Text(S.of(context, 'loginExisting')),
-              onTap: _loginExisting,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          ] else if (user != null) ...[
-            ListTile(
-              leading: const Icon(Icons.person_outline),
-              title: Text(user.displayName ?? ''),
-              subtitle: Text(user.email ?? ''),
-              trailing: const Icon(Icons.edit, size: 16, color: AppColors.textSecondary),
-              onTap: () => _editDisplayName(user),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout, color: AppColors.inkRed),
-              title: Text(S.of(context, 'logout'),
-                  style: AppTextStyles.body.copyWith(color: AppColors.inkRed)),
-              onTap: _logout,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          ],
-          if (!isAnonymous)
-            ListTile(
-              leading: const Icon(Icons.swap_horiz, color: AppColors.inkBlue),
-              title: Text(S.of(context, 'switchAccount')),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AccountPickerScreen()),
-                  (_) => false,
-                );
-              },
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          const Divider(),
+          // ── Manage ──
+          _sectionLabel(S.of(context, 'manageWallets')),
+          _tile(Icons.account_balance_wallet_outlined, S.of(context, 'manageWallets'), onTap: () => context.pushScreen(const WalletListScreen())),
+          _tile(Icons.category_outlined, S.of(context, 'manageCategories'), onTap: () => context.pushScreen(const CategoryListScreen())),
+          _tile(Icons.repeat, S.of(context, 'recurringRules'), onTap: () => context.pushScreen(const RecurringListScreen())),
+          const SizedBox(height: AppSpacing.lg),
 
-          // Default wallet section
-          if (_wallets.length > 1) ...[
-            const SizedBox(height: AppSpacing.md),
-            Text(S.of(context, 'defaultWallet'), style: AppTextStyles.title),
-            const SizedBox(height: AppSpacing.sm),
-            ..._wallets.map((w) {
-              final isSelected = _defaultWalletId == w.id || (_defaultWalletId == null && w.id == _wallets.firstOrNull?.id);
-              return ListTile(
-                leading: const Icon(Icons.account_balance_wallet, size: 20, color: AppColors.inkBlue),
-                title: Text(w.name),
-                trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.inkBlue) : null,
-                onTap: () async {
-                  await sl.settingService.setLastWalletId(w.id!);
-                  setState(() => _defaultWalletId = w.id);
-                },
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                tileColor: isSelected ? AppColors.inkBlue.withValues(alpha: 0.1) : null,
-              );
-            }),
-          ],
-          const Divider(),
-
-          // Currency section (VND only for now)
-          const SizedBox(height: AppSpacing.md),
-          Text(S.of(context, 'currency'), style: AppTextStyles.title),
-          const SizedBox(height: AppSpacing.sm),
-          ...Currency.all.where((c) => c.code == 'VND').map((c) {
-            final isSelected = _defaultCurrency == c.code;
-            return ListTile(
-              leading: Text(c.symbol, style: AppTextStyles.emoji),
-              title: Text(c.code),
-              trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.primary) : null,
-              onTap: () async {
-                await sl.settingService.setDefaultCurrency(c.code);
-                setState(() => _defaultCurrency = c.code);
-              },
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              tileColor: isSelected ? AppColors.primary.withValues(alpha: 0.08) : null,
-            );
-          }),
-          const Divider(),
-
-          // Wallet & Category management
-          const SizedBox(height: AppSpacing.md),
-          ListTile(
-            leading: const Icon(Icons.account_balance_wallet_outlined, color: AppColors.primary),
-            title: Text(S.of(context, 'manageWallets')),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => context.pushScreen(const WalletListScreen()),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          ),
-          ListTile(
-            leading: const Icon(Icons.category_outlined, color: AppColors.primary),
-            title: Text(S.of(context, 'manageCategories')),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => context.pushScreen(const CategoryListScreen()),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          ),
-          const Divider(),
-
-          // Language section
-          const SizedBox(height: AppSpacing.md),
-          Text(S.of(context, 'language'), style: AppTextStyles.title),
-          const SizedBox(height: AppSpacing.sm),
-          _buildLanguageTile('vi', S.of(context, 'vietnamese'), '🇻🇳'),
-          _buildLanguageTile('en', S.of(context, 'english'), '🇺🇸'),
-          const Divider(),
-
-          // Recurring section
-          const SizedBox(height: AppSpacing.md),
-          ListTile(
-            leading: const Icon(Icons.repeat, color: AppColors.inkBlue),
-            title: Text(S.of(context, 'recurringRules')),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () => context.pushScreen(const RecurringListScreen()),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          const Divider(),
-
-          // Reminder section
-          const SizedBox(height: AppSpacing.md),
-          Text(S.of(context, 'dailyReminder'), style: AppTextStyles.title),
-          const SizedBox(height: AppSpacing.sm),
-          SwitchListTile(
-            secondary: const Icon(Icons.notifications_outlined, color: AppColors.inkBlue),
-            title: Text(S.of(context, 'dailyReminder')),
-            value: _reminderEnabled,
-            onChanged: (v) async {
-              setState(() => _reminderEnabled = v);
-              await sl.settingService.setSetting('reminder_enabled', v.toString());
-              if (v) {
-                await sl.reminderService.schedule(context, _reminderHour);
-              } else {
-                await sl.reminderService.cancel();
-              }
+          // ── Preferences ──
+          _sectionLabel(S.of(context, 'settings')),
+          _tile(
+            _currentLocale == 'vi' ? Icons.flag : Icons.flag_outlined,
+            S.of(context, 'language'),
+            trailing: Text(_currentLocale == 'vi' ? '🇻🇳' : '🇺🇸', style: AppTextStyles.emoji),
+            onTap: () async {
+              final newLocale = _currentLocale == 'vi' ? 'en' : 'vi';
+              await sl.settingService.setLocale(newLocale);
+              if (!mounted) return;
+              setState(() => _currentLocale = newLocale);
+              MyApp.setLocale(context, Locale(newLocale));
             },
           ),
-          if (_reminderEnabled)
-            ListTile(
-              leading: const Icon(Icons.access_time, color: AppColors.inkBlue),
-              title: Text(S.of(context, 'reminderTime')),
-              trailing: Text('${_reminderHour.toString().padLeft(2, '0')}:00', style: AppTextStyles.bodyBold),
-              onTap: () async {
-                final picked = await showTimePicker(
-                  context: context,
-                  initialTime: TimeOfDay(hour: _reminderHour, minute: 0),
-                );
-                if (picked == null) return;
-                setState(() => _reminderHour = picked.hour);
-                await sl.settingService.setSetting('reminder_hour', picked.hour.toString());
-                await sl.reminderService.schedule(context, picked.hour);
-              },
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          const Divider(),
+          _buildReminderTile(),
+          const SizedBox(height: AppSpacing.lg),
 
-          // Export section
-          const SizedBox(height: AppSpacing.md),
-          ListTile(
-            leading: _exporting
-                ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Icon(Icons.download_outlined, color: AppColors.inkBlue),
-            title: Text(S.of(context, 'exportCsv')),
+          // ── Data ──
+          _sectionLabel(S.of(context, 'privacy')),
+          _tile(
+            _exporting ? null : Icons.download_outlined,
+            S.of(context, 'exportCsv'),
+            loading: _exporting,
             onTap: _exporting ? null : _exportCsv,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
+          _tile(Icons.shield_outlined, S.of(context, 'dataSecure'), subtitle: S.of(context, 'onlyYouCanAccess'), onTap: () {
+            showModalBottomSheet(
+              context: context,
+              builder: (ctx) => Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(S.of(ctx, 'privacy'), style: AppTextStyles.titleSmall),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(S.of(ctx, 'privacyDetail'), style: AppTextStyles.body),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+                ),
+              ),
+            );
+          }),
+          if (QuickAddParser.learnedCount > 0)
+            _tile(Icons.delete_sweep_outlined, S.of(context, 'clearLearnedKeywords'),
+              subtitle: '${QuickAddParser.learnedCount} ${S.of(context, 'keywords')}',
+              color: AppColors.expense,
+              onTap: () async { await QuickAddParser.clearLearned(); setState(() {}); },
+            ),
+          const SizedBox(height: AppSpacing.xl),
+        ],
+      ),
+    );
+  }
 
-          // Privacy section
-          const Divider(),
-          const SizedBox(height: AppSpacing.md),
-          Text(S.of(context, 'privacy'), style: AppTextStyles.title),
-          const SizedBox(height: AppSpacing.sm),
-          ListTile(
-            leading: const Icon(Icons.shield_outlined, color: AppColors.inkBlue),
-            title: Text(S.of(context, 'dataSecure')),
-            subtitle: Text(S.of(context, 'onlyYouCanAccess')),
-            onTap: _showPrivacyInfo,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          ),
+  // ── Profile card ──
 
-          if (QuickAddParser.learnedCount > 0) ...[
-            const Divider(),
+  Widget _buildProfileCard(User? user, bool isAnonymous) {
+    if (isAnonymous) {
+      return Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
+        ),
+        child: Column(
+          children: [
+            const Icon(Icons.person_outline, size: 40, color: AppColors.textSecondary),
+            const SizedBox(height: AppSpacing.sm),
+            Text(S.of(context, 'anonymousExplanation'), style: AppTextStyles.hint, textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.md),
-            ListTile(
-              leading: const Icon(Icons.delete_sweep_outlined, color: AppColors.inkRed),
-              title: Text(S.of(context, 'clearLearnedKeywords')),
-              subtitle: Text('${QuickAddParser.learnedCount} ${S.of(context, 'keywords')}'),
-              onTap: () async {
-                await QuickAddParser.clearLearned();
-                setState(() {});
-              },
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () async {
+                      final result = await context.pushScreen(const RegisterScreen());
+                      if (result == true && mounted) setState(() {});
+                    },
+                    child: Text(S.of(context, 'register')),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _loginExisting,
+                    child: Text(S.of(context, 'login')),
+                  ),
+                ),
+              ],
             ),
           ],
+        ),
+      );
+    }
 
-          // Debug
-          const Divider(),
+    if (user == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
+      ),
+      child: Column(
+        children: [
+          // Avatar + name + email
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 24,
+                backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+                child: Text(
+                  (user.displayName ?? '?')[0].toUpperCase(),
+                  style: AppTextStyles.title.copyWith(color: AppColors.primary),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(user.displayName ?? '', style: AppTextStyles.bodyBold),
+                    Text(user.email ?? '', style: AppTextStyles.caption),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit_outlined, size: 18, color: AppColors.textSecondary),
+                onPressed: () => _editDisplayName(user),
+              ),
+            ],
+          ),
           const SizedBox(height: AppSpacing.md),
-          ListTile(
-            leading: const Icon(Icons.bug_report_outlined),
-            title: const Text('Firestore reads'),
-            subtitle: Text('${ReadCounter.count} reads\n${ReadCounter.breakdown}'),
-            isThreeLine: true,
-            trailing: IconButton(
-              icon: const Icon(Icons.refresh, size: 18),
-              onPressed: () { ReadCounter.reset(); setState(() {}); },
-            ),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          // Actions row
+          Row(
+            children: [
+              Expanded(
+                child: _smallAction(Icons.swap_horiz, S.of(context, 'switchAccount'), () {
+                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const AccountPickerScreen()), (_) => false);
+                }),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: _smallAction(Icons.logout, S.of(context, 'logout'), _logout, color: AppColors.expense),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildLanguageTile(String locale, String label, String flag) {
-    final isSelected = _currentLocale == locale;
-    return ListTile(
-      leading: Text(flag, style: AppTextStyles.emoji),
-      title: Text(label),
-      trailing: isSelected ? const Icon(Icons.check_circle, color: AppColors.inkBlue) : null,
-      onTap: () => _changeLocale(locale),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      tileColor: isSelected ? AppColors.inkBlue.withValues(alpha: 0.1) : null,
+  Widget _smallAction(IconData icon, String label, VoidCallback onTap, {Color? color}) {
+    final c = color ?? AppColors.primary;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: c.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: c),
+            const SizedBox(width: 6),
+            Text(label, style: AppTextStyles.caption.copyWith(color: c, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ── Reminder ──
+
+  Widget _buildReminderTile() {
+    return Column(
+      children: [
+        SwitchListTile(
+          secondary: const Icon(Icons.notifications_outlined, color: AppColors.primary),
+          title: Text(S.of(context, 'dailyReminder'), style: AppTextStyles.body),
+          value: _reminderEnabled,
+          contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          onChanged: (v) async {
+            setState(() => _reminderEnabled = v);
+            await sl.settingService.setSetting('reminder_enabled', v.toString());
+            if (v) {
+              await sl.reminderService.schedule(context, _reminderHour);
+            } else {
+              await sl.reminderService.cancel();
+            }
+          },
+        ),
+        if (_reminderEnabled)
+          Padding(
+            padding: const EdgeInsets.only(left: 56),
+            child: GestureDetector(
+              onTap: () async {
+                final picked = await showTimePicker(context: context, initialTime: TimeOfDay(hour: _reminderHour, minute: 0));
+                if (picked == null) return;
+                setState(() => _reminderHour = picked.hour);
+                await sl.settingService.setSetting('reminder_hour', picked.hour.toString());
+                await sl.reminderService.schedule(context, picked.hour);
+              },
+              child: Row(
+                children: [
+                  Text(S.of(context, 'reminderTime'), style: AppTextStyles.bodySmall),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text('${_reminderHour.toString().padLeft(2, '0')}:00', style: AppTextStyles.bodyBold),
+                ],
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // ── Helpers ──
+
+  Widget _sectionLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm, left: 4),
+      child: Text(text, style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600, color: AppColors.textSecondary)),
+    );
+  }
+
+  Widget _tile(IconData? icon, String title, {String? subtitle, VoidCallback? onTap, Widget? trailing, Color? color, bool loading = false}) {
+    final c = color ?? AppColors.primary;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 2),
+      child: ListTile(
+        leading: loading
+            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+            : Icon(icon, size: 22, color: c),
+        title: Text(title, style: AppTextStyles.body),
+        subtitle: subtitle != null ? Text(subtitle, style: AppTextStyles.caption) : null,
+        trailing: trailing ?? const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
+        onTap: onTap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 2),
+        dense: true,
+      ),
     );
   }
 }
