@@ -130,12 +130,16 @@ class AccountService {
     required String userId,
     required String email,
     required String displayName,
+    String? photoUrl,
   }) async {
-    final batch = _firestore.batch();
-    batch.set(_users.doc(userId), {
+    final userData = <String, dynamic>{
       'email': email,
       'display_name': displayName,
-    }, SetOptions(merge: true));
+    };
+    if (photoUrl != null) userData['photo_url'] = photoUrl;
+
+    final batch = _firestore.batch();
+    batch.set(_users.doc(userId), userData, SetOptions(merge: true));
     if (email.isNotEmpty) {
       batch.set(_userEmails.doc(email.toLowerCase()), {'user_id': userId});
     }
@@ -210,6 +214,7 @@ class AccountService {
           'id': id,
           'name': data['display_name'] ?? '',
           'email': data['email'] ?? '',
+          'photo_url': data['photo_url'] ?? '',
         });
       }
     }

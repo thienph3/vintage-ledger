@@ -237,6 +237,10 @@ const Map<String, String> vi = {
   'pendingInvites': 'Lời mời đang chờ',
   'accept': 'Đồng ý',
   'reject': 'Từ chối',
+  'signInWithGoogle': 'Đăng nhập bằng Google',
+  'loginWithEmail': 'Đăng nhập bằng email',
+  'linkWithGoogle': 'Chuyển sang Google',
+  'googleLinked': 'Đã liên kết Google',
 
   // Tabs
   'tabHome': 'Trang chủ',

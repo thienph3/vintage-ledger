@@ -8,6 +8,7 @@ class FeedItem extends StatelessWidget {
   final String actorName;
   final String text;
   final String time;
+  final String? photoUrl;
   final VoidCallback? onTap;
   final bool isSystemMessage;
 
@@ -16,6 +17,7 @@ class FeedItem extends StatelessWidget {
     required this.actorName,
     required this.text,
     required this.time,
+    this.photoUrl,
     this.onTap,
     this.isSystemMessage = false,
   });
@@ -43,9 +45,14 @@ class FeedItem extends StatelessWidget {
             CircleAvatar(
               radius: 16,
               backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-              child: Text(initials, style: AppTextStyles.caption.copyWith(
-                color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 14,
-              )),
+              backgroundImage: photoUrl != null && photoUrl!.isNotEmpty
+                  ? NetworkImage(photoUrl!)
+                  : null,
+              child: photoUrl == null || photoUrl!.isEmpty
+                  ? Text(initials, style: AppTextStyles.caption.copyWith(
+                      color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 14,
+                    ))
+                  : null,
             ),
             const SizedBox(width: AppSpacing.md2),
             Expanded(

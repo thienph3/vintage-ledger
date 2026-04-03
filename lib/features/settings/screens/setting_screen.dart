@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
+import 'package:vintage_ledger/core/error_mapper.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -52,6 +53,25 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   // ── Actions ──
+
+  Future<void> _linkWithGoogle() async {
+    try {
+      final user = await sl.authService.linkEmailUserWithGoogle();
+      if (user == null || !mounted) return;
+      await sl.accountService.updateUserProfile(
+        userId: user.uid,
+        email: user.email ?? '',
+        displayName: user.displayName ?? '',
+        photoUrl: user.photoURL,
+      );
+      if (mounted) setState(() {});
+      showAppSnackBar(context, S.of(context, 'googleLinked'));
+    } catch (e) {
+      if (!mounted) return;
+      final mapped = ErrorMapper.map(e);
+      showAppSnackBar(context, S.of(context, mapped.message), backgroundColor: AppColors.expense);
+    }
+  }
 
   Future<void> _editDisplayName(User user) async {
     final ctrl = TextEditingController(text: user.displayName ?? '');
@@ -271,10 +291,13 @@ class _SettingScreenState extends State<SettingScreen> {
               CircleAvatar(
                 radius: 24,
                 backgroundColor: AppColors.primary.withValues(alpha: 0.12),
-                child: Text(
-                  (user.displayName ?? '?')[0].toUpperCase(),
-                  style: AppTextStyles.title.copyWith(color: AppColors.primary),
-                ),
+                backgroundImage: user.photoURL != null ? NetworkImage(user.photoURL!) : null,
+                child: user.photoURL == null
+                    ? Text(
+                        (user.displayName ?? '?')[0].toUpperCase(),
+                        style: AppTextStyles.title.copyWith(color: AppColors.primary),
+                      )
+                    : null,
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -292,6 +315,12 @@ class _SettingScreenState extends State<SettingScreen> {
               ),
             ],
           ),
+          // Migrate to Google (for email users)
+          if (sl.authService.isEmailUser && !sl.authService.isGoogleUser)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: _smallAction(Icons.g_mobiledata, S.of(context, 'linkWithGoogle'), _linkWithGoogle),
+            ),
           const SizedBox(height: AppSpacing.md),
           // Actions row
           Row(

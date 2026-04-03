@@ -237,6 +237,10 @@ const Map<String, String> en = {
   'pendingInvites': 'Pending invites',
   'accept': 'Accept',
   'reject': 'Decline',
+  'signInWithGoogle': 'Sign in with Google',
+  'loginWithEmail': 'Sign in with email',
+  'linkWithGoogle': 'Switch to Google',
+  'googleLinked': 'Google linked',
 
   // Tabs
   'tabHome': 'Home',

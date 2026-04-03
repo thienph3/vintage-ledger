@@ -240,6 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
           actorName: actor,
           text: story,
           time: time,
+          photoUrl: FeedHelper.resolvePhoto(txn.transaction.createdBy),
           onTap: () async {
             final result = await context.pushScreen(TransactionFormScreen(
               walletId: txn.transaction.walletId,
