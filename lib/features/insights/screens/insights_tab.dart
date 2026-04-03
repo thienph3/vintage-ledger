@@ -14,6 +14,9 @@ import 'package:vintage_ledger/features/budget/widgets/budget_summary_card.dart'
 import 'package:vintage_ledger/features/insights/models/insight.dart';
 import 'package:vintage_ledger/features/insights/services/insight_service.dart';
 import 'package:vintage_ledger/features/insights/widgets/insight_card.dart';
+import 'package:vintage_ledger/features/coaching/coaching_service.dart';
+import 'package:vintage_ledger/features/coaching/coaching_tip.dart';
+import 'package:vintage_ledger/features/coaching/coaching_card.dart';
 
 class InsightsTab extends StatefulWidget {
   const InsightsTab({super.key});
@@ -25,6 +28,7 @@ class InsightsTab extends StatefulWidget {
 class _InsightsTabState extends State<InsightsTab> {
   DashboardData? _dashboard;
   List<Insight> _insights = [];
+  CoachingTip? _coachingTip;
   int _streak = 0;
   bool _loading = true;
 
@@ -48,6 +52,15 @@ class _InsightsTabState extends State<InsightsTab> {
         _insights = insights;
         _loading = false;
       });
+      final budgets = await sl.budgetService.getBudgets();
+      if (!mounted) return;
+      final tip = await CoachingService.getTip(
+        context: context,
+        dashboard: dashboard,
+        streak: streak,
+        budgetCount: budgets.length,
+      );
+      if (mounted) setState(() => _coachingTip = tip);
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
@@ -80,6 +93,11 @@ class _InsightsTabState extends State<InsightsTab> {
                     ..._insights.map((i) => InsightCard(insight: i)),
                     const SizedBox(height: AppSpacing.sm),
                   ],
+                  if (_coachingTip != null)
+                    CoachingCard(
+                      tip: _coachingTip!,
+                      onDismissed: () => setState(() => _coachingTip = null),
+                    ),
                   if (_dashboard != null)
                     LedgerCard(child: ChartSection(dashboard: _dashboard!)),
                   const SizedBox(height: AppSpacing.lg),

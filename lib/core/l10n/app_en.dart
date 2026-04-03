@@ -30,6 +30,7 @@ const Map<String, String> en = {
   'category': 'Category',
   'amount': 'Amount',
   'noTransactions': 'Nothing yet today',
+  'todaySpent': 'Spent {amount} today',
   'addTransaction': 'Log transaction',
   'editTransaction': 'Edit transaction',
   'addNewTransaction': 'New transaction',

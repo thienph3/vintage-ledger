@@ -30,6 +30,7 @@ const Map<String, String> vi = {
   'category': 'Danh mục',
   'amount': 'Số tiền',
   'noTransactions': 'Chưa có gì hôm nay',
+  'todaySpent': 'Hôm nay chi {amount}',
   'addTransaction': 'Ghi thu chi',
   'editTransaction': 'Sửa thu chi',
   'addNewTransaction': 'Ghi thu chi mới',
