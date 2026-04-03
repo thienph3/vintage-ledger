@@ -73,21 +73,33 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Future<void> _signInWithGoogle() async {
+    final anonAccountId = sl.appState.currentAccountId;
     try {
-      final user = await sl.authService.linkWithGoogle();
+      // Sign out anonymous, sign in Google fresh
+      await sl.authService.logout();
+      final user = await sl.authService.signInWithGoogle();
       if (user == null || !mounted) return;
+
       sl.appState.currentUserId = user.uid;
       final accountId = await sl.accountService.getOrCreatePersonalAccountId(
         user.uid, user.email ?? '', user.displayName ?? '',
       );
       sl.appState.currentAccountId = accountId;
       sl.settingService.setLastAccountId(accountId);
+
       await sl.accountService.updateUserProfile(
         userId: user.uid,
         email: user.email ?? '',
         displayName: user.displayName ?? '',
         photoUrl: user.photoURL,
       );
+
+      // Migrate anonymous data
+      if (anonAccountId.isNotEmpty && anonAccountId != accountId) {
+        await sl.accountService.migrateAccount(anonAccountId, accountId);
+        await sl.accountService.deleteAccount(anonAccountId);
+      }
+
       if (mounted) setState(() {});
     } catch (e) {
       if (!mounted) return;
