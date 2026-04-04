@@ -20,6 +20,8 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
+import 'package:vintage_ledger/common/widgets/inline_selector.dart';
+import 'package:vintage_ledger/core/constants/category_icons.dart';
 import 'package:vintage_ledger/features/feed/feed_helper.dart';
 import 'package:vintage_ledger/utils/transaction_story.dart';
 
@@ -271,13 +273,12 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Row(
         children: [
-          // Wallet filter
           if (widget.walletId == null && _wallets.length > 1) ...[
-            _buildFilterChip(
+            InlineSelector(
+              icon: Icons.account_balance_wallet_outlined,
               label: _filterWalletId == null
                   ? S.of(context, 'allWallets')
                   : _wallets.where((w) => w.id == _filterWalletId).firstOrNull?.name ?? '',
-              active: _filterWalletId != null,
               onTap: () async {
                 final selected = await showSelectionSheet<String>(
                   context: context,
@@ -286,40 +287,40 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                     SelectionItem(value: '_all', label: S.of(context, 'allWallets')),
                     ..._wallets.map((w) => SelectionItem(value: w.id!, label: w.name, icon: Icons.account_balance_wallet_outlined)),
                   ],
-                  selected: _filterWalletId,
+                  selected: _filterWalletId ?? '_all',
                 );
                 if (selected != null) setState(() => _filterWalletId = selected == '_all' ? null : selected);
               },
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.md),
           ],
-          // Category filter
-          _buildFilterChip(
+          InlineSelector(
+            icon: _filterCategoryId != null
+                ? getCategoryIcon(_categories.where((c) => c.id == _filterCategoryId).firstOrNull?.icon)
+                : Icons.category_outlined,
             label: _filterCategoryId == null
                 ? S.of(context, 'allCategories')
                 : _categoryNameMap[_filterCategoryId] ?? '',
-            active: _filterCategoryId != null,
             onTap: () async {
               final selected = await showSelectionSheet<String>(
                 context: context,
                 title: S.of(context, 'category'),
                 items: [
                   SelectionItem(value: '_all', label: S.of(context, 'allCategories')),
-                  ..._categories.map((c) => SelectionItem(value: c.id!, label: c.name, icon: Icons.category_outlined)),
+                  ..._categories.map((c) => SelectionItem(value: c.id!, label: c.name, icon: getCategoryIcon(c.icon))),
                 ],
-                selected: _filterCategoryId,
+                selected: _filterCategoryId ?? '_all',
               );
               if (selected != null) setState(() => _filterCategoryId = selected == '_all' ? null : selected);
             },
           ),
-          // Member filter (family only)
           if (_members.length > 1) ...[
-            const SizedBox(width: 8),
-            _buildFilterChip(
+            const SizedBox(width: AppSpacing.md),
+            InlineSelector(
+              icon: Icons.person_outline,
               label: _filterUserId == null
                   ? S.of(context, 'everyone')
                   : _members.where((m) => m['id'] == _filterUserId).firstOrNull?['name'] ?? '',
-              active: _filterUserId != null,
               onTap: () async {
                 final selected = await showSelectionSheet<String>(
                   context: context,
@@ -328,40 +329,13 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                     SelectionItem(value: '_all', label: S.of(context, 'everyone'), icon: Icons.people_outline),
                     ..._members.map((m) => SelectionItem(value: m['id']!, label: m['name'] ?? '?', icon: Icons.person_outline)),
                   ],
-                  selected: _filterUserId,
+                  selected: _filterUserId ?? '_all',
                 );
                 if (selected != null) setState(() => _filterUserId = selected == '_all' ? null : selected);
               },
             ),
           ],
         ],
-      ),
-    );
-  }
-
-  Widget _buildFilterChip({required String label, required bool active, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: active ? AppColors.primary : AppColors.primary.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: AppTextStyles.caption.copyWith(
-                color: active ? Colors.white : AppColors.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(width: 2),
-            Icon(Icons.expand_more, size: 16, color: active ? Colors.white : AppColors.primary),
-          ],
-        ),
       ),
     );
   }

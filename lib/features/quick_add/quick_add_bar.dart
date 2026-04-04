@@ -8,6 +8,8 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
+import 'package:vintage_ledger/common/widgets/inline_selector.dart';
+import 'package:vintage_ledger/core/constants/category_icons.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/core/constants/category_emojis.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
@@ -305,26 +307,21 @@ class _QuickAddBarState extends State<QuickAddBar> {
   Widget _buildParsePreview() {
     final locale = Localizations.localeOf(context).languageCode;
     final amountStr = AmountFormatter.formatCompactCurrency(_result.amount, locale);
-    final catName = _result.hasCategory
-        ? _categories.where((c) => c.id == _result.matchedCategoryId).firstOrNull?.name
+    final matchedCat = _result.hasCategory
+        ? _categories.where((c) => c.id == _result.matchedCategoryId).firstOrNull
         : null;
+    final catName = matchedCat?.name;
+    final catIcon = getCategoryIcon(matchedCat?.icon);
     final isIncome = _result.type == TransactionType.income;
 
     return Row(
       children: [
         // Wallet (tap to change)
         if (widget.wallets.length > 1) ...[
-          GestureDetector(
+          InlineSelector(
+            icon: Icons.account_balance_wallet_outlined,
+            label: _currentWalletName ?? '',
             onTap: _showWalletPicker,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.account_balance_wallet_outlined, size: 12, color: AppColors.textSecondary),
-                const SizedBox(width: 2),
-                Text(_currentWalletName ?? '', style: AppTextStyles.caption),
-                const Icon(Icons.unfold_more, size: 10, color: AppColors.textSecondary),
-              ],
-            ),
           ),
           const SizedBox(width: AppSpacing.sm),
         ],
@@ -340,28 +337,13 @@ class _QuickAddBarState extends State<QuickAddBar> {
           fontWeight: FontWeight.w600,
         )),
         const SizedBox(width: AppSpacing.sm),
-        // Category (tap to pick if unknown)
-        if (catName != null)
-          Text(catName, style: AppTextStyles.caption)
-        else
-          GestureDetector(
-            onTap: _pickCategory,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: AppColors.expense.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('?', style: AppTextStyles.caption.copyWith(color: AppColors.expense)),
-                  const SizedBox(width: 2),
-                  Icon(Icons.expand_more, size: 12, color: AppColors.expense),
-                ],
-              ),
-            ),
-          ),
+        // Category (always tappable)
+        InlineSelector(
+          icon: catIcon,
+          label: catName ?? '?',
+          isPlaceholder: catName == null,
+          onTap: _pickCategory,
+        ),
       ],
     );
   }
@@ -373,7 +355,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
       items: _categories.map((c) => SelectionItem(
         value: c.id!,
         label: c.name,
-        icon: Icons.category_outlined,
+        icon: getCategoryIcon(c.icon),
       )).toList(),
       selected: _result.matchedCategoryId,
     );
