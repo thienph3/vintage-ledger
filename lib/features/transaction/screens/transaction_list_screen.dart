@@ -13,6 +13,7 @@ import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -301,13 +302,20 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             label: _filterCategoryId == null
                 ? S.of(context, 'allCategories')
                 : _categoryNameMap[_filterCategoryId] ?? '',
+            color: _filterCategoryId != null
+                ? (_categories.where((c) => c.id == _filterCategoryId).firstOrNull?.type == TransactionType.income
+                    ? AppColors.income : AppColors.expense)
+                : null,
             onTap: () async {
               final selected = await showSelectionSheet<String>(
                 context: context,
                 title: S.of(context, 'category'),
                 items: [
                   SelectionItem(value: '_all', label: S.of(context, 'allCategories')),
-                  ..._categories.map((c) => SelectionItem(value: c.id!, label: c.name, icon: getCategoryIcon(c.icon))),
+                  ..._categories.map((c) => SelectionItem(
+                    value: c.id!, label: c.name, icon: getCategoryIcon(c.icon),
+                    color: c.type == TransactionType.income ? AppColors.income : AppColors.expense,
+                  )),
                 ],
                 selected: _filterCategoryId ?? '_all',
               );

@@ -342,11 +342,15 @@ class _QuickAddBarState extends State<QuickAddBar> {
           icon: catIcon,
           label: catName ?? '?',
           isPlaceholder: catName == null,
+          color: catName != null ? (isIncome ? AppColors.income : AppColors.expense) : null,
           onTap: _pickCategory,
         ),
       ],
     );
   }
+
+  Color _catColor(TransactionType? type) =>
+      type == TransactionType.income ? AppColors.income : AppColors.expense;
 
   void _pickCategory() async {
     final selected = await showSelectionSheet<String>(
@@ -356,16 +360,18 @@ class _QuickAddBarState extends State<QuickAddBar> {
         value: c.id!,
         label: c.name,
         icon: getCategoryIcon(c.icon),
+        color: _catColor(c.type),
       )).toList(),
       selected: _result.matchedCategoryId,
     );
     if (selected != null) {
+      final cat = _categories.where((c) => c.id == selected).firstOrNull;
       setState(() {
         _result = QuickAddResult(
           amount: _result.amount,
           keyword: _result.keyword,
           matchedCategoryId: selected,
-          type: _result.type,
+          type: cat?.type ?? _result.type,
         );
       });
     }

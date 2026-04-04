@@ -8,8 +8,9 @@ class SelectionItem<T> {
   final T value;
   final String label;
   final IconData? icon;
+  final Color? color;
 
-  const SelectionItem({required this.value, required this.label, this.icon});
+  const SelectionItem({required this.value, required this.label, this.icon, this.color});
 }
 
 Future<T?> showSelectionSheet<T>({
@@ -35,9 +36,11 @@ Future<T?> showSelectionSheet<T>({
                 final isSelected = item.value == selected;
                 return ListTile(
                   leading: item.icon != null
-                      ? Icon(item.icon, size: 20, color: AppColors.primary)
+                      ? Icon(item.icon, size: 20, color: item.color ?? AppColors.primary)
                       : null,
-                  title: Text(item.label, style: AppTextStyles.body),
+                  title: Text(item.label, style: AppTextStyles.body.copyWith(
+                    color: item.color,
+                  )),
                   trailing: isSelected
                       ? const Icon(Icons.check_circle, color: AppColors.primary, size: 20)
                       : null,
