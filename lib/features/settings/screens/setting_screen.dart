@@ -300,7 +300,6 @@ class _SettingScreenState extends State<SettingScreen> {
                 child: Text(S.of(context, 'loginWithEmail')),
               ),
             ),
-            ),
           ],
         ),
       );
