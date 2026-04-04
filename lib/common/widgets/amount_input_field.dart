@@ -94,8 +94,14 @@ class _AmountInputFieldState extends State<AmountInputField> {
         ? int.parse(amount.toString().substring(0, _maxDigits))
         : amount;
     widget.controller.text = clamped.toString();
-    _setFormatted(clamped);
-    _fieldCtrl.selection = TextSelection.collapsed(offset: _cursorBeforeSuffix);
+    final formatted = AmountFormatter.formatCurrency(clamped, _locale, currencyCode: widget.currency);
+    final pos = formatted.lastIndexOf(RegExp(r'[0-9]'));
+    _fieldCtrl.value = TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: pos >= 0 ? pos + 1 : formatted.length),
+    );
+    // Keep keyboard open
+    _focusNode.requestFocus();
     _overlay?.markNeedsBuild();
   }
 
@@ -176,6 +182,7 @@ class _ChipsBar extends StatelessWidget {
                 children: chips.map((amount) {
                   final selected = base == amount;
                   return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () => onSelect(amount),
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
