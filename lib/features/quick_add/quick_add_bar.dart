@@ -301,10 +301,10 @@ class _QuickAddBarState extends State<QuickAddBar> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ))
                     : IconButton(
-                        onPressed: hasInput ? _submit : _openFullForm,
+                        onPressed: _result.isComplete ? _submit : (hasInput ? null : _openFullForm),
                         icon: Icon(
                           hasInput ? Icons.send_rounded : Icons.add_circle_outline,
-                          color: AppColors.primary,
+                          color: hasInput && !_result.isComplete ? AppColors.textSecondary : AppColors.primary,
                           size: 28,
                         ),
                       ),
@@ -326,6 +326,23 @@ class _QuickAddBarState extends State<QuickAddBar> {
 
     return Row(
       children: [
+        // Wallet (tap to change)
+        if (widget.wallets.length > 1) ...[
+          GestureDetector(
+            onTap: _showWalletPicker,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.account_balance_wallet_outlined, size: 12, color: AppColors.textSecondary),
+                const SizedBox(width: 2),
+                Text(_currentWalletName ?? '', style: AppTextStyles.caption),
+                const Icon(Icons.unfold_more, size: 10, color: AppColors.textSecondary),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+        ],
+        // Amount
         Icon(
           isIncome ? Icons.arrow_downward : Icons.arrow_upward,
           size: 14,
@@ -336,14 +353,66 @@ class _QuickAddBarState extends State<QuickAddBar> {
           color: isIncome ? AppColors.income : AppColors.expense,
           fontWeight: FontWeight.w600,
         )),
-        if (catName != null) ...[
-          const SizedBox(width: AppSpacing.sm),
-          Text(catName, style: AppTextStyles.caption),
-        ] else if (_result.keyword != null && _result.keyword!.isNotEmpty) ...[
-          const SizedBox(width: AppSpacing.sm),
-          Text('?', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
-        ],
+        const SizedBox(width: AppSpacing.sm),
+        // Category (tap to pick if unknown)
+        if (catName != null)
+          Text(catName, style: AppTextStyles.caption)
+        else
+          GestureDetector(
+            onTap: _pickCategory,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.expense.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('?', style: AppTextStyles.caption.copyWith(color: AppColors.expense)),
+                  const SizedBox(width: 2),
+                  Icon(Icons.expand_more, size: 12, color: AppColors.expense),
+                ],
+              ),
+            ),
+          ),
       ],
+    );
+  }
+
+  void _pickCategory() {
+    showModalBottomSheet(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Text(S.of(ctx, 'category'), style: AppTextStyles.titleSmall),
+            ),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: _categories.map((c) => ListTile(
+                  title: Text(c.name, style: AppTextStyles.body),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _result = QuickAddResult(
+                        amount: _result.amount,
+                        keyword: _result.keyword,
+                        matchedCategoryId: c.id,
+                        type: _result.type,
+                      );
+                    });
+                  },
+                )).toList(),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
