@@ -257,6 +257,12 @@ class _QuickAddBarState extends State<QuickAddBar> {
                 padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                 child: _buildWalletChip(),
               ),
+            // Parse preview
+            if (hasInput && _result.hasAmount)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                child: _buildParsePreview(),
+              ),
             // Chat-like input row
             Row(
               children: [
@@ -307,6 +313,37 @@ class _QuickAddBarState extends State<QuickAddBar> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildParsePreview() {
+    final locale = Localizations.localeOf(context).languageCode;
+    final amountStr = AmountFormatter.formatCompactCurrency(_result.amount, locale);
+    final catName = _result.hasCategory
+        ? _categories.where((c) => c.id == _result.matchedCategoryId).firstOrNull?.name
+        : null;
+    final isIncome = _result.type == TransactionType.income;
+
+    return Row(
+      children: [
+        Icon(
+          isIncome ? Icons.arrow_downward : Icons.arrow_upward,
+          size: 14,
+          color: isIncome ? AppColors.income : AppColors.expense,
+        ),
+        const SizedBox(width: 4),
+        Text(amountStr, style: AppTextStyles.bodySmall.copyWith(
+          color: isIncome ? AppColors.income : AppColors.expense,
+          fontWeight: FontWeight.w600,
+        )),
+        if (catName != null) ...[
+          const SizedBox(width: AppSpacing.sm),
+          Text(catName, style: AppTextStyles.caption),
+        ] else if (_result.keyword != null && _result.keyword!.isNotEmpty) ...[
+          const SizedBox(width: AppSpacing.sm),
+          Text('?', style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
+        ],
+      ],
     );
   }
 
