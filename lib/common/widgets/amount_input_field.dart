@@ -30,7 +30,7 @@ class AmountInputField extends StatefulWidget {
 class _AmountInputFieldState extends State<AmountInputField> {
   final _focusNode = FocusNode();
   final _fieldCtrl = TextEditingController();
-  bool _focused = false;
+  OverlayEntry? _overlay;
 
   int get _rawAmount => int.tryParse(widget.controller.text) ?? 0;
   String get _locale => 'vi';
@@ -44,6 +44,7 @@ class _AmountInputFieldState extends State<AmountInputField> {
 
   @override
   void dispose() {
+    _removeOverlay();
     _focusNode.dispose();
     _fieldCtrl.dispose();
     super.dispose();
@@ -59,8 +60,11 @@ class _AmountInputFieldState extends State<AmountInputField> {
   }
 
   void _onFocusChanged() {
-    setState(() => _focused = _focusNode.hasFocus);
     if (_focusNode.hasFocus) {
+      _setFormatted(_rawAmount);
+      _showOverlay();
+    } else {
+      _removeOverlay();
       _setFormatted(_rawAmount);
     }
   }
@@ -78,7 +82,7 @@ class _AmountInputFieldState extends State<AmountInputField> {
       text: formatted,
       selection: TextSelection.collapsed(offset: pos >= 0 ? pos + 1 : formatted.length),
     );
-    setState(() {});
+    _overlay?.markNeedsBuild();
   }
 
   void _selectChip(int amount) {
@@ -87,81 +91,109 @@ class _AmountInputFieldState extends State<AmountInputField> {
         : amount;
     widget.controller.text = clamped.toString();
     _setFormatted(clamped);
-    setState(() {});
-    // Keep focus — schedule after frame to avoid losing it
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted && !_focusNode.hasFocus) _focusNode.requestFocus();
-    });
+    _overlay?.markNeedsBuild();
   }
 
-  List<int> _chips() {
-    final base = _rawAmount;
-    if (base <= 0) return AmountHistory.topAmounts();
+  void _showOverlay() {
+    _removeOverlay();
+    _overlay = OverlayEntry(builder: (_) => _AmountChipsOverlay(
+      controller: widget.controller,
+      onSelect: _selectChip,
+    ));
+    Overlay.of(context).insert(_overlay!);
+  }
 
-    final digits = base.toString().length;
-    if (digits >= _maxDigits) return AmountHistory.topAmounts();
-    if (digits == 7) return [base * 10];
-    if (digits == 6) return [base * 10, base * 100];
-    if (digits <= 2) return [base * 1000, base * 10000, base * 100000];
-    return [base * 10, base * 100, base * 1000];
+  void _removeOverlay() {
+    _overlay?.remove();
+    _overlay = null;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        TextField(
-          controller: _fieldCtrl,
-          focusNode: _focusNode,
-          keyboardType: TextInputType.number,
-          style: AppTextStyles.amount,
-          onChanged: _onChanged,
-          onTapOutside: (_) => _focusNode.unfocus(),
-          decoration: InputDecoration(
-            labelText: widget.label ?? S.of(context, 'amount'),
-          ),
-        ),
-        if (_focused) _buildChips(),
-      ],
+    return TextField(
+      controller: _fieldCtrl,
+      focusNode: _focusNode,
+      keyboardType: TextInputType.number,
+      style: AppTextStyles.amount,
+      onChanged: _onChanged,
+      onTapOutside: (_) => _focusNode.unfocus(),
+      decoration: InputDecoration(
+        labelText: widget.label ?? S.of(context, 'amount'),
+      ),
     );
   }
+}
 
-  Widget _buildChips() {
-    final chips = _chips();
-    if (chips.isEmpty) return const SizedBox.shrink();
+List<int> _buildChips(int base) {
+  if (base <= 0) return AmountHistory.topAmounts();
+  final digits = base.toString().length;
+  if (digits >= _maxDigits) return AmountHistory.topAmounts();
+  if (digits == 7) return [base * 10];
+  if (digits == 6) return [base * 10, base * 100];
+  if (digits <= 2) return [base * 1000, base * 10000, base * 100000];
+  return [base * 10, base * 100, base * 1000];
+}
 
+class _AmountChipsOverlay extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<int> onSelect;
+
+  const _AmountChipsOverlay({required this.controller, required this.onSelect});
+
+  @override
+  Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).languageCode;
-    final base = _rawAmount;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
 
-    return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.sm),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: chips.map((amount) {
-          final selected = base == amount;
-          return GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTapDown: (_) => _selectChip(amount),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: selected
-                    ? AppColors.primary
-                    : AppColors.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(
-                AmountFormatter.formatCurrency(amount, locale),
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: selected ? Colors.white : AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: bottomInset,
+      child: TextFieldTapRegion(
+        child: Material(
+          elevation: 0,
+          color: AppColors.surface,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: AppColors.divider.withValues(alpha: 0.3))),
             ),
-          );
-        }).toList(),
+            child: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller,
+              builder: (context, value, _) {
+                final base = int.tryParse(value.text) ?? 0;
+                final chips = _buildChips(base);
+                if (chips.isEmpty) return const SizedBox.shrink();
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: chips.map((amount) {
+                    final selected = base == amount;
+                    return GestureDetector(
+                      onTap: () => onSelect(amount),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? AppColors.primary
+                              : AppColors.primary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          AmountFormatter.formatCurrency(amount, locale),
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: selected ? Colors.white : AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }
