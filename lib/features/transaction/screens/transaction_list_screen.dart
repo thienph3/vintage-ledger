@@ -19,6 +19,7 @@ import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
+import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
 import 'package:vintage_ledger/features/feed/feed_helper.dart';
 import 'package:vintage_ledger/utils/transaction_story.dart';
 
@@ -272,44 +273,65 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         children: [
           // Wallet filter
           if (widget.walletId == null && _wallets.length > 1) ...[
-            _buildDropdownChip<String>(
+            _buildFilterChip(
               label: _filterWalletId == null
                   ? S.of(context, 'allWallets')
                   : _wallets.where((w) => w.id == _filterWalletId).firstOrNull?.name ?? '',
               active: _filterWalletId != null,
-              items: [
-                PopupMenuItem(value: '_all', child: Text(S.of(context, 'allWallets'), style: AppTextStyles.body)),
-                ..._wallets.map((w) => PopupMenuItem(value: w.id!, child: Text(w.name, style: AppTextStyles.body))),
-              ],
-              onSelected: (id) => setState(() => _filterWalletId = id == '_all' ? null : id),
+              onTap: () async {
+                final selected = await showSelectionSheet<String>(
+                  context: context,
+                  title: S.of(context, 'selectWallet'),
+                  items: [
+                    SelectionItem(value: '_all', label: S.of(context, 'allWallets')),
+                    ..._wallets.map((w) => SelectionItem(value: w.id!, label: w.name, icon: Icons.account_balance_wallet_outlined)),
+                  ],
+                  selected: _filterWalletId,
+                );
+                if (selected != null) setState(() => _filterWalletId = selected == '_all' ? null : selected);
+              },
             ),
             const SizedBox(width: 8),
           ],
           // Category filter
-          _buildDropdownChip<String>(
+          _buildFilterChip(
             label: _filterCategoryId == null
                 ? S.of(context, 'allCategories')
                 : _categoryNameMap[_filterCategoryId] ?? '',
             active: _filterCategoryId != null,
-            items: [
-              PopupMenuItem(value: '_all', child: Text(S.of(context, 'allCategories'), style: AppTextStyles.body)),
-              ..._categories.map((c) => PopupMenuItem(value: c.id!, child: Text(c.name, style: AppTextStyles.body))),
-            ],
-            onSelected: (id) => setState(() => _filterCategoryId = id == '_all' ? null : id),
+            onTap: () async {
+              final selected = await showSelectionSheet<String>(
+                context: context,
+                title: S.of(context, 'category'),
+                items: [
+                  SelectionItem(value: '_all', label: S.of(context, 'allCategories')),
+                  ..._categories.map((c) => SelectionItem(value: c.id!, label: c.name, icon: Icons.category_outlined)),
+                ],
+                selected: _filterCategoryId,
+              );
+              if (selected != null) setState(() => _filterCategoryId = selected == '_all' ? null : selected);
+            },
           ),
           // Member filter (family only)
           if (_members.length > 1) ...[
             const SizedBox(width: 8),
-            _buildDropdownChip<String>(
+            _buildFilterChip(
               label: _filterUserId == null
                   ? S.of(context, 'everyone')
                   : _members.where((m) => m['id'] == _filterUserId).firstOrNull?['name'] ?? '',
               active: _filterUserId != null,
-              items: [
-                PopupMenuItem(value: '_all', child: Text(S.of(context, 'everyone'), style: AppTextStyles.body)),
-                ..._members.map((m) => PopupMenuItem(value: m['id']!, child: Text(m['name'] ?? '?', style: AppTextStyles.body))),
-              ],
-              onSelected: (id) => setState(() => _filterUserId = id == '_all' ? null : id),
+              onTap: () async {
+                final selected = await showSelectionSheet<String>(
+                  context: context,
+                  title: S.of(context, 'member'),
+                  items: [
+                    SelectionItem(value: '_all', label: S.of(context, 'everyone'), icon: Icons.people_outline),
+                    ..._members.map((m) => SelectionItem(value: m['id']!, label: m['name'] ?? '?', icon: Icons.person_outline)),
+                  ],
+                  selected: _filterUserId,
+                );
+                if (selected != null) setState(() => _filterUserId = selected == '_all' ? null : selected);
+              },
             ),
           ],
         ],
@@ -317,18 +339,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     );
   }
 
-  Widget _buildDropdownChip<T>({
-    required String label,
-    required bool active,
-    required List<PopupMenuEntry<T>> items,
-    required ValueChanged<T?> onSelected,
-  }) {
-    return PopupMenuButton<T>(
-      onSelected: onSelected,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      color: AppColors.surface,
-      position: PopupMenuPosition.under,
-      itemBuilder: (_) => items,
+  Widget _buildFilterChip({required String label, required bool active, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
@@ -346,11 +359,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               ),
             ),
             const SizedBox(width: 2),
-            Icon(
-              Icons.expand_more,
-              size: 16,
-              color: active ? Colors.white : AppColors.primary,
-            ),
+            Icon(Icons.expand_more, size: 16, color: active ? Colors.white : AppColors.primary),
           ],
         ),
       ),
