@@ -48,6 +48,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
   QuickAddResult _result = QuickAddResult(amount: 0);
   bool _saving = false;
   bool _focused = false;
+  bool _userPickedCategory = false;
   List<QuickAddEntry> _suggestions = [];
 
   @override
@@ -75,6 +76,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
     final text = _ctrl.text.trim();
     setState(() {
       _result = QuickAddParser.parse(_ctrl.text, _categories);
+      _userPickedCategory = false;
       _suggestions = text.isEmpty
           ? QuickAddHistory.suggest()
           : QuickAddHistory.suggest(filter: text);
@@ -133,7 +135,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
         date: DateTime.now().millisecondsSinceEpoch,
       );
 
-      if (_result.keyword != null && _result.keyword!.isNotEmpty) {
+      if (_userPickedCategory && _result.keyword != null && _result.keyword!.isNotEmpty) {
         QuickAddParser.learn(_result.keyword!, _result.matchedCategoryId!);
       }
 
@@ -367,6 +369,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
     if (selected != null) {
       final cat = _categories.where((c) => c.id == selected).firstOrNull;
       setState(() {
+        _userPickedCategory = true;
         _result = QuickAddResult(
           amount: _result.amount,
           keyword: _result.keyword,

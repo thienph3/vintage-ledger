@@ -55,16 +55,15 @@ class QuickAddParser {
     if (keyword.trim().isEmpty) return;
     final key = keyword.trim().toLowerCase();
 
-    // LRU: remove oldest if at capacity
     if (!_learnedMap.containsKey(key) && _learnedMap.length >= _maxLearnedEntries) {
       _learnedMap.remove(_learnedMap.keys.first);
     }
 
-    // Move to end (most recent) by removing and re-adding
     _learnedMap.remove(key);
     _learnedMap[key] = categoryId;
 
-    _schedulePersist();
+    // Persist immediately — user may close app right after
+    _persist();
   }
 
   /// Clear all learned keywords (#5)
