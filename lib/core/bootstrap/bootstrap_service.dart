@@ -134,12 +134,29 @@ class BootstrapService {
     // Logged-in user
     sl.accountService.ensureEmailIndex(user.uid, user.email ?? '');
 
+    // Check last used account first
+    final lastAccountId = await sl.settingService.getLastAccountId();
+    if (lastAccountId != null && lastAccountId.isNotEmpty) {
+      final account = await sl.accountService.getAccount(lastAccountId);
+      if (account != null && account.memberIds.contains(user.uid)) {
+        sl.appState.currentAccountId = lastAccountId;
+        await _syncProfileAndMigrate(user);
+        return false;
+      }
+    }
+
+    // Fallback: resolve personal account
     final accountId = await sl.accountService.getOrCreatePersonalAccountId(
       user.uid, user.email ?? '', user.displayName ?? '',
     );
     sl.appState.currentAccountId = accountId;
     sl.settingService.setLastAccountId(accountId);
 
+    await _syncProfileAndMigrate(user);
+    return false;
+  }
+
+  Future<void> _syncProfileAndMigrate(dynamic user) async {
     // Sync profile
     await sl.accountService.updateUserProfile(
       userId: user.uid,
@@ -150,12 +167,10 @@ class BootstrapService {
 
     // Migrate anonymous data if needed
     final anonId = loginIntent?.anonAccountIdToMigrate;
-    if (anonId != null && anonId.isNotEmpty && anonId != accountId) {
-      await sl.accountService.migrateAccount(anonId, accountId);
+    if (anonId != null && anonId.isNotEmpty && anonId != sl.appState.currentAccountId) {
+      await sl.accountService.migrateAccount(anonId, sl.appState.currentAccountId);
       await sl.accountService.deleteAccount(anonId);
     }
-
-    return false;
   }
 
   Future<void> _ensureDefaultWallet() async {
