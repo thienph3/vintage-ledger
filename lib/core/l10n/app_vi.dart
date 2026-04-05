@@ -282,4 +282,9 @@ const Map<String, String> vi = {
   'coachTopCategory': 'Tụi mình chi nhiều nhất vào {category} ☕',
   'coachWeeklyMore': 'Tuần này chi nhiều hơn {pct}% so với tuần trước',
   'coachWeeklyLess': 'Tuần này chi ít hơn {pct}% so với tuần trước 🎉',
+
+  // Greeting
+  'greetingMorning': 'Chào buổi sáng 👋',
+  'greetingAfternoon': 'Buổi chiều rồi ☀️',
+  'greetingEvening': 'Tối rồi 🌙',
 };

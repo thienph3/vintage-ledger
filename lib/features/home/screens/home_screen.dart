@@ -158,6 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final locale = Localizations.localeOf(context).languageCode;
     final expense = _todayExpense(todayTxns);
     final hasExpense = expense > 0;
+    final greeting = _greeting();
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.md),
@@ -170,6 +171,8 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: Column(
         children: [
+          Text(greeting, style: AppTextStyles.bodySmall),
+          const SizedBox(height: AppSpacing.sm),
           Text(
             hasExpense
                 ? S.of(context, 'todaySpent').replaceAll('{amount}', AmountFormatter.formatCompactCurrency(expense, locale))
@@ -218,5 +221,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  String _greeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return S.of(context, 'greetingMorning');
+    if (hour < 18) return S.of(context, 'greetingAfternoon');
+    return S.of(context, 'greetingEvening');
   }
 }

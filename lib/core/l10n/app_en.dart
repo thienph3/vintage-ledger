@@ -282,4 +282,9 @@ const Map<String, String> en = {
   'coachTopCategory': 'We spend the most on {category} ☕',
   'coachWeeklyMore': 'Spent {pct}% more than last week',
   'coachWeeklyLess': 'Spent {pct}% less than last week 🎉',
+
+  // Greeting
+  'greetingMorning': 'Good morning 👋',
+  'greetingAfternoon': 'Good afternoon ☀️',
+  'greetingEvening': 'Good evening 🌙',
 };
