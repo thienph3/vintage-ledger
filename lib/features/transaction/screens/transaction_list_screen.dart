@@ -4,7 +4,6 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
-import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
