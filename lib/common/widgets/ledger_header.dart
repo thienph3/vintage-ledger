@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
+import 'package:vintage_ledger/core/theme/app_colors.dart';
 
 class LedgerHeader extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -42,9 +43,13 @@ class LedgerHeader extends StatelessWidget implements PreferredSizeWidget {
             )
           : titleWidget,
       actions: actions,
+      bottom: const PreferredSize(
+        preferredSize: Size.fromHeight(1),
+        child: Divider(height: 1),
+      ),
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 1);
 }

@@ -41,14 +41,14 @@ class TypeSelector extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: selected ? AppColors.primary : Colors.transparent,
+            color: selected ? AppColors.primary.withValues(alpha: 0.12) : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
           alignment: Alignment.center,
           child: Text(
             label,
             style: AppTextStyles.buttonLabel.copyWith(
-              color: selected ? Colors.white : AppColors.textPrimary,
+              color: selected ? AppColors.primary : AppColors.textPrimary,
               fontSize: 16,
             ),
           ),

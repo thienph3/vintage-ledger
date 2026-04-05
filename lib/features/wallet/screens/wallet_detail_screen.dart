@@ -8,10 +8,12 @@ import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
+import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
+import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_feed_item.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_list_screen.dart';
 import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
@@ -180,12 +182,18 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
             if (txns.isEmpty) {
               return EmptyState(emoji: '📝', message: S.of(context, 'emptyTransactionHint'));
             }
+            final monthIncome = txns.where((t) => t.transaction.type == TransactionType.income).fold(0, (s, t) => s + t.transaction.amount);
+            final monthExpense = txns.where((t) => t.transaction.type == TransactionType.expense).fold(0, (s, t) => s + t.transaction.amount);
             return Column(
-              children: txns.map((txn) => TransactionFeedItem(
+              children: [
+                IncomeExpenseSummaryRow(income: monthIncome, expense: monthExpense),
+                const SizedBox(height: AppSpacing.md),
+                ...txns.map((txn) => TransactionFeedItem(
                 txn: txn,
                 categoryName: _categoryNames[txn.transaction.categoryId] ?? S.of(context, 'other'),
                 onChanged: _loadCategories,
               )).toList(),
+              ],
             );
           },
         ),

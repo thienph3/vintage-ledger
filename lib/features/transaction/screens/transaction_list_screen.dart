@@ -376,7 +376,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               children: [
                 SizedBox(
                   width: 36,
-                  child: Text('${group.day}', style: AppTextStyles.title.copyWith(fontSize: 20)),
+                  child: Text('${group.day}', style: AppTextStyles.titleSmall),
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(

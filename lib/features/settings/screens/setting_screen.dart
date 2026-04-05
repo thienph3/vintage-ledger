@@ -33,6 +33,8 @@ class _SettingScreenState extends State<SettingScreen> {
   bool _exporting = false;
   bool _reminderEnabled = false;
   int _reminderHour = 20;
+  int _debugTapCount = 0;
+  bool _showDebug = false;
 
   @override
   void initState() {
@@ -250,17 +252,27 @@ class _SettingScreenState extends State<SettingScreen> {
               onTap: () async { await QuickAddParser.clearLearned(); setState(() {}); },
             ),
 
-          // Debug
+          // Debug (hidden — tap version 5 times to reveal)
           const SizedBox(height: AppSpacing.lg),
-          _sectionLabel('Debug'),
-          _tile(Icons.bug_report_outlined, 'Firestore reads',
-            subtitle: '${ReadCounter.count} reads',
-            trailing: IconButton(
-              icon: const Icon(Icons.refresh, size: 16, color: AppColors.textSecondary),
-              onPressed: () { ReadCounter.reset(); setState(() {}); },
-            ),
-            onTap: () {},
+          GestureDetector(
+            onTap: () {
+              _debugTapCount++;
+              if (_debugTapCount >= 5) setState(() => _showDebug = true);
+            },
+            child: Text('v1.0.0', style: AppTextStyles.caption, textAlign: TextAlign.center),
           ),
+          if (_showDebug) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _sectionLabel('Debug'),
+            _tile(Icons.bug_report_outlined, 'Firestore reads',
+              subtitle: '${ReadCounter.count} reads',
+              trailing: IconButton(
+                icon: const Icon(Icons.refresh, size: 16, color: AppColors.textSecondary),
+                onPressed: () { ReadCounter.reset(); setState(() {}); },
+              ),
+              onTap: () {},
+            ),
+          ],
           const SizedBox(height: AppSpacing.xl),
         ],
       ),

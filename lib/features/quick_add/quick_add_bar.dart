@@ -386,12 +386,12 @@ class _QuickAddBarState extends State<QuickAddBar> {
       onTap: _showWalletPicker,
       child: Row(
         children: [
-          const Icon(Icons.account_balance_wallet, size: 14, color: AppColors.divider),
+          const Icon(Icons.account_balance_wallet, size: 14, color: AppColors.textSecondary),
           const SizedBox(width: 4),
           Text(name, style: AppTextStyles.caption),
           if (widget.wallets.length > 1) ...[
             const SizedBox(width: 2),
-            const Icon(Icons.unfold_more, size: 12, color: AppColors.divider),
+            const Icon(Icons.unfold_more, size: 12, color: AppColors.textSecondary),
           ],
         ],
       ),

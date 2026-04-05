@@ -25,6 +25,14 @@ Future<T?> showSelectionSheet<T>({
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            width: 40, height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.divider,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
             child: Text(title, style: AppTextStyles.titleSmall),
@@ -45,7 +53,7 @@ Future<T?> showSelectionSheet<T>({
                       ? const Icon(Icons.check_circle, color: AppColors.primary, size: 20)
                       : null,
                   tileColor: isSelected ? AppColors.primary.withValues(alpha: 0.06) : null,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   onTap: () => Navigator.pop(ctx, item.value),
                 );
               }).toList(),
