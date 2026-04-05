@@ -1,5 +1,23 @@
 enum BootstrapStep { auth, account, settings, data, background }
 
+enum LoginMethod { google, email }
+
+class LoginIntent {
+  final LoginMethod method;
+  final String? anonAccountIdToMigrate;
+  final int? returnToTab;
+  final String? email;
+  final String? password;
+
+  const LoginIntent({
+    required this.method,
+    this.anonAccountIdToMigrate,
+    this.returnToTab,
+    this.email,
+    this.password,
+  });
+}
+
 class BootstrapProgress {
   final BootstrapStep step;
   final int current;
@@ -24,10 +42,12 @@ class BootstrapResult {
   final bool needsLogin;
   final bool needsAccountPick;
   final String locale;
+  final int? returnToTab;
 
   const BootstrapResult({
     this.needsLogin = false,
     this.needsAccountPick = false,
     this.locale = 'vi',
+    this.returnToTab,
   });
 }

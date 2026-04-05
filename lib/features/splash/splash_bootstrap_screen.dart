@@ -13,7 +13,9 @@ import 'package:vintage_ledger/features/account/screens/account_picker_screen.da
 import 'package:vintage_ledger/main.dart';
 
 class SplashBootstrapScreen extends StatefulWidget {
-  const SplashBootstrapScreen({super.key});
+  final LoginIntent? loginIntent;
+
+  const SplashBootstrapScreen({super.key, this.loginIntent});
 
   @override
   State<SplashBootstrapScreen> createState() => _SplashBootstrapScreenState();
@@ -32,9 +34,9 @@ class _SplashBootstrapScreenState extends State<SplashBootstrapScreen> {
   }
 
   Future<void> _run() async {
-    setState(() => _error = null);
+    setState(() { _error = null; _navigated = false; });
 
-    await for (final p in BootstrapService().run()) {
+    await for (final p in BootstrapService(loginIntent: widget.loginIntent).run()) {
       if (!mounted) return;
 
       setState(() {
@@ -58,10 +60,7 @@ class _SplashBootstrapScreenState extends State<SplashBootstrapScreen> {
     if (_navigated || !mounted) return;
     _navigated = true;
 
-    // Set locale
     MyApp.setLocale(context, Locale(result.locale));
-
-    // Init reminder (needs context)
     sl.reminderService.init(context);
 
     final Widget destination;
@@ -70,16 +69,17 @@ class _SplashBootstrapScreenState extends State<SplashBootstrapScreen> {
     } else if (result.needsAccountPick) {
       destination = const AccountPickerScreen();
     } else {
-      destination = const MainShell();
+      destination = MainShell(initialTab: result.returnToTab ?? 0);
     }
 
-    Navigator.pushReplacement(
+    Navigator.pushAndRemoveUntil(
       context,
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => destination,
         transitionDuration: const Duration(milliseconds: 200),
         transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
       ),
+      (_) => false,
     );
   }
 
@@ -116,10 +116,7 @@ class _SplashBootstrapScreenState extends State<SplashBootstrapScreen> {
                 Text(S.of(context, 'genericError'), style: AppTextStyles.error),
                 const SizedBox(height: AppSpacing.md),
                 OutlinedButton(
-                  onPressed: () {
-                    _navigated = false;
-                    _run();
-                  },
+                  onPressed: _run,
                   child: Text(S.of(context, 'retry')),
                 ),
               ],

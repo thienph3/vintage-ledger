@@ -7,14 +7,22 @@ import 'package:vintage_ledger/features/insights/screens/insights_tab.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
 
 class MainShell extends StatefulWidget {
-  const MainShell({super.key});
+  final int initialTab;
+
+  const MainShell({super.key, this.initialTab = 0});
 
   @override
   State<MainShell> createState() => _MainShellState();
 }
 
 class _MainShellState extends State<MainShell> {
-  int _index = 0;
+  late int _index;
+
+  @override
+  void initState() {
+    super.initState();
+    _index = widget.initialTab;
+  }
 
   static const _tabs = [
     HomeScreen(),

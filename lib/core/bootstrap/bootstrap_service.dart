@@ -11,6 +11,10 @@ import 'package:vintage_ledger/common/widgets/amount_history.dart';
 const _stepTimeout = Duration(seconds: 8);
 
 class BootstrapService {
+  final LoginIntent? loginIntent;
+
+  BootstrapService({this.loginIntent});
+
   Stream<BootstrapProgress> run() async* {
     var locale = 'vi';
     var needsLogin = false;
@@ -62,7 +66,7 @@ class BootstrapService {
     }
 
     // ── Step 4: Background (fire-and-forget) ──
-    yield BootstrapProgress(step: BootstrapStep.background, current: 4, labelKey: 'bootstrapAlmost');
+    yield const BootstrapProgress(step: BootstrapStep.background, current: 4, labelKey: 'bootstrapAlmost');
     _runBackground();
 
     // ── Done ──
@@ -72,6 +76,7 @@ class BootstrapService {
         needsLogin: needsLogin,
         needsAccountPick: needsAccountPick,
         locale: locale,
+        returnToTab: loginIntent?.returnToTab,
       ),
     );
   }
@@ -79,6 +84,25 @@ class BootstrapService {
   // ── Auth ──
 
   Future<void> _runAuth() async {
+    if (loginIntent != null) {
+      // Explicit login flow: logout first, then sign in
+      await sl.authService.logout();
+      switch (loginIntent!.method) {
+        case LoginMethod.google:
+          final user = await sl.authService.signInWithGoogle();
+          if (user == null) throw Exception('Google sign-in cancelled');
+          sl.appState.currentUserId = user.uid;
+        case LoginMethod.email:
+          final user = await sl.authService.loginWithEmail(
+            loginIntent!.email!, loginIntent!.password!,
+          );
+          if (user == null) throw Exception('Email sign-in failed');
+          sl.appState.currentUserId = user.uid;
+      }
+      return;
+    }
+
+    // Normal boot: check existing user
     final user = sl.authService.currentUser;
     if (user != null) {
       sl.appState.currentUserId = user.uid;
@@ -110,24 +134,28 @@ class BootstrapService {
     // Logged-in user
     sl.accountService.ensureEmailIndex(user.uid, user.email ?? '');
 
-    final lastAccountId = await sl.settingService.getLastAccountId();
-    if (lastAccountId != null && lastAccountId.isNotEmpty) {
-      sl.appState.currentAccountId = lastAccountId;
-      return false;
-    }
-
-    // No saved account — resolve
     final accountId = await sl.accountService.getOrCreatePersonalAccountId(
       user.uid, user.email ?? '', user.displayName ?? '',
     );
-    if (accountId.isNotEmpty) {
-      sl.appState.currentAccountId = accountId;
-      sl.settingService.setLastAccountId(accountId);
-      return false;
+    sl.appState.currentAccountId = accountId;
+    sl.settingService.setLastAccountId(accountId);
+
+    // Sync profile
+    await sl.accountService.updateUserProfile(
+      userId: user.uid,
+      email: user.email ?? '',
+      displayName: user.displayName ?? '',
+      photoUrl: user.photoURL,
+    );
+
+    // Migrate anonymous data if needed
+    final anonId = loginIntent?.anonAccountIdToMigrate;
+    if (anonId != null && anonId.isNotEmpty && anonId != accountId) {
+      await sl.accountService.migrateAccount(anonId, accountId);
+      await sl.accountService.deleteAccount(anonId);
     }
 
-    // Multiple accounts, none selected
-    return true;
+    return false;
   }
 
   Future<void> _ensureDefaultWallet() async {

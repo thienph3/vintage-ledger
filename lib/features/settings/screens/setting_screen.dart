@@ -15,6 +15,8 @@ import 'package:vintage_ledger/features/feed/feed_helper.dart';
 import 'package:vintage_ledger/core/debug/read_counter.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
 import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
+import 'package:vintage_ledger/features/splash/splash_bootstrap_screen.dart';
+import 'package:vintage_ledger/core/bootstrap/bootstrap_models.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/category/screens/category_list_screen.dart';
 import 'package:vintage_ledger/features/recurring/screens/recurring_list_screen.dart';
@@ -75,25 +77,26 @@ class _SettingScreenState extends State<SettingScreen> {
     }
   }
 
-  Future<void> _signInWithGoogle() async {
-    // Step 1: Save anonymous account ID, clear state to kill streams
-    final anonAccountId = sl.appState.currentAccountId;
+  void _resetAndBootstrap(LoginIntent intent) {
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
     sl.cache.clear();
     FeedHelper.clearCache();
     sl.settingService.clearCache();
-
-    // Step 2: Navigate away first (kills all Firestore listeners)
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => LoginScreen(anonAccountIdToMigrate: anonAccountId)),
+      MaterialPageRoute(builder: (_) => SplashBootstrapScreen(loginIntent: intent)),
       (_) => false,
     );
+  }
 
-    // Step 3: Logout happens in LoginScreen before sign-in
-    await sl.authService.logout();
+  Future<void> _signInWithGoogle() async {
+    _resetAndBootstrap(LoginIntent(
+      method: LoginMethod.google,
+      anonAccountIdToMigrate: sl.appState.currentAccountId,
+      returnToTab: 3,
+    ));
   }
 
   Future<void> _editDisplayName(User user) async {
@@ -132,35 +135,34 @@ class _SettingScreenState extends State<SettingScreen> {
     );
     if (confirm != true || !mounted) return;
 
-    // Step 1: Save anonymous account ID, clear state
     final anonAccountId = sl.appState.currentAccountId;
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
     sl.cache.clear();
     FeedHelper.clearCache();
     sl.settingService.clearCache();
-
-    // Step 2: Navigate away (kills streams), then logout
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => LoginScreen(anonAccountIdToMigrate: anonAccountId)),
       (_) => false,
     );
-    await sl.authService.logout();
   }
 
   Future<void> _logout() async {
     await sl.notificationService.removeToken();
-    // Clear state first to kill streams before logout
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
     sl.cache.clear();
     FeedHelper.clearCache();
     sl.settingService.clearCache();
-    if (!mounted) return;
-    Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const LoginScreen()), (_) => false);
     await sl.authService.logout();
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const SplashBootstrapScreen()),
+      (_) => false,
+    );
   }
 
   Future<void> _exportCsv() async {
