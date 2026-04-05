@@ -8,7 +8,6 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
-import 'package:vintage_ledger/common/widgets/ledger_list_tile.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -137,11 +136,12 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
             showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
           }
         },
-        child: LedgerListTile(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md2),
           child: Row(
             children: [
               Icon(getCategoryIcon(c.icon), size: 28, color: AppColors.primary),
-              const SizedBox(width: 16),
+              const SizedBox(width: AppSpacing.md),
               Expanded(child: Text(c.name, style: AppTextStyles.bodyBold)),
             ],
           ),
