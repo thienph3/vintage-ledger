@@ -9,6 +9,8 @@ import 'package:vintage_ledger/core/constants/category_icons.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
+import 'package:vintage_ledger/common/widgets/dropdown_field.dart';
+import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/features/budget/models/budget.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
@@ -84,21 +86,19 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
             children: [
               const SizedBox(height: AppSpacing.md),
               if (!isEdit)
-                DropdownButtonFormField<String>(
-                  initialValue: _categoryId,
-                  decoration: InputDecoration(labelText: S.of(context, 'category')),
-                  items: _categories.map((c) => DropdownMenuItem(
-                    value: c.id,
-                    child: Row(
-                      children: [
-                        Icon(getCategoryIcon(c.icon), size: 20, color: AppColors.primary),
-                        const SizedBox(width: 8),
-                        Text(c.name, style: AppTextStyles.body),
-                      ],
-                    ),
+                DropdownField<String>(
+                  label: S.of(context, 'category'),
+                  value: _categories.where((c) => c.id == _categoryId).firstOrNull?.name,
+                  prefixIcon: Icons.category_outlined,
+                  items: _categories.map((c) => SelectionItem(
+                    value: c.id!,
+                    label: c.name,
+                    icon: getCategoryIcon(c.icon),
+                    color: AppColors.expense,
                   )).toList(),
+                  selected: _categoryId,
                   onChanged: (v) => setState(() => _categoryId = v),
-                  validator: (v) => v == null ? S.of(context, 'selectCategoryRequired') : null,
+                  validator: (v) => v == null && _categoryId == null ? S.of(context, 'selectCategoryRequired') : null,
                 ),
               if (!isEdit) const SizedBox(height: AppSpacing.md),
               AmountInputField(controller: _amountCtrl),

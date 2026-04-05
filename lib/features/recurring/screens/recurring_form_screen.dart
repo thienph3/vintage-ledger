@@ -10,6 +10,8 @@ import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/common/widgets/type_selector.dart';
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
+import 'package:vintage_ledger/common/widgets/dropdown_field.dart';
+import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
 import 'package:vintage_ledger/features/transaction/widgets/category_dropdown.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/screens/category_form_screen.dart';
@@ -168,12 +170,15 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
   }
 
   Widget _buildWalletDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _walletId,
-      decoration: InputDecoration(labelText: S.of(context, 'selectWallet')),
-      items: _wallets.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name, style: AppTextStyles.body))).toList(),
+    final walletName = _wallets.where((w) => w.id == _walletId).firstOrNull?.name;
+    return DropdownField<String>(
+      label: S.of(context, 'selectWallet'),
+      value: walletName,
+      prefixIcon: Icons.account_balance_wallet_outlined,
+      items: _wallets.map((w) => SelectionItem(value: w.id!, label: w.name, icon: Icons.account_balance_wallet_outlined)).toList(),
+      selected: _walletId,
       onChanged: (v) => setState(() => _walletId = v),
-      validator: (v) => v == null ? S.of(context, 'selectWalletRequired') : null,
+      validator: (v) => v == null && _walletId == null ? S.of(context, 'selectWalletRequired') : null,
     );
   }
 
@@ -183,10 +188,11 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
       Frequency.weekly: S.of(context, 'weekly'),
       Frequency.monthly: S.of(context, 'monthly'),
     };
-    return DropdownButtonFormField<Frequency>(
-      value: _frequency,
-      decoration: InputDecoration(labelText: S.of(context, 'frequency')),
-      items: options.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value, style: AppTextStyles.body))).toList(),
+    return DropdownField<Frequency>(
+      label: S.of(context, 'frequency'),
+      value: options[_frequency],
+      items: options.entries.map((e) => SelectionItem(value: e.key, label: e.value)).toList(),
+      selected: _frequency,
       onChanged: (v) { if (v != null) setState(() => _frequency = v); },
     );
   }

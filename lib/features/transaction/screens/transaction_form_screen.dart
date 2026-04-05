@@ -10,6 +10,8 @@ import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/common/widgets/type_selector.dart';
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
+import 'package:vintage_ledger/common/widgets/dropdown_field.dart';
+import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
 
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_item.dart';
@@ -364,12 +366,15 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Widget _buildWalletDropdown() {
-    return DropdownButtonFormField<String>(
-      initialValue: _walletId,
-      decoration: InputDecoration(labelText: S.of(context, 'selectWallet')),
-      items: _wallets.map((w) => DropdownMenuItem(value: w.id, child: Text(w.name, style: AppTextStyles.body))).toList(),
+    final walletName = _wallets.where((w) => w.id == _walletId).firstOrNull?.name;
+    return DropdownField<String>(
+      label: S.of(context, 'selectWallet'),
+      value: walletName,
+      prefixIcon: Icons.account_balance_wallet_outlined,
+      items: _wallets.map((w) => SelectionItem(value: w.id!, label: w.name, icon: Icons.account_balance_wallet_outlined)).toList(),
+      selected: _walletId,
       onChanged: (v) => setState(() => _walletId = v),
-      validator: (v) => v == null ? S.of(context, 'selectWalletRequired') : null,
+      validator: (v) => v == null && _walletId == null ? S.of(context, 'selectWalletRequired') : null,
     );
   }
 
@@ -377,16 +382,12 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     final currentName = _members.where((m) => m['id'] == _createdBy).firstOrNull?['name'] ?? '?';
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
-      child: DropdownButtonFormField<String>(
-        value: _createdBy,
-        decoration: InputDecoration(
-          labelText: S.of(context, 'member'),
-          prefixIcon: const Icon(Icons.person_outline, size: 20),
-        ),
-        items: _members.map((m) => DropdownMenuItem(
-          value: m['id'],
-          child: Text(m['name'] ?? '?', style: AppTextStyles.body),
-        )).toList(),
+      child: DropdownField<String>(
+        label: S.of(context, 'member'),
+        value: currentName,
+        prefixIcon: Icons.person_outline,
+        items: _members.map((m) => SelectionItem(value: m['id']!, label: m['name'] ?? '?', icon: Icons.person_outline)).toList(),
+        selected: _createdBy,
         onChanged: (v) => setState(() => _createdBy = v),
       ),
     );
@@ -405,14 +406,19 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         if (_recurring)
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
-            child: DropdownButtonFormField<Frequency>(
-              value: _frequency,
-              decoration: InputDecoration(labelText: S.of(context, 'frequency')),
+            child: DropdownField<Frequency>(
+              label: S.of(context, 'frequency'),
+              value: {
+                Frequency.daily: S.of(context, 'daily'),
+                Frequency.weekly: S.of(context, 'weekly'),
+                Frequency.monthly: S.of(context, 'monthly'),
+              }[_frequency],
               items: [
-                DropdownMenuItem(value: Frequency.daily, child: Text(S.of(context, 'daily'), style: AppTextStyles.body)),
-                DropdownMenuItem(value: Frequency.weekly, child: Text(S.of(context, 'weekly'), style: AppTextStyles.body)),
-                DropdownMenuItem(value: Frequency.monthly, child: Text(S.of(context, 'monthly'), style: AppTextStyles.body)),
+                SelectionItem(value: Frequency.daily, label: S.of(context, 'daily')),
+                SelectionItem(value: Frequency.weekly, label: S.of(context, 'weekly')),
+                SelectionItem(value: Frequency.monthly, label: S.of(context, 'monthly')),
               ],
+              selected: _frequency,
               onChanged: (v) { if (v != null) setState(() => _frequency = v); },
             ),
           ),

@@ -4,6 +4,8 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
+import 'package:vintage_ledger/core/theme/app_spacing.dart';
+import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 
 class CategoryDropdown extends StatelessWidget {
@@ -22,36 +24,85 @@ class CategoryDropdown extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
+    final selected = categories.where((c) => c.id == value).firstOrNull;
+
+    return FormField<String>(
       initialValue: value,
-      decoration: InputDecoration(labelText: S.of(context, 'category')),
-      items: [
-        DropdownMenuItem(
-          value: '__add__',
-          child: Row(
-            children: [
-              const Icon(Icons.add, size: 18),
-              const SizedBox(width: 8),
-              Text(S.of(context, 'addCategory'), style: AppTextStyles.body),
-            ],
+      validator: (v) => v == null && value == null ? S.of(context, 'selectCategoryRequired') : null,
+      builder: (state) {
+        return GestureDetector(
+          onTap: () => _showPicker(context, state),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: S.of(context, 'category'),
+              prefixIcon: Icon(
+                getCategoryIcon(selected?.icon),
+                size: 20,
+                color: AppColors.primary,
+              ),
+              suffixIcon: const Icon(Icons.unfold_more, size: 18),
+              errorText: state.errorText,
+            ),
+            child: Text(
+              selected?.name ?? '',
+              style: AppTextStyles.body,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        ),
-        ...categories.map((c) => DropdownMenuItem(
-          value: c.id,
-          child: Row(
-            children: [
-              Icon(getCategoryIcon(c.icon), size: 20, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(c.name, style: AppTextStyles.body),
-            ],
-          ),
-        )),
-      ],
-      onChanged: (v) {
-        if (v == '__add__') { onAdd(); return; }
-        onChanged(v);
+        );
       },
-      validator: (v) => v == null || v == '__add__' ? S.of(context, 'selectCategoryRequired') : null,
     );
+  }
+
+  Future<void> _showPicker(BuildContext context, FormFieldState<String> state) async {
+    final result = await showModalBottomSheet<String>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Text(S.of(context, 'category'), style: AppTextStyles.titleSmall),
+            ),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  // Add category option
+                  ListTile(
+                    leading: const Icon(Icons.add, size: 20),
+                    title: Text(S.of(context, 'addCategory'), style: AppTextStyles.body),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      onAdd();
+                    },
+                  ),
+                  ...categories.map((c) {
+                    final isSelected = c.id == value;
+                    return ListTile(
+                      leading: Icon(getCategoryIcon(c.icon), size: 20, color: AppColors.primary),
+                      title: Text(c.name, style: AppTextStyles.body),
+                      trailing: isSelected
+                          ? const Icon(Icons.check_circle, color: AppColors.primary, size: 20)
+                          : null,
+                      tileColor: isSelected ? AppColors.primary.withValues(alpha: 0.06) : null,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      onTap: () => Navigator.pop(ctx, c.id),
+                    );
+                  }),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+          ],
+        ),
+      ),
+    );
+    if (result != null) {
+      onChanged(result);
+      state.didChange(result);
+    }
   }
 }
