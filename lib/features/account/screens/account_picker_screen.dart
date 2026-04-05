@@ -24,6 +24,7 @@ class AccountPickerScreen extends StatefulWidget {
 
 class _AccountPickerScreenState extends State<AccountPickerScreen> {
   List<Account> _accounts = [];
+  Map<String, List<Map<String, String>>> _memberProfiles = {};
   bool _loading = true;
   String? _error;
 
@@ -38,7 +39,16 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
       final userId = sl.appState.currentUserId;
       if (userId == null) return;
       final accounts = await sl.accountService.getAccountsForUser(userId);
-      setState(() { _accounts = accounts; _loading = false; });
+
+      // Preload member profiles for family accounts
+      final profiles = <String, List<Map<String, String>>>{};
+      for (final a in accounts) {
+        if (a.isFamily) {
+          profiles[a.id] = await sl.accountService.getMemberProfiles(a.memberIds);
+        }
+      }
+
+      setState(() { _accounts = accounts; _memberProfiles = profiles; _loading = false; });
     } catch (e) {
       setState(() { _loading = false; _error = e.toString(); });
     }
@@ -102,52 +112,9 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
                     children: [
                       ..._accounts.map((a) => Padding(
                         padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                        child: GestureDetector(
-                          onTap: () => _selectAccount(a),
-                          onLongPress: a.isFamily ? () async {
-                            final result = await context.pushScreen(FamilyDetailScreen(account: a));
-                            if (result == true) _load();
-                          } : null,
-                          child: LedgerCard(
-                            child: Row(
-                              children: [
-                                Icon(
-                                  a.isPersonal ? Icons.person : Icons.family_restroom,
-                                  color: AppColors.primary, size: 28,
-                                ),
-                                const SizedBox(width: AppSpacing.md),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(a.name, style: AppTextStyles.bodyBold),
-                                      if (a.isFamily)
-                                        Text('${a.memberIds.length} ${S.of(context, 'memberCount')}', style: AppTextStyles.bodySmall),
-                                    ],
-                                  ),
-                                ),
-                                const Icon(Icons.arrow_forward_ios, size: 16),
-                              ],
-                            ),
-                          ),
-                        ),
+                        child: _buildAccountCard(a),
                       )),
-                      GestureDetector(
-                        onTap: () async {
-                          final result = await context.pushScreen(const FamilyFormScreen());
-                          if (result == true) _load();
-                        },
-                        child: LedgerCard(
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(Icons.add, color: AppColors.primary),
-                              const SizedBox(width: AppSpacing.sm),
-                              Text(S.of(context, 'createFamily'), style: AppTextStyles.body),
-                            ],
-                          ),
-                        ),
-                      ),
+                      _buildCreateButton(),
                       if (_accounts.length <= 1) ...[
                         const SizedBox(height: AppSpacing.lg),
                         Text(
@@ -172,22 +139,128 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
     );
   }
 
+  Widget _buildAccountCard(Account a) {
+    final photoUrl = a.isPersonal ? sl.authService.currentUser?.photoURL : null;
+
+    return GestureDetector(
+      onTap: () => _selectAccount(a),
+      onLongPress: a.isFamily ? () async {
+        final result = await context.pushScreen(FamilyDetailScreen(account: a));
+        if (result == true) _load();
+      } : null,
+      child: LedgerCard(
+        child: Row(
+          children: [
+            if (a.isPersonal)
+              _buildAvatar(photoUrl, a.name)
+            else
+              _buildFamilyAvatars(a),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(a.name, style: AppTextStyles.bodyBold),
+                  if (a.isFamily)
+                    Text('${a.memberIds.length} ${S.of(context, 'memberCount')}', style: AppTextStyles.bodySmall),
+                ],
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar(String? photoUrl, String name) {
+    final initials = name.isNotEmpty ? name[0].toUpperCase() : '?';
+    return CircleAvatar(
+      radius: 20,
+      backgroundColor: AppColors.primary.withValues(alpha: 0.12),
+      backgroundImage: photoUrl != null && photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+      child: photoUrl == null || photoUrl.isEmpty
+          ? Text(initials, style: AppTextStyles.bodyBold.copyWith(color: AppColors.primary))
+          : null,
+    );
+  }
+
+  Widget _buildFamilyAvatars(Account a) {
+    final members = _memberProfiles[a.id] ?? [];
+    final display = members.take(3).toList();
+    return SizedBox(
+      width: 20.0 + display.length * 14.0,
+      height: 40,
+      child: Stack(
+        children: display.asMap().entries.map((e) {
+          final m = e.value;
+          final initials = (m['name'] ?? '?')[0].toUpperCase();
+          final photo = m['photo_url'];
+          return Positioned(
+            left: e.key * 14.0,
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: AppColors.accent.withValues(alpha: 0.2),
+              backgroundImage: photo != null && photo.isNotEmpty ? NetworkImage(photo) : null,
+              child: photo == null || photo.isEmpty
+                  ? Text(initials, style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600))
+                  : null,
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildCreateButton() {
+    return GestureDetector(
+      onTap: () async {
+        final result = await context.pushScreen(const FamilyFormScreen());
+        if (result == true) _load();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.divider),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add, color: AppColors.primary, size: 20),
+            const SizedBox(width: AppSpacing.sm),
+            Text(S.of(context, 'createFamily'), style: AppTextStyles.body.copyWith(color: AppColors.primary)),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildInviteCard(Map<String, dynamic> inv) {
     final name = inv['account_name'] as String? ?? '';
+    final senderName = inv['sender_name'] as String? ?? '';
     final inviteId = inv['id'] as String;
+    final initials = senderName.isNotEmpty ? senderName[0].toUpperCase() : '?';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: LedgerCard(
         child: Row(
           children: [
-            const Icon(Icons.mail_outline, color: AppColors.primary, size: 24),
+            CircleAvatar(
+              radius: 18,
+              backgroundColor: AppColors.accent.withValues(alpha: 0.2),
+              child: Text(initials, style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600)),
+            ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(S.of(context, 'invitedToFamily'), style: AppTextStyles.bodySmall),
+                  Text(
+                    S.of(context, 'invitedToFamily'),
+                    style: AppTextStyles.bodySmall,
+                  ),
                   Text(name, style: AppTextStyles.bodyBold),
                 ],
               ),
@@ -197,7 +270,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
               onPressed: () => _acceptInvite(inviteId),
             ),
             IconButton(
-              icon: const Icon(Icons.cancel, color: AppColors.divider, size: 28),
+              icon: Icon(Icons.cancel, color: AppColors.textSecondary, size: 28),
               onPressed: () => _rejectInvite(inviteId),
             ),
           ],
