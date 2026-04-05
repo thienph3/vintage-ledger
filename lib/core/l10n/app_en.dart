@@ -295,5 +295,4 @@ const Map<String, String> en = {
   'viewList': 'List',
   'viewCalendar': 'Calendar',
   'allTypes': 'All',
-  'today': 'Today',
 };
