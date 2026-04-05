@@ -11,6 +11,38 @@ Flow khởi động hiện tại trong `_MyAppState._init()` có nhiều vấn �
 5. **Background init không rõ ràng** — `QuickAddParser.init()`, `QuickAddHistory.init()`, `AmountHistory.init()`, `notificationService.init()`, `recurringService.checkAndRun()`, `reminderService.init()` gọi rời rạc ở cuối, dễ quên khi thêm service mới
 6. **Error handling yếu** — Catch chung `e.toString()`, không phân biệt lỗi mạng vs lỗi logic
 7. **Member profiles không được preload** — `FeedHelper._nameCache` trống khi vào HomeScreen. HomeScreen dùng `StreamBuilder` nên txn data đến ngay, nhưng `FeedHelper.resolveName()` gọi đồng bộ → trả `"?"` vì chưa ai gọi `preloadNames()`. Hiện tại chỉ `TransactionListScreen._loadRange()` mới preload, HomeScreen thì không
+8. **Duplicate reads** — Mỗi screen tự load data riêng (categories, account, wallets, lastWalletId) → cùng 1 data bị fetch nhiều lần khi chuyển tab
+
+## Preload Audit
+
+Phân tích tất cả data mà các screen cần ngay khi vào app:
+
+| Data | Screen cần | Bootstrap load? | Vấn đề |
+|------|-----------|-----------------|--------|
+| **Categories** (list) | HomeScreen, QuickAddBar, TxnListScreen, InsightsTab, TxnFormScreen, BudgetFormScreen | ❌ | Mỗi screen gọi `getCategories()` riêng → 5+ duplicate Firestore reads |
+| **Account** (name, memberIds) | HomeScreen (title), TxnListScreen (member filter), TxnFormScreen | ❌ | Mỗi screen gọi `getAccount()` riêng |
+| **Member profiles** (name, photo) | HomeScreen (FeedHelper), TxnListScreen, TxnFormScreen | ❌ | **Bug "?"** — FeedHelper cache trống, HomeScreen không gọi preloadNames |
+| **Last wallet ID** | HomeScreen, TxnListScreen, QuickAddBar | ❌ | 3 screen gọi `getLastWalletId()` riêng |
+| **Locale** | main.dart | ✅ | OK |
+| **QuickAdd caches** (keywords, history, amounts) | QuickAddBar | ⚠️ | Fire-and-forget cuối `_init()`, có thể chưa xong khi user gõ QuickAdd |
+
+### Giải pháp: AppCache singleton
+
+Bootstrap step `data` load 1 lần, lưu vào `AppCache` singleton. Screens đọc từ cache thay vì fetch riêng.
+
+```dart
+class AppCache {
+  List<Category> categories = [];
+  Map<String, String> categoryNameMap = {};
+  Account? currentAccount;
+  List<Map<String, String>> memberProfiles = [];
+  String? lastWalletId;
+}
+```
+
+- Bootstrap `data` step: load tất cả song song (`Future.wait`), populate `AppCache` + `FeedHelper._nameCache`
+- Screens đọc `sl.cache.categories` thay vì `await sl.categoryService.getCategories()`
+- Khi data thay đổi (thêm category, đổi wallet...) → invalidate cache entry, screen tự refresh
 
 ## Giải pháp
 
@@ -97,7 +129,7 @@ class BootstrapResult {
 | auth | Đang kết nối... | Connecting... |
 | account | Đang mở sổ... | Opening ledger... |
 | settings | Đang tải cài đặt... | Loading settings... |
-| data | Đang tải dữ liệu... | Loading data... |
+| data | Đang chuẩn bị... | Getting ready... |
 | background | Sắp xong rồi... | Almost ready... |
 
 ### 6. Error & Retry
