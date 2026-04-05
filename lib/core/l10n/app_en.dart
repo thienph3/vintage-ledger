@@ -295,4 +295,11 @@ const Map<String, String> en = {
   'viewList': 'List',
   'viewCalendar': 'Calendar',
   'allTypes': 'All',
+
+  // Bootstrap
+  'bootstrapAuth': 'Connecting...',
+  'bootstrapAccount': 'Opening ledger...',
+  'bootstrapSettings': 'Loading settings...',
+  'bootstrapData': 'Getting ready...',
+  'bootstrapAlmost': 'Almost ready...',
 };

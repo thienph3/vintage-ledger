@@ -295,4 +295,11 @@ const Map<String, String> vi = {
   'viewList': 'Danh sách',
   'viewCalendar': 'Lịch',
   'allTypes': 'Tất cả',
+
+  // Bootstrap
+  'bootstrapAuth': 'Đang kết nối...',
+  'bootstrapAccount': 'Đang mở sổ...',
+  'bootstrapSettings': 'Đang tải cài đặt...',
+  'bootstrapData': 'Đang chuẩn bị...',
+  'bootstrapAlmost': 'Sắp xong rồi...',
 };

@@ -13,7 +13,6 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/network_status_banner.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
-import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_feed_item.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
@@ -30,10 +29,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  Map<String, String> _categoryNames = {};
-  Map<String, int?> _categoryIcons = {};
-  bool _loading = true;
-  String? _accountName;
+  bool _loading = false;
   String? _defaultWalletId;
 
   late final DateTime _todayStart;
@@ -45,27 +41,16 @@ class _HomeScreenState extends State<HomeScreen> {
     final now = DateTime.now();
     _todayStart = DateTime(now.year, now.month, now.day);
     _todayEnd = _todayStart.add(const Duration(days: 1)).subtract(const Duration(milliseconds: 1));
-    _load();
+    _defaultWalletId = sl.cache.lastWalletId;
+    sl.settingService.recordDailyUsage();
   }
 
-  Future<void> _load() async {
-    try {
-      final cats = await sl.categoryService.getCategories();
-      final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
-      final walletId = await sl.settingService.getLastWalletId();
-      sl.settingService.recordDailyUsage();
+  Map<String, String> get _categoryNames => sl.cache.categoryNameMap;
+  String? get _accountName => sl.cache.currentAccount?.name;
 
-      if (!mounted) return;
-      setState(() {
-        _categoryNames = {for (var c in cats) if (c.id != null) c.id!: c.name};
-        _categoryIcons = {for (var c in cats) if (c.id != null) c.id!: c.icon};
-        _accountName = account?.name;
-        _defaultWalletId = walletId;
-        _loading = false;
-      });
-    } catch (e) {
-      if (mounted) setState(() => _loading = false);
-    }
+  Future<void> _refresh() async {
+    sl.cache.setCategories(await sl.categoryService.getCategories());
+    if (mounted) setState(() {});
   }
 
   Stream<List<TransactionWithItems>> get _todayStream =>
@@ -99,14 +84,12 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               const NetworkStatusBanner(),
               Expanded(
-                child: _loading
-                    ? const ShimmerPlaceholder()
-                    : StreamBuilder<List<TransactionWithItems>>(
+                child: StreamBuilder<List<TransactionWithItems>>(
                         stream: _todayStream,
                         builder: (context, txnSnap) {
                           final todayTxns = txnSnap.data ?? [];
                           return RefreshIndicator(
-                            onRefresh: _load,
+                            onRefresh: _refresh,
                             child: ListView(
                               padding: const EdgeInsets.all(AppSpacing.md),
                               children: [
@@ -127,7 +110,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     sl.settingService.setLastWalletId(id);
                     setState(() => _defaultWalletId = id);
                   },
-                  onAdded: _load,
+                  onAdded: _refresh,
                 )
               else
                 Padding(
@@ -139,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ElevatedButton.icon(
                         onPressed: () async {
                           final result = await context.pushScreen(const WalletFormScreen());
-                          if (result == true) _load();
+                          if (result == true) _refresh();
                         },
                         icon: const Icon(Icons.add, size: 18),
                         label: Text(S.of(context, 'addWallet')),
@@ -215,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ...todayTxns.map((t) => TransactionFeedItem(
             txn: t,
             categoryName: _categoryNames[t.transaction.categoryId] ?? S.of(context, 'other'),
-            onChanged: _load,
+            onChanged: _refresh,
             timeFormatter: DateFormatter.time,
           )),
         ],

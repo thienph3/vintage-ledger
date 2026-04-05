@@ -54,7 +54,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
   @override
   void initState() {
     super.initState();
-    _loadCategories();
+    _categories = sl.cache.categories;
     _ctrl.addListener(_onChanged);
     _focusNode.addListener(_onFocusChanged);
     _suggestions = QuickAddHistory.suggest();
@@ -65,11 +65,6 @@ class _QuickAddBarState extends State<QuickAddBar> {
     _ctrl.dispose();
     _focusNode.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadCategories() async {
-    final cats = await sl.categoryService.getCategories();
-    setState(() => _categories = cats);
   }
 
   void _onChanged() {

@@ -5,10 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'package:vintage_ledger/firebase_options.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/features/main_shell.dart';
-import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
-import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/core/theme/app_theme.dart';
+import 'package:vintage_ledger/features/splash/splash_bootstrap_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_history.dart';
 import 'package:vintage_ledger/common/widgets/amount_history.dart';
@@ -42,14 +40,12 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Locale _locale = const Locale('vi', 'VN');
-  bool _ready = false;
   final _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _init();
   }
 
   @override
@@ -64,80 +60,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       QuickAddParser.flush();
       QuickAddHistory.flush();
       AmountHistory.flush();
-    }
-  }
-
-  Future<void> _init() async {
-    try {
-      final user = sl.authService.currentUser;
-      if (user != null) {
-        sl.appState.currentUserId = user.uid;
-        if (!user.isAnonymous) {
-          // Backfill email index for users created before this feature
-          sl.accountService.ensureEmailIndex(user.uid, user.email ?? '');
-          // Load settings with timeout to avoid infinite loading
-          final locale = await sl.settingService.getLocale()
-              .timeout(const Duration(seconds: 5), onTimeout: () => 'vi');
-          final lastAccountId = await sl.settingService.getLastAccountId()
-              .timeout(const Duration(seconds: 5), onTimeout: () => null);
-          if (lastAccountId != null) {
-            sl.appState.currentAccountId = lastAccountId;
-          } else {
-            // No saved account — resolve from user doc
-            final accountId = await sl.accountService.getOrCreatePersonalAccountId(
-              user.uid, user.email ?? '', user.displayName ?? '',
-            ).timeout(const Duration(seconds: 5), onTimeout: () => '');
-            if (accountId.isNotEmpty) {
-              sl.appState.currentAccountId = accountId;
-              sl.settingService.setLastAccountId(accountId);
-            }
-          }
-          setState(() { _locale = Locale(locale); _ready = true; });
-          // Non-blocking init
-          QuickAddParser.init();
-          QuickAddHistory.init();
-          AmountHistory.init();
-          sl.notificationService.init();
-          sl.recurringService.checkAndRun();
-          if (mounted) sl.reminderService.init(context);
-          return;
-        }
-      }
-
-      if (user == null) {
-        final anon = await sl.authService.signInAnonymously()
-            .timeout(const Duration(seconds: 10));
-        if (anon != null) {
-          sl.appState.currentUserId = anon.uid;
-          final accountId = await sl.accountService.getOrCreatePersonalAccountId(
-            anon.uid, '', 'Anonymous',
-          );
-          sl.appState.currentAccountId = accountId;
-          await _ensureDefaultWallet();
-        }
-      } else {
-        final accountId = await sl.accountService.getOrCreatePersonalAccountId(
-          user.uid, '', 'Anonymous',
-        );
-        sl.appState.currentAccountId = accountId;
-      }
-    } catch (e) {
-      debugPrint('[Init] Error: $e');
-    }
-
-    if (mounted) setState(() => _ready = true);
-    QuickAddParser.init();
-    QuickAddHistory.init();
-    AmountHistory.init();
-    sl.notificationService.init();
-    sl.recurringService.checkAndRun();
-    if (mounted) sl.reminderService.init(context);
-  }
-
-  Future<void> _ensureDefaultWallet() async {
-    final wallets = await sl.walletService.getWallets();
-    if (wallets.isEmpty) {
-      await sl.walletService.createWallet('Ví chính', 0);
     }
   }
 
@@ -159,23 +81,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: _buildHome(),
+      home: const SplashBootstrapScreen(),
     );
-  }
-
-  Widget _buildHome() {
-    if (!_ready) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    final user = sl.authService.currentUser;
-    if (user == null) return const LoginScreen();
-
-    // Anonymous → straight to Home (account already set in _init)
-    if (user.isAnonymous) return const MainShell();
-
-    // Logged in with email
-    sl.appState.currentUserId = user.uid;
-    return sl.appState.hasAccount ? const MainShell() : const AccountPickerScreen();
   }
 }

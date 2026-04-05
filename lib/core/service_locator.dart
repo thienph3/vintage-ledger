@@ -1,4 +1,5 @@
 import 'package:vintage_ledger/core/app_state.dart';
+import 'package:vintage_ledger/core/app_cache.dart';
 import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
 import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
 import 'package:vintage_ledger/features/category/services/category_service.dart';
@@ -16,6 +17,7 @@ class ServiceLocator {
   static final instance = ServiceLocator._();
 
   final appState = AppState();
+  final cache = AppCache();
   final walletService = WalletService();
   final transactionService = TransactionService();
   final categoryService = CategoryService();

@@ -71,26 +71,27 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     _rangeAnchor = DateTime(now.year, now.month);
     _selectedDate = DateTime(now.year, now.month, now.day);
     _filterWalletId = widget.walletId;
-    _initialLoad();
+    _initFromCache();
   }
 
   // ── Data loading ──
 
-  Future<void> _initialLoad() async {
+  void _initFromCache() {
+    _categories = sl.cache.categories;
+    _categoryNameMap = sl.cache.categoryNameMap;
+    _defaultWalletId = sl.cache.lastWalletId;
+    _members = sl.cache.memberProfiles;
+    _loadWalletsAndRange();
+  }
+
+  Future<void> _loadWalletsAndRange() async {
     setState(() { _loading = true; _error = null; });
     try {
-      _categories = await sl.categoryService.getCategories();
-      _categoryNameMap = {for (var c in _categories) if (c.id != null) c.id!: c.name};
       if (widget.walletId == null) {
         _wallets = await sl.walletService.getWallets();
-        _defaultWalletId = await sl.settingService.getLastWalletId();
         if (_defaultWalletId != null && !_wallets.any((w) => w.id == _defaultWalletId)) {
           _defaultWalletId = _wallets.firstOrNull?.id;
         }
-      }
-      final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
-      if (account != null && account.memberIds.length > 1) {
-        _members = await sl.accountService.getMemberProfiles(account.memberIds);
       }
       await _loadRange();
     } catch (e) {
