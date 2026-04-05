@@ -63,7 +63,7 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
+      showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
       setState(() => _joining = false);
     }
   }
@@ -81,7 +81,7 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
                   ? Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.error_outline, size: 48, color: AppColors.inkRed),
+                        const Icon(Icons.error_outline, size: 48, color: AppColors.error),
                         const SizedBox(height: AppSpacing.md),
                         Text(_error!, style: AppTextStyles.body, textAlign: TextAlign.center),
                       ],
@@ -89,7 +89,7 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> {
                   : Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.family_restroom, size: 64, color: AppColors.inkBlue),
+                        const Icon(Icons.family_restroom, size: 64, color: AppColors.primary),
                         const SizedBox(height: AppSpacing.lg),
                         Text(_familyName ?? '', style: AppTextStyles.title),
                         const SizedBox(height: AppSpacing.xl),

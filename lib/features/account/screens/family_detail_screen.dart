@@ -77,7 +77,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
       if (!mounted) return;
       final key = e.toString().replaceFirst('Exception: ', '');
       final msg = S.of(context, key);
-      showAppSnackBar(context, msg, backgroundColor: const Color(0xFF8B1E1E));
+      showAppSnackBar(context, msg, backgroundColor: AppColors.error);
     }
   }
 
@@ -92,7 +92,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
       _load();
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
+      showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
     }
   }
 
@@ -152,7 +152,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
             Text(S.of(context, 'members'), style: AppTextStyles.title),
             if (_isOwner)
               IconButton(
-                icon: const Icon(Icons.share, color: AppColors.inkBlue),
+                icon: const Icon(Icons.share, color: AppColors.primary),
                 tooltip: S.of(context, 'inviteMember'),
                 onPressed: _inviteByEmail,
               ),
@@ -172,9 +172,9 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundColor: isMemberOwner ? AppColors.inkBlue : AppColors.divider,
+                    backgroundColor: isMemberOwner ? AppColors.primary : AppColors.divider,
                     child: Text(initials, style: AppTextStyles.bodyBold.copyWith(
-                      color: isMemberOwner ? Colors.white : AppColors.inkBlack,
+                      color: isMemberOwner ? Colors.white : AppColors.textPrimary,
                     )),
                   ),
                   const SizedBox(width: AppSpacing.md),
@@ -191,7 +191,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
                     Text(S.of(context, 'owner'), style: AppTextStyles.caption),
                   if (_isOwner && !isCurrentUser && !isMemberOwner)
                     IconButton(
-                      icon: const Icon(Icons.remove_circle_outline, color: AppColors.inkRed),
+                      icon: const Icon(Icons.remove_circle_outline, color: AppColors.expense),
                       onPressed: () => _removeMember(m['id']!),
                     ),
                 ],
@@ -303,7 +303,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
             size: isPriority ? 20 : 16,
             color: action == 'expense' ? AppColors.expense
                 : action == 'income' ? AppColors.income
-                : AppColors.inkBlue,
+                : AppColors.primary,
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
@@ -339,7 +339,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
               onPressed: _leave,
               icon: const Icon(Icons.exit_to_app),
               label: Text(S.of(context, 'leaveFamily')),
-              style: OutlinedButton.styleFrom(foregroundColor: AppColors.inkRed),
+              style: OutlinedButton.styleFrom(foregroundColor: AppColors.expense),
             ),
           ),
         if (_isOwner)
@@ -349,7 +349,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
               onPressed: _delete,
               icon: const Icon(Icons.delete_forever),
               label: Text(S.of(context, 'deleteFamily')),
-              style: OutlinedButton.styleFrom(foregroundColor: AppColors.inkRed),
+              style: OutlinedButton.styleFrom(foregroundColor: AppColors.expense),
             ),
           ),
       ],

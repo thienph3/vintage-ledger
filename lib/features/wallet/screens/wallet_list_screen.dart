@@ -84,7 +84,7 @@ class _WalletListScreenState extends State<WalletListScreen> {
                             _loadDefault();
                           } catch (e) {
                             if (!context.mounted) return;
-                            showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
+                            showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
                           }
                         },
                         child: GestureDetector(
@@ -94,11 +94,11 @@ class _WalletListScreenState extends State<WalletListScreen> {
                               children: [
                                 Stack(
                                   children: [
-                                    const Icon(Icons.account_balance_wallet, size: 28, color: AppColors.inkBlue),
+                                    const Icon(Icons.account_balance_wallet, size: 28, color: AppColors.primary),
                                     if (_isDefault(w, wallets))
                                       const Positioned(
                                         right: -2, bottom: -2,
-                                        child: Icon(Icons.star, size: 14, color: Color(0xFFE6A817)),
+                                        child: Icon(Icons.star, size: 14, color: AppColors.accent),
                                       ),
                                   ],
                                 ),

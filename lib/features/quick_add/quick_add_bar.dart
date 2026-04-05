@@ -169,7 +169,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
       );
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
+      showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
     } finally {
       if (mounted) setState(() => _saving = false);
     }

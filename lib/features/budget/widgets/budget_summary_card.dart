@@ -54,7 +54,7 @@ class _BudgetSummaryCardState extends State<BudgetSummaryCard> {
                 children: [
                   InkWell(
                     onTap: () => context.pushScreen(const MonthlyInsightScreen()),
-                    child: const Icon(Icons.insights, size: 20, color: AppColors.inkBlue),
+                    child: const Icon(Icons.insights, size: 20, color: AppColors.primary),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   InkWell(
@@ -92,7 +92,7 @@ class _BudgetSummaryCardState extends State<BudgetSummaryCard> {
                 Icon(
                   s.isExceeded ? Icons.warning_amber : Icons.info_outline,
                   size: 16,
-                  color: s.isExceeded ? AppColors.expense : const Color(0xFFE6A817),
+                  color: s.isExceeded ? AppColors.expense : AppColors.accent,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(

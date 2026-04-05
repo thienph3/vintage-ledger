@@ -68,7 +68,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
+      showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
     }
   }
 
@@ -91,7 +91,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
                     value: c.id,
                     child: Row(
                       children: [
-                        Icon(getCategoryIcon(c.icon), size: 20, color: AppColors.inkBlue),
+                        Icon(getCategoryIcon(c.icon), size: 20, color: AppColors.primary),
                         const SizedBox(width: 8),
                         Text(c.name, style: AppTextStyles.body),
                       ],

@@ -11,7 +11,7 @@ void showErrorSnackBar(BuildContext context, Object error, {VoidCallback? onRetr
 
   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
     content: Text(message),
-    backgroundColor: AppColors.inkRed,
+    backgroundColor: AppColors.error,
     action: SnackBarAction(
       label: onRetry != null ? S.of(context, 'retry') : S.of(context, 'dismiss'),
       textColor: Colors.white,

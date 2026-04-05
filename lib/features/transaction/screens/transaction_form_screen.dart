@@ -279,7 +279,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
+      showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
     }
   }
 
@@ -317,7 +317,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                     Icon(
                       _budgetStatus!.isExceeded ? Icons.warning_amber : Icons.info_outline,
                       size: 16,
-                      color: _budgetStatus!.isExceeded ? AppColors.expense : const Color(0xFFE6A817),
+                      color: _budgetStatus!.isExceeded ? AppColors.expense : AppColors.accent,
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     Expanded(
@@ -326,7 +326,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                             ? S.of(context, 'budgetExceeded')
                             : '${S.of(context, 'budgetNearLimit')}: ${S.of(context, 'remaining')} ${_budgetStatus!.remaining}',
                         style: AppTextStyles.caption.copyWith(
-                          color: _budgetStatus!.isExceeded ? AppColors.expense : const Color(0xFFE6A817),
+                          color: _budgetStatus!.isExceeded ? AppColors.expense : AppColors.accent,
                         ),
                       ),
                     ),
@@ -397,7 +397,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       children: [
         SwitchListTile(
           title: Text(S.of(context, 'recurring'), style: AppTextStyles.body),
-          secondary: const Icon(Icons.repeat, color: AppColors.inkBlue),
+          secondary: const Icon(Icons.repeat, color: AppColors.primary),
           value: _recurring,
           onChanged: (v) => setState(() => _recurring = v),
           contentPadding: EdgeInsets.zero,

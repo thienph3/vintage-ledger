@@ -133,13 +133,13 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
             _load();
           } catch (e) {
             if (!context.mounted) return;
-            showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
+            showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
           }
         },
         child: LedgerListTile(
           child: Row(
             children: [
-              Icon(getCategoryIcon(c.icon), size: 28, color: AppColors.inkBlue),
+              Icon(getCategoryIcon(c.icon), size: 28, color: AppColors.primary),
               const SizedBox(width: 16),
               Expanded(child: Text(c.name, style: AppTextStyles.bodyBold)),
             ],

@@ -13,13 +13,13 @@ class BreakdownChart extends StatelessWidget {
   const BreakdownChart({super.key, required this.expenseByCategory});
 
   static const pieColors = [
-    AppColors.inkBlue,
+    AppColors.primary,
     AppColors.expense,
     AppColors.income,
-    AppColors.inkPurple,
+    AppColors.accent,
     AppColors.divider,
-    AppColors.inkRed,
-    AppColors.inkBlack,
+    AppColors.textSecondary,
+    AppColors.textPrimary,
   ];
 
   @override

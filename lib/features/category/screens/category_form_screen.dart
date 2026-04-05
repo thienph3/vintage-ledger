@@ -64,7 +64,7 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
+      showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
     }
   }
 
@@ -108,10 +108,10 @@ class _CategoryFormScreenState extends State<CategoryFormScreen> {
                       onTap: () => setState(() => _selectedCodePoint = iconData.codePoint),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.inkBlue : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
+                          color: isSelected ? AppColors.primary : Colors.white,
+                          borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isSelected ? AppColors.inkBlue : AppColors.divider, width: 2,
+                            color: isSelected ? AppColors.primary : AppColors.divider, width: 2,
                           ),
                         ),
                         child: Icon(iconData, size: 32, color: isSelected ? Colors.white : Colors.black87),

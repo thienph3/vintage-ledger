@@ -21,10 +21,4 @@ class AppColors {
   static const divider = Color(0xFFE8E5DE);
   static const error = Color(0xFFD4845A);
 
-  // Legacy aliases (gradual migration)
-  static const paper = background;
-  static const inkBlue = primary;
-  static const inkPurple = primary;
-  static const inkBlack = textPrimary;
-  static const inkRed = error;
 }

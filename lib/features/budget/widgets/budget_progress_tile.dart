@@ -16,7 +16,7 @@ class BudgetProgressTile extends StatelessWidget {
 
   Color get _progressColor {
     if (status.isExceeded) return AppColors.expense;
-    if (status.isNearLimit) return const Color(0xFFE6A817); // amber
+    if (status.isNearLimit) return AppColors.accent;
     return AppColors.income;
   }
 
@@ -27,7 +27,7 @@ class BudgetProgressTile extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         child: Column(
@@ -35,7 +35,7 @@ class BudgetProgressTile extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(getCategoryIcon(status.categoryIcon), size: 18, color: AppColors.inkBlue),
+                Icon(getCategoryIcon(status.categoryIcon), size: 18, color: AppColors.primary),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(child: Text(status.categoryName, style: AppTextStyles.bodyBold)),
                 Text('$pct%', style: AppTextStyles.caption.copyWith(color: _progressColor)),

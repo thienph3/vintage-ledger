@@ -76,7 +76,7 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
       ),
       fab: FloatingActionButton(
         onPressed: () => context.pushScreen(const RecurringFormScreen()),
-        backgroundColor: AppColors.inkBlue,
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -97,7 +97,7 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         child: Row(
           children: [
-            Icon(getCategoryIcon(catIcon), size: 22, color: AppColors.inkBlue),
+            Icon(getCategoryIcon(catIcon), size: 22, color: AppColors.primary),
             const SizedBox(width: 12),
             Expanded(
               child: Column(

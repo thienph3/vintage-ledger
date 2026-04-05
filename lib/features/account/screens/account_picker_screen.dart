@@ -59,7 +59,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
       _load();
     } catch (e) {
       if (!mounted) return;
-      showAppSnackBar(context, e.toString(), backgroundColor: const Color(0xFF8B1E1E));
+      showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
     }
   }
 
@@ -72,7 +72,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
     final userId = sl.appState.currentUserId;
 
     return Scaffold(
-      backgroundColor: AppColors.paper,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: AsyncContent(
           loading: _loading,
@@ -113,7 +113,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
                               children: [
                                 Icon(
                                   a.isPersonal ? Icons.person : Icons.family_restroom,
-                                  color: AppColors.inkBlue, size: 28,
+                                  color: AppColors.primary, size: 28,
                                 ),
                                 const SizedBox(width: AppSpacing.md),
                                 Expanded(
@@ -141,7 +141,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.add, color: AppColors.inkBlue),
+                              const Icon(Icons.add, color: AppColors.primary),
                               const SizedBox(width: AppSpacing.sm),
                               Text(S.of(context, 'createFamily'), style: AppTextStyles.body),
                             ],
@@ -181,7 +181,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
       child: LedgerCard(
         child: Row(
           children: [
-            const Icon(Icons.mail_outline, color: AppColors.inkBlue, size: 24),
+            const Icon(Icons.mail_outline, color: AppColors.primary, size: 24),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(

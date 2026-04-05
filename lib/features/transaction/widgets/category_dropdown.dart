@@ -40,7 +40,7 @@ class CategoryDropdown extends StatelessWidget {
           value: c.id,
           child: Row(
             children: [
-              Icon(getCategoryIcon(c.icon), size: 20, color: AppColors.inkBlue),
+              Icon(getCategoryIcon(c.icon), size: 20, color: AppColors.primary),
               const SizedBox(width: 8),
               Text(c.name, style: AppTextStyles.body),
             ],

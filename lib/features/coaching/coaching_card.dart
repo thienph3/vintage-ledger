@@ -21,7 +21,7 @@ class CoachingCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(tip.icon, size: 22, color: AppColors.inkBlue),
+            Icon(tip.icon, size: 22, color: AppColors.primary),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
@@ -33,7 +33,7 @@ class CoachingCard extends StatelessWidget {
                       padding: const EdgeInsets.only(top: AppSpacing.xs),
                       child: GestureDetector(
                         onTap: tip.action,
-                        child: Text(tip.actionLabel!, style: AppTextStyles.link.copyWith(color: AppColors.inkBlue)),
+                        child: Text(tip.actionLabel!, style: AppTextStyles.link.copyWith(color: AppColors.primary)),
                       ),
                     ),
                 ],

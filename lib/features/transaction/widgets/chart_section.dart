@@ -72,16 +72,16 @@ class _ChartSectionState extends State<ChartSection> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: selected ? AppColors.inkBlue : Colors.transparent,
+                  color: selected ? AppColors.primary : Colors.transparent,
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(
-                    color: selected ? AppColors.inkBlue : AppColors.divider,
+                    color: selected ? AppColors.primary : AppColors.divider,
                   ),
                 ),
                 child: Text(
                   labels[v]!,
                   style: AppTextStyles.caption.copyWith(
-                    color: selected ? Colors.white : AppColors.inkBlack,
+                    color: selected ? Colors.white : AppColors.textPrimary,
                     fontSize: 12,
                   ),
                 ),
