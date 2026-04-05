@@ -4,7 +4,6 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
-import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
@@ -24,8 +23,8 @@ import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
 import 'package:vintage_ledger/common/widgets/inline_selector.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
+import 'package:vintage_ledger/features/transaction/widgets/transaction_feed_item.dart';
 import 'package:vintage_ledger/features/feed/feed_helper.dart';
-import 'package:vintage_ledger/utils/transaction_story.dart';
 
 class TransactionListScreen extends StatefulWidget {
   final String? walletId;
@@ -410,42 +409,16 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         ),
         // Expanded transactions
         if (isExpanded)
-          ...group.items.map((t) => _buildTile(t, locale)),
+          ...group.items.map((t) => TransactionFeedItem(
+            txn: t,
+            categoryName: _categoryNameMap[t.transaction.categoryId] ?? S.of(context, 'other'),
+            onChanged: _loadMonth,
+            timeFormatter: DateFormatter.time,
+          )),
         const Divider(height: 1),
       ],
     );
   }
-
-  Widget _buildTile(TransactionWithItems txn, String locale) {
-    final catName = _categoryNameMap[txn.transaction.categoryId] ?? S.of(context, 'other');
-    final actor = FeedHelper.resolveName(txn.transaction.createdBy, S.of(context, 'youActor'));
-    final story = TransactionStory.format(
-      actorName: actor,
-      categoryName: catName,
-      amount: txn.transaction.amount,
-      type: txn.transaction.type,
-      locale: locale,
-      note: txn.transaction.note,
-    );
-    final time = DateFormatter.time(txn.transaction.date);
-
-    return SwipeListItem(
-      itemKey: Key(txn.transaction.id!),
-      onTap: () => _openForm(txn: txn),
-      confirmDelete: () => showDeleteConfirmation(context, titleKey: 'deleteTransaction', contentKey: 'deleteTransactionConfirm'),
-      onDelete: () => _deleteTransaction(txn.transaction.id!),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md2, vertical: AppSpacing.sm),
-        child: Row(
-          children: [
-            Expanded(child: Text(story, style: AppTextStyles.body)),
-            Text(time, style: AppTextStyles.caption),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _DayGroup {
   final int day;
