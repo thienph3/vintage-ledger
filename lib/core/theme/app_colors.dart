@@ -21,4 +21,15 @@ class AppColors {
   static const divider = Color(0xFFE8E5DE);
   static const error = Color(0xFFD4845A);
 
+  // Chart palette (muted tones)
+  static const chartColors = [
+    primary,
+    expense,
+    income,
+    accent,
+    Color(0xFF8E7CC3),
+    Color(0xFF6DAEDB),
+    Color(0xFFB5C99A),
+  ];
+
 }

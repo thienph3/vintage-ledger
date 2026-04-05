@@ -24,17 +24,17 @@ class DailyChart extends StatelessWidget with ChartStyles {
         barRods: [
           BarChartRodData(
             toY: d['income']!.toDouble(),
-            color: AppColors.income,
+            color: AppColors.income.withValues(alpha: 0.7),
             width: 6,
             borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(3)),
+                const BorderRadius.vertical(top: Radius.circular(4)),
           ),
           BarChartRodData(
             toY: d['expense']!.toDouble(),
-            color: AppColors.expense,
+            color: AppColors.expense.withValues(alpha: 0.7),
             width: 6,
             borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(3)),
+                const BorderRadius.vertical(top: Radius.circular(4)),
           ),
         ],
         barsSpace: 2,
