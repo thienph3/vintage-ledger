@@ -287,4 +287,13 @@ const Map<String, String> vi = {
   'greetingMorning': 'Chào buổi sáng 👋',
   'greetingAfternoon': 'Buổi chiều rồi ☀️',
   'greetingEvening': 'Tối rồi 🌙',
+
+  // Transaction list view modes
+  'viewDay': 'Ngày',
+  'viewWeek': 'Tuần',
+  'viewMonth': 'Tháng',
+  'viewList': 'Danh sách',
+  'viewCalendar': 'Lịch',
+  'allTypes': 'Tất cả',
+  'today': 'Hôm nay',
 };

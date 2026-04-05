@@ -24,6 +24,20 @@ class DateFormatter {
     return 'Tháng ${dt.month}, ${dt.year}';
   }
 
+  static String weekRange(DateTime weekStart) {
+    final weekEnd = weekStart.add(const Duration(days: 6));
+    return '${DateFormat('dd/MM').format(weekStart)} – ${DateFormat('dd/MM').format(weekEnd)}';
+  }
+
+  static String dayFull(DateTime dt) {
+    return DateFormat('EEEE, dd/MM/yyyy', 'vi').format(dt);
+  }
+
+  static String weekdayShort(int weekday) {
+    const days = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
+    return days[(weekday - 1) % 7];
+  }
+
   static String monthYear(DateTime dt) {
     return DateFormat("MM/yyyy").format(dt);
   }

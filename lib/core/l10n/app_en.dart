@@ -287,4 +287,13 @@ const Map<String, String> en = {
   'greetingMorning': 'Good morning 👋',
   'greetingAfternoon': 'Good afternoon ☀️',
   'greetingEvening': 'Good evening 🌙',
+
+  // Transaction list view modes
+  'viewDay': 'Day',
+  'viewWeek': 'Week',
+  'viewMonth': 'Month',
+  'viewList': 'List',
+  'viewCalendar': 'Calendar',
+  'allTypes': 'All',
+  'today': 'Today',
 };

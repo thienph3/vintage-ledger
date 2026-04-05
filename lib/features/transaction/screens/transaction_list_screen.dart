@@ -23,7 +23,11 @@ import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
 import 'package:vintage_ledger/common/widgets/inline_selector.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_feed_item.dart';
+import 'package:vintage_ledger/features/transaction/widgets/calendar_grid.dart';
 import 'package:vintage_ledger/features/feed/feed_helper.dart';
+
+enum TimeRangeMode { day, week, month }
+enum ViewMode { list, calendar }
 
 class TransactionListScreen extends StatefulWidget {
   final String? walletId;
@@ -43,11 +47,17 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   List<Category> _categories = [];
   Map<String, String> _categoryNameMap = {};
 
-  late DateTime _currentMonth;
   bool _loading = false;
   String? _error;
   int? _expandedDay;
 
+  // Time range & view mode
+  TimeRangeMode _timeRange = TimeRangeMode.month;
+  ViewMode _viewMode = ViewMode.list;
+  late DateTime _rangeAnchor;
+  late DateTime _selectedDate;
+
+  // Filters
   String? _filterWalletId;
   String? _filterCategoryId;
   String? _filterUserId;
@@ -58,10 +68,13 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   void initState() {
     super.initState();
     final now = DateTime.now();
-    _currentMonth = DateTime(now.year, now.month);
+    _rangeAnchor = DateTime(now.year, now.month);
+    _selectedDate = DateTime(now.year, now.month, now.day);
     _filterWalletId = widget.walletId;
     _initialLoad();
   }
+
+  // ── Data loading ──
 
   Future<void> _initialLoad() async {
     setState(() { _loading = true; _error = null; });
@@ -75,21 +88,36 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           _defaultWalletId = _wallets.firstOrNull?.id;
         }
       }
-      // Load members for family filter
       final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
       if (account != null && account.memberIds.length > 1) {
         _members = await sl.accountService.getMemberProfiles(account.memberIds);
       }
-      await _loadMonth();
+      await _loadRange();
     } catch (e) {
       _error = e.toString();
     }
     if (mounted) setState(() => _loading = false);
   }
 
-  Future<void> _loadMonth() async {
-    final start = _currentMonth;
-    final end = DateTime(start.year, start.month + 1, 0, 23, 59, 59, 999);
+  (DateTime, DateTime) get _dateRange {
+    switch (_timeRange) {
+      case TimeRangeMode.day:
+        final start = _rangeAnchor;
+        final end = DateTime(start.year, start.month, start.day, 23, 59, 59, 999);
+        return (start, end);
+      case TimeRangeMode.week:
+        final start = _rangeAnchor;
+        final end = start.add(const Duration(days: 6));
+        return (start, DateTime(end.year, end.month, end.day, 23, 59, 59, 999));
+      case TimeRangeMode.month:
+        final start = _rangeAnchor;
+        final end = DateTime(start.year, start.month + 1, 0, 23, 59, 59, 999);
+        return (start, end);
+    }
+  }
+
+  Future<void> _loadRange() async {
+    final (start, end) = _dateRange;
     final txns = await _txnRepo.getByDateRange(
       start.millisecondsSinceEpoch,
       end.millisecondsSinceEpoch,
@@ -115,14 +143,45 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     return list;
   }
 
-  void _changeMonth(int delta) {
+  // ── Range navigation ──
+
+  void _changeRange(int delta) {
     setState(() {
-      _currentMonth = DateTime(_currentMonth.year, _currentMonth.month + delta);
+      switch (_timeRange) {
+        case TimeRangeMode.day:
+          _rangeAnchor = _rangeAnchor.add(Duration(days: delta));
+        case TimeRangeMode.week:
+          _rangeAnchor = _rangeAnchor.add(Duration(days: 7 * delta));
+        case TimeRangeMode.month:
+          _rangeAnchor = DateTime(_rangeAnchor.year, _rangeAnchor.month + delta);
+      }
       _loading = true;
     });
-    _loadMonth().then((_) {
-      if (mounted) setState(() => _loading = false);
+    _loadRange().then((_) { if (mounted) setState(() => _loading = false); });
+  }
+
+  void _setTimeRange(TimeRangeMode mode) {
+    if (mode == _timeRange) return;
+    final now = DateTime.now();
+    setState(() {
+      _timeRange = mode;
+      if (mode == TimeRangeMode.month) {
+        _viewMode = ViewMode.list; // reset view mode when leaving month
+      }
+      switch (mode) {
+        case TimeRangeMode.day:
+          _rangeAnchor = DateTime(now.year, now.month, now.day);
+          _viewMode = ViewMode.list;
+        case TimeRangeMode.week:
+          final weekday = now.weekday; // 1=Mon
+          _rangeAnchor = DateTime(now.year, now.month, now.day - (weekday - 1));
+          _viewMode = ViewMode.list;
+        case TimeRangeMode.month:
+          _rangeAnchor = DateTime(now.year, now.month);
+      }
+      _loading = true;
     });
+    _loadRange().then((_) { if (mounted) setState(() => _loading = false); });
   }
 
   // ── Day groups ──
@@ -136,11 +195,29 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       map[day]!.add(t);
     }
     final days = map.keys.toList()..sort((a, b) => b.compareTo(a));
-    return days.map((d) => _DayGroup(
-      day: d,
-      date: DateTime(_currentMonth.year, _currentMonth.month, d),
-      items: map[d]!,
-    )).toList();
+    return days.map((d) {
+      final date = _timeRange == TimeRangeMode.month
+          ? DateTime(_rangeAnchor.year, _rangeAnchor.month, d)
+          : DateTime.fromMillisecondsSinceEpoch(map[d]!.first.transaction.date);
+      return _DayGroup(day: d, date: DateTime(date.year, date.month, d), items: map[d]!);
+    }).toList();
+  }
+
+  Map<int, int> _buildDailyExpenseMap() {
+    final map = <int, int>{};
+    for (var t in _filtered) {
+      if (!t.transaction.type.isExpense) continue;
+      final day = DateTime.fromMillisecondsSinceEpoch(t.transaction.date).day;
+      map[day] = (map[day] ?? 0) + t.transaction.amount;
+    }
+    return map;
+  }
+
+  List<TransactionWithItems> _txnsForSelectedDay() {
+    return _filtered.where((t) {
+      final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
+      return dt.year == _selectedDate.year && dt.month == _selectedDate.month && dt.day == _selectedDate.day;
+    }).toList();
   }
 
   // ── Actions ──
@@ -150,12 +227,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       walletId: txn?.transaction.walletId ?? widget.walletId ?? _filterWalletId,
       existing: txn,
     ));
-    if (result == true) _loadMonth();
-  }
-
-  Future<void> _deleteTransaction(String id) async {
-    await sl.transactionService.deleteTransaction(id);
-    _loadMonth();
+    if (result == true) _loadRange();
   }
 
   // ── Build ──
@@ -172,8 +244,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       showBackButton: !widget.isTab,
       body: Column(
         children: [
-          // Month picker
-          _buildMonthPicker(),
+          // Time range chips + view toggle
+          _buildTimeRangeRow(),
+
+          // Range picker
+          _buildRangePicker(),
 
           // Summary
           Padding(
@@ -192,7 +267,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           _buildFilterRow(),
           const SizedBox(height: AppSpacing.sm),
 
-          // Timeline
+          // Content
           Expanded(
             child: _loading
                 ? const ShimmerPlaceholder()
@@ -201,8 +276,10 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                     : txns.isEmpty
                         ? EmptyState(emoji: '📝', message: S.of(context, 'noTransactions'))
                         : RefreshIndicator(
-                            onRefresh: _loadMonth,
-                            child: _buildTimeline(),
+                            onRefresh: _loadRange,
+                            child: _viewMode == ViewMode.calendar
+                                ? _buildCalendarView(locale)
+                                : _buildListView(),
                           ),
           ),
 
@@ -214,46 +291,140 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               sl.settingService.setLastWalletId(id);
               setState(() => _defaultWalletId = id);
             },
-            onAdded: _loadMonth,
+            onAdded: _loadRange,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMonthPicker() {
+  // ── Time Range Chips ──
+
+  Widget _buildTimeRangeRow() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+      child: Row(
+        children: [
+          _buildChip(S.of(context, 'viewDay'), TimeRangeMode.day),
+          const SizedBox(width: AppSpacing.sm),
+          _buildChip(S.of(context, 'viewWeek'), TimeRangeMode.week),
+          const SizedBox(width: AppSpacing.sm),
+          _buildChip(S.of(context, 'viewMonth'), TimeRangeMode.month),
+          const Spacer(),
+          if (_timeRange == TimeRangeMode.month) _buildViewToggle(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildChip(String label, TimeRangeMode mode) {
+    final active = _timeRange == mode;
+    return GestureDetector(
+      onTap: () => _setTimeRange(mode),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: active ? AppColors.primary.withAlpha(25) : null,
+          border: Border.all(color: active ? AppColors.primary : AppColors.divider),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          label,
+          style: AppTextStyles.caption.copyWith(
+            fontWeight: active ? FontWeight.w600 : null,
+            color: active ? AppColors.primary : AppColors.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildViewToggle() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        _buildToggleIcon(Icons.view_list_rounded, ViewMode.list),
+        const SizedBox(width: 4),
+        _buildToggleIcon(Icons.calendar_month_rounded, ViewMode.calendar),
+      ],
+    );
+  }
+
+  Widget _buildToggleIcon(IconData icon, ViewMode mode) {
+    final active = _viewMode == mode;
+    return GestureDetector(
+      onTap: () => setState(() => _viewMode = mode),
+      child: Icon(
+        icon,
+        size: 20,
+        color: active ? AppColors.primary : AppColors.textSecondary.withAlpha(120),
+      ),
+    );
+  }
+
+  // ── Range Picker ──
+
+  Widget _buildRangePicker() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           IconButton(
             icon: const Icon(Icons.chevron_left, color: AppColors.primary),
-            onPressed: () => _changeMonth(-1),
+            onPressed: () => _changeRange(-1),
+            visualDensity: VisualDensity.compact,
           ),
           GestureDetector(
-            onTap: () async {
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: _currentMonth,
-                firstDate: DateTime(2020),
-                lastDate: DateTime.now(),
-                initialDatePickerMode: DatePickerMode.year,
-              );
-              if (picked == null || !mounted) return;
-              setState(() { _currentMonth = DateTime(picked.year, picked.month); _loading = true; });
-              _loadMonth().then((_) { if (mounted) setState(() => _loading = false); });
-            },
-            child: Text(DateFormatter.monthYearLong(_currentMonth), style: AppTextStyles.titleSmall),
+            onTap: _pickDate,
+            child: Text(_rangeLabel, style: AppTextStyles.titleSmall),
           ),
           IconButton(
             icon: const Icon(Icons.chevron_right, color: AppColors.primary),
-            onPressed: () => _changeMonth(1),
+            onPressed: () => _changeRange(1),
+            visualDensity: VisualDensity.compact,
           ),
         ],
       ),
     );
   }
+
+  String get _rangeLabel {
+    switch (_timeRange) {
+      case TimeRangeMode.day:
+        return DateFormatter.dayFull(_rangeAnchor);
+      case TimeRangeMode.week:
+        return DateFormatter.weekRange(_rangeAnchor);
+      case TimeRangeMode.month:
+        return DateFormatter.monthYearLong(_rangeAnchor);
+    }
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _rangeAnchor,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      initialDatePickerMode: _timeRange == TimeRangeMode.month ? DatePickerMode.year : DatePickerMode.day,
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      switch (_timeRange) {
+        case TimeRangeMode.day:
+          _rangeAnchor = DateTime(picked.year, picked.month, picked.day);
+        case TimeRangeMode.week:
+          final weekday = picked.weekday;
+          _rangeAnchor = DateTime(picked.year, picked.month, picked.day - (weekday - 1));
+        case TimeRangeMode.month:
+          _rangeAnchor = DateTime(picked.year, picked.month);
+      }
+      _loading = true;
+    });
+    _loadRange().then((_) { if (mounted) setState(() => _loading = false); });
+  }
+
+  // ── Summary ──
 
   Widget _buildSummaryChip(String label, int amount, Color color, String locale) {
     return Column(
@@ -267,6 +438,8 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       ],
     );
   }
+
+  // ── Filters ──
 
   Widget _buildFilterRow() {
     return Padding(
@@ -347,9 +520,28 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     );
   }
 
-  // ── Timeline ──
+  // ── List View ──
 
-  Widget _buildTimeline() {
+  Widget _buildListView() {
+    if (_timeRange == TimeRangeMode.day) return _buildFlatList();
+    return _buildGroupedList();
+  }
+
+  Widget _buildFlatList() {
+    final txns = _filtered;
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      itemCount: txns.length,
+      itemBuilder: (context, index) => TransactionFeedItem(
+        txn: txns[index],
+        categoryName: _categoryNameMap[txns[index].transaction.categoryId] ?? S.of(context, 'other'),
+        onChanged: _loadRange,
+        timeFormatter: DateFormatter.time,
+      ),
+    );
+  }
+
+  Widget _buildGroupedList() {
     final groups = _buildDayGroups();
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -367,7 +559,6 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Day header — tappable
         InkWell(
           onTap: () => setState(() => _expandedDay = isExpanded ? null : group.day),
           child: Padding(
@@ -406,15 +597,61 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             ),
           ),
         ),
-        // Expanded transactions
         if (isExpanded)
           ...group.items.map((t) => TransactionFeedItem(
             txn: t,
             categoryName: _categoryNameMap[t.transaction.categoryId] ?? S.of(context, 'other'),
-            onChanged: _loadMonth,
+            onChanged: _loadRange,
             timeFormatter: DateFormatter.time,
           )),
         const Divider(height: 1),
+      ],
+    );
+  }
+
+  // ── Calendar View ──
+
+  Widget _buildCalendarView(String locale) {
+    final now = DateTime.now();
+    final todayDay = (_rangeAnchor.year == now.year && _rangeAnchor.month == now.month) ? now.day : null;
+    final dailyExpense = _buildDailyExpenseMap();
+    final selectedTxns = _txnsForSelectedDay();
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      children: [
+        CalendarGrid(
+          month: _rangeAnchor,
+          dailyExpense: dailyExpense,
+          selectedDay: _selectedDate.month == _rangeAnchor.month && _selectedDate.year == _rangeAnchor.year
+              ? _selectedDate.day : null,
+          todayDay: todayDay,
+          onDayTap: (day) => setState(() {
+            _selectedDate = DateTime(_rangeAnchor.year, _rangeAnchor.month, day);
+          }),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        // Detail header
+        Center(
+          child: Text(
+            DateFormatter.dayFull(_selectedDate),
+            style: AppTextStyles.bodySmall,
+          ),
+        ),
+        const Divider(),
+        // Detail list
+        if (selectedTxns.isEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.lg),
+            child: EmptyState(emoji: '📝', message: S.of(context, 'noTransactions')),
+          )
+        else
+          ...selectedTxns.map((t) => TransactionFeedItem(
+            txn: t,
+            categoryName: _categoryNameMap[t.transaction.categoryId] ?? S.of(context, 'other'),
+            onChanged: _loadRange,
+            timeFormatter: DateFormatter.time,
+          )),
       ],
     );
   }
