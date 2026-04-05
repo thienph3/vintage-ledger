@@ -74,13 +74,7 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
                   ],
                 );
         },
-      ),
-      fab: FloatingActionButton(
-        onPressed: () => context.pushScreen(const RecurringFormScreen()),
-        backgroundColor: AppColors.primary,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
-    );
+      );
   }
 
   Widget _buildRuleTile(RecurringRule rule) {

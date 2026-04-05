@@ -11,6 +11,7 @@ import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
+import 'package:vintage_ledger/features/feed/widgets/feed_item.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/features/account/models/account.dart';
 
@@ -149,7 +150,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(S.of(context, 'members'), style: AppTextStyles.title),
+            Text(S.of(context, 'members'), style: AppTextStyles.titleSmall),
             if (_isOwner)
               IconButton(
                 icon: const Icon(Icons.share, color: AppColors.primary),
@@ -165,6 +166,8 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
           final name = m['name'] ?? '';
           final initials = name.isNotEmpty ? name[0].toUpperCase() : '?';
 
+          final photo = m['photo_url'];
+
           return Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),
             child: LedgerCard(
@@ -172,10 +175,13 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
                 children: [
                   CircleAvatar(
                     radius: 18,
-                    backgroundColor: isMemberOwner ? AppColors.primary : AppColors.divider,
-                    child: Text(initials, style: AppTextStyles.bodyBold.copyWith(
-                      color: isMemberOwner ? Colors.white : AppColors.textPrimary,
-                    )),
+                    backgroundColor: isMemberOwner ? AppColors.primary.withValues(alpha: 0.12) : AppColors.divider,
+                    backgroundImage: photo != null && photo.isNotEmpty ? NetworkImage(photo) : null,
+                    child: photo == null || photo.isEmpty
+                        ? Text(initials, style: AppTextStyles.bodyBold.copyWith(
+                            color: isMemberOwner ? AppColors.primary : AppColors.textPrimary,
+                          ))
+                        : null,
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
@@ -209,7 +215,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(S.of(context, 'activity'), style: AppTextStyles.title),
+        Text(S.of(context, 'activity'), style: AppTextStyles.titleSmall),
         const Divider(),
         StreamBuilder<List<Map<String, dynamic>>>(
           stream: sl.accountService.watchActivities(widget.account.id),
@@ -225,7 +231,7 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
             final grouped = _groupActivities(activities);
             return Column(
               children: [
-                ...grouped.take(30).map((a) => _buildActivityTile(a)),
+                ...grouped.take(30).map((a) => _buildActivityFeedItem(a)),
               ],
             );
           },
@@ -273,57 +279,27 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
     return result;
   }
 
-  Widget _buildActivityTile(Map<String, dynamic> a) {
-    final isMe = a['user_id'] == sl.appState.currentUserId;
+  Widget _buildActivityFeedItem(Map<String, dynamic> a) {
     final memberName = _members.where((m) => m['id'] == a['user_id']).firstOrNull?['name'] ?? '?';
+    final memberPhoto = _members.where((m) => m['id'] == a['user_id']).firstOrNull?['photo_url'];
     final timestamp = a['created_at'];
     final timeStr = timestamp != null
         ? DateFormatter.relative(timestamp is Timestamp ? timestamp.toDate() : timestamp)
         : '';
-    final action = a['action'] as String? ?? '';
-    final isPriority = action == 'join' || action == 'leave';
     final groupedCount = a['_grouped_count'] as int? ?? 0;
 
     String description;
     if (groupedCount > 1) {
-      description = ' ${S.of(context, 'addedTransactionsToday').replaceAll('{n}', '$groupedCount')}';
+      description = '$memberName ${S.of(context, 'addedTransactionsToday').replaceAll('{n}', '$groupedCount')}';
     } else {
-      description = ' ${a['description'] ?? ''}';
+      description = '$memberName ${a['description'] ?? ''}';
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            action == 'expense' ? Icons.arrow_upward
-                : action == 'income' ? Icons.arrow_downward
-                : isPriority ? Icons.group : Icons.info_outline,
-            size: isPriority ? 20 : 16,
-            color: action == 'expense' ? AppColors.expense
-                : action == 'income' ? AppColors.income
-                : AppColors.primary,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text.rich(TextSpan(children: [
-                  TextSpan(
-                    text: memberName,
-                    style: isMe ? AppTextStyles.bodySmall : AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.bold),
-                  ),
-                  TextSpan(text: description, style: AppTextStyles.bodySmall),
-                ])),
-                if (timeStr.isNotEmpty)
-                  Text(timeStr, style: AppTextStyles.caption),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return FeedItem(
+      actorName: memberName,
+      text: description,
+      time: timeStr,
+      photoUrl: memberPhoto,
     );
   }
 
