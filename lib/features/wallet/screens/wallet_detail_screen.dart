@@ -2,22 +2,29 @@ import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
-import 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
+import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 
-import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
-import 'package:vintage_ledger/common/widgets/ledger_card.dart';
-import 'package:vintage_ledger/common/widgets/async_content.dart';
-import 'package:vintage_ledger/features/transaction/widgets/transaction_section.dart';
-import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
+import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
+import 'package:vintage_ledger/common/widgets/empty_state.dart';
+import 'package:vintage_ledger/features/feed/feed_helper.dart';
+import 'package:vintage_ledger/features/feed/widgets/feed_item.dart';
+import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
+import 'package:vintage_ledger/features/transaction/screens/transaction_list_screen.dart';
+import 'package:vintage_ledger/features/transaction/widgets/reaction_picker.dart';
+import 'package:vintage_ledger/features/transaction/widgets/reaction_bar.dart';
+import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
+import 'package:vintage_ledger/utils/amount_formatter.dart';
+import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
+import 'package:vintage_ledger/utils/transaction_story.dart';
 
 class WalletDetailScreen extends StatefulWidget {
   final Wallet wallet;
@@ -29,36 +36,27 @@ class WalletDetailScreen extends StatefulWidget {
 }
 
 class _WalletDetailScreenState extends State<WalletDetailScreen> {
-  DashboardData? _dashboard;
-  bool _loading = true;
-  String? _error;
   late String _walletName;
+  Map<String, String> _categoryNames = {};
+  Map<String, int?> _categoryIcons = {};
+  bool _loading = true;
+  bool _balanceVisible = true;
 
   @override
   void initState() {
     super.initState();
     _walletName = widget.wallet.name;
-    _loadData();
+    _loadCategories();
   }
 
-  Future<void> _loadData() async {
-    try {
-      final dashboard = await sl.transactionService.getDashboard(
-        walletId: widget.wallet.id!,
-      );
-      if (!mounted) return;
-      setState(() {
-        _dashboard = dashboard;
-        _loading = false;
-        _error = null;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-        _error = e.toString();
-      });
-    }
+  Future<void> _loadCategories() async {
+    final cats = await sl.categoryService.getCategories();
+    if (!mounted) return;
+    setState(() {
+      _categoryNames = {for (var c in cats) if (c.id != null) c.id!: c.name};
+      _categoryIcons = {for (var c in cats) if (c.id != null) c.id!: c.icon};
+      _loading = false;
+    });
   }
 
   Future<void> _renameWallet() async {
@@ -94,61 +92,155 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
           icon: const Icon(Icons.edit_outlined, size: 20),
           onPressed: () async {
             final result = await context.pushScreen(WalletFormScreen(wallet: widget.wallet));
-            if (result == true) _loadData();
+            if (result == true) _loadCategories();
           },
         ),
       ],
       body: Column(
         children: [
           Expanded(
-            child: AsyncContent(
-              loading: _loading,
-              error: _error,
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: ListView(
-                  children: [
-                    StreamBuilder<Wallet?>(
-                      stream: sl.walletService.watchWallets().map(
-                        (wallets) => wallets.where((w) => w.id == widget.wallet.id).firstOrNull,
-                      ),
-                      initialData: widget.wallet,
-                      builder: (context, snap) {
-                        final balance = snap.data?.balance ?? widget.wallet.balance;
-                        return LedgerCard(
-                          child: Row(
-                            children: [
-                              Text("${S.of(context, 'balance')}:", style: AppTextStyles.body),
-                              const SizedBox(width: AppSpacing.md),
-                              AmountText.fromBalance(balance: balance, currency: snap.data?.currency ?? widget.wallet.currency),
-                            ],
-                          ),
-                        );
-                      },
+            child: _loading
+                ? const ShimmerPlaceholder()
+                : RefreshIndicator(
+                    onRefresh: _loadCategories,
+                    child: ListView(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      children: [
+                        _buildBalanceCard(),
+                        const SizedBox(height: AppSpacing.lg),
+                        _buildFeedSection(),
+                      ],
                     ),
-                    const SizedBox(height: AppSpacing.md),
-                    if (_dashboard != null)
-                      LedgerCard(child: ChartSection(dashboard: _dashboard!)),
-                    const SizedBox(height: AppSpacing.md),
-                    LedgerCard(
-                      child: TransactionSection(
-                        walletId: widget.wallet.id!,
-                        transactions: _dashboard?.recent ?? [],
-                        categoryMap: _dashboard?.categoryMap ?? {},
-                        onDataChanged: _loadData,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                  ),
           ),
           QuickAddBar(
             walletId: widget.wallet.id!,
-            onAdded: _loadData,
+            onAdded: _loadCategories,
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildBalanceCard() {
+    final locale = Localizations.localeOf(context).languageCode;
+
+    return StreamBuilder<Wallet?>(
+      stream: sl.walletService.watchWallets().map(
+        (wallets) => wallets.where((w) => w.id == widget.wallet.id).firstOrNull,
+      ),
+      initialData: widget.wallet,
+      builder: (context, snap) {
+        final balance = snap.data?.balance ?? widget.wallet.balance;
+        final balanceStr = AmountFormatter.formatCurrency(balance, locale);
+
+        return GestureDetector(
+          onTap: () => setState(() => _balanceVisible = !_balanceVisible),
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2)),
+              ],
+            ),
+            child: Column(
+              children: [
+                Text(
+                  _balanceVisible ? balanceStr : '••••••',
+                  style: AppTextStyles.title.copyWith(fontSize: 22),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  _walletName,
+                  style: AppTextStyles.caption,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFeedSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(S.of(context, 'recentTransactions'), style: AppTextStyles.titleSmall),
+            GestureDetector(
+              onTap: () => context.pushScreen(TransactionListScreen(walletId: widget.wallet.id)),
+              child: Text(S.of(context, 'viewAll'), style: AppTextStyles.link),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        StreamBuilder<List<TransactionWithItems>>(
+          stream: TransactionRepository().watchRecent(20, walletId: widget.wallet.id!),
+          builder: (context, snap) {
+            final txns = snap.data ?? [];
+            if (txns.isEmpty) {
+              return EmptyState(emoji: '📝', message: S.of(context, 'emptyTransactionHint'));
+            }
+            return Column(
+              children: txns.map((txn) => _buildFeedItem(txn)).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeedItem(TransactionWithItems txn) {
+    final catName = _categoryNames[txn.transaction.categoryId] ?? S.of(context, 'other');
+    final time = DateFormatter.short(txn.transaction.date);
+    final locale = Localizations.localeOf(context).languageCode;
+    final actor = FeedHelper.resolveName(txn.transaction.createdBy, S.of(context, 'youActor'));
+    final story = TransactionStory.format(
+      actorName: actor,
+      categoryName: catName,
+      amount: txn.transaction.amount,
+      type: txn.transaction.type,
+      locale: locale,
+      note: txn.transaction.note,
+    );
+
+    return Column(
+      children: [
+        FeedItem(
+          actorName: actor,
+          text: story,
+          time: time,
+          photoUrl: FeedHelper.resolvePhoto(txn.transaction.createdBy),
+          onTap: () async {
+            final result = await context.pushScreen(TransactionFormScreen(
+              walletId: txn.transaction.walletId,
+              existing: txn,
+            ));
+            if (result == true) _loadCategories();
+          },
+        ),
+        if (txn.transaction.id != null)
+          StreamBuilder<Map<String, String>>(
+            stream: sl.reactionService.watchReactions(txn.transaction.id!),
+            builder: (context, snap) {
+              final reactions = snap.data ?? {};
+              return GestureDetector(
+                onLongPress: () async {
+                  final emoji = await ReactionPicker.show(context);
+                  if (emoji != null) {
+                    sl.reactionService.addReaction(txn.transaction.id!, emoji);
+                  }
+                },
+                child: ReactionBar(reactions: reactions),
+              );
+            },
+          ),
+      ],
     );
   }
 }
