@@ -10,6 +10,7 @@ Flow khởi động hiện tại trong `_MyAppState._init()` có nhiều vấn �
 4. **Timeout rải rác** — Mỗi call có timeout riêng (5s, 10s), không nhất quán
 5. **Background init không rõ ràng** — `QuickAddParser.init()`, `QuickAddHistory.init()`, `AmountHistory.init()`, `notificationService.init()`, `recurringService.checkAndRun()`, `reminderService.init()` gọi rời rạc ở cuối, dễ quên khi thêm service mới
 6. **Error handling yếu** — Catch chung `e.toString()`, không phân biệt lỗi mạng vs lỗi logic
+7. **Member profiles không được preload** — `FeedHelper._nameCache` trống khi vào HomeScreen. HomeScreen dùng `StreamBuilder` nên txn data đến ngay, nhưng `FeedHelper.resolveName()` gọi đồng bộ → trả `"?"` vì chưa ai gọi `preloadNames()`. Hiện tại chỉ `TransactionListScreen._loadRange()` mới preload, HomeScreen thì không
 
 ## Giải pháp
 
@@ -20,7 +21,7 @@ enum BootstrapStep {
   auth,        // Check/create Firebase auth
   account,     // Resolve account (personal or last used)
   settings,    // Load locale, last wallet, preferences
-  data,        // Preload categories, wallets (critical data)
+  data,        // Preload categories, wallets, member profiles (critical data)
   background,  // Non-blocking: notifications, recurring, reminders, quick-add cache
 }
 ```
@@ -96,13 +97,14 @@ class BootstrapResult {
 | auth | Đang kết nối... | Connecting... |
 | account | Đang mở sổ... | Opening ledger... |
 | settings | Đang tải cài đặt... | Loading settings... |
-| data | Đang tải danh mục... | Loading categories... |
+| data | Đang tải dữ liệu... | Loading data... |
 | background | Sắp xong rồi... | Almost ready... |
 
 ### 6. Error & Retry
 
 - Nếu critical step fail (auth, account): hiển thị error message + nút "Thử lại" trên loading screen
-- Nếu settings/data fail: dùng defaults, vẫn vào app (graceful degradation)
+- Nếu settings fail: dùng defaults, vẫn vào app (graceful degradation)
+- Nếu data fail (categories, members): dùng empty list, vẫn vào app — screens tự load lại khi cần
 - Background fail: silent, log only
 
 ### 7. Timeout strategy
