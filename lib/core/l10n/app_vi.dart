@@ -295,5 +295,4 @@ const Map<String, String> vi = {
   'viewList': 'Danh sách',
   'viewCalendar': 'Lịch',
   'allTypes': 'Tất cả',
-  'today': 'Hôm nay',
 };
