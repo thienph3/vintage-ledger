@@ -418,6 +418,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       ],
     );
   }
+}
 
 class _DayGroup {
   final int day;
