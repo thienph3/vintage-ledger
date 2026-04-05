@@ -74,7 +74,8 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
                   ],
                 );
         },
-      );
+      ),
+    );
   }
 
   Widget _buildRuleTile(RecurringRule rule) {
