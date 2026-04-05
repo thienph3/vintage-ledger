@@ -4,6 +4,7 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
@@ -45,7 +46,7 @@ class _BudgetListScreenState extends State<BudgetListScreen> {
     return AppScaffold(
       title: S.of(context, 'budgets'),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const ShimmerPlaceholder()
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(

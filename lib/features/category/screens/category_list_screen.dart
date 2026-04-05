@@ -5,6 +5,7 @@ import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/common/widgets/ledger_list_tile.dart';
@@ -52,7 +53,7 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
     return AppScaffold(
       title: S.of(context, 'categories'),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const ShimmerPlaceholder()
           : RefreshIndicator(
               onRefresh: _load,
               child: ListView(

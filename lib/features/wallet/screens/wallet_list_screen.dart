@@ -4,6 +4,7 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
@@ -59,7 +60,7 @@ class _WalletListScreenState extends State<WalletListScreen> {
         stream: sl.walletService.watchWallets(),
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerPlaceholder();
           }
           final wallets = snap.data ?? [];
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
+import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 
 class AsyncContent extends StatelessWidget {
@@ -22,7 +23,7 @@ class AsyncContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const ShimmerPlaceholder();
     }
     if (error != null) {
       return Center(child: Text(error!, style: AppTextStyles.error));

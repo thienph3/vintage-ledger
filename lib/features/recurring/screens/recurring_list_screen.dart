@@ -7,6 +7,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/constants/category_icons.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
@@ -50,7 +51,7 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
         builder: (context, snap) {
           final rules = snap.data ?? [];
           if (snap.connectionState == ConnectionState.waiting && !snap.hasData) {
-            return const Center(child: CircularProgressIndicator());
+            return const ShimmerPlaceholder();
           }
           return rules.isEmpty
               ? EmptyState(message: S.of(context, 'noRecurring'))

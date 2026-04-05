@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
@@ -196,7 +197,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
           // Timeline
           Expanded(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? const ShimmerPlaceholder()
                 : _error != null
                     ? Center(child: Text(_error!, style: AppTextStyles.error))
                     : txns.isEmpty

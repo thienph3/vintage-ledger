@@ -7,6 +7,7 @@ import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
@@ -74,7 +75,7 @@ class _MonthlyInsightScreenState extends State<MonthlyInsightScreen> {
     return AppScaffold(
       title: S.of(context, 'monthlyInsight'),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const ShimmerPlaceholder()
           : ListView(
               padding: const EdgeInsets.all(AppSpacing.md),
               children: [
