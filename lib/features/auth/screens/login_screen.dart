@@ -38,6 +38,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _signInWithGoogle() async {
     setState(() { _loading = true; _error = null; });
     try {
+      // Step 1: Ensure logged out (anonymous may still be signed in)
+      if (sl.authService.currentUser != null) {
+        await sl.authService.logout();
+      }
+
+      // Step 2: Sign in with Google
       final user = await sl.authService.signInWithGoogle();
       if (!mounted || user == null) {
         if (mounted) setState(() => _loading = false);
@@ -51,7 +57,6 @@ class _LoginScreenState extends State<LoginScreen> {
       sl.appState.currentAccountId = accountId;
       sl.settingService.setLastAccountId(accountId);
 
-      // Sync Google profile
       await sl.accountService.updateUserProfile(
         userId: user.uid,
         email: user.email ?? '',
@@ -59,10 +64,11 @@ class _LoginScreenState extends State<LoginScreen> {
         photoUrl: user.photoURL,
       );
 
-      // Migrate anonymous data
-      if (widget.anonAccountIdToMigrate != null && widget.anonAccountIdToMigrate!.isNotEmpty) {
-        await sl.accountService.migrateAccount(widget.anonAccountIdToMigrate!, accountId);
-        await sl.accountService.deleteAccount(widget.anonAccountIdToMigrate!);
+      // Step 3: Migrate anonymous data (if any)
+      final anonId = widget.anonAccountIdToMigrate;
+      if (anonId != null && anonId.isNotEmpty && anonId != accountId) {
+        await sl.accountService.migrateAccount(anonId, accountId);
+        await sl.accountService.deleteAccount(anonId);
       }
 
       _goHome();
@@ -77,6 +83,12 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() { _loading = true; _error = null; });
 
     try {
+      // Step 1: Ensure logged out
+      if (sl.authService.currentUser != null) {
+        await sl.authService.logout();
+      }
+
+      // Step 2: Sign in with email
       final user = await sl.authService.loginWithEmail(
         _emailCtrl.text.trim(), _passwordCtrl.text,
       );
@@ -89,9 +101,11 @@ class _LoginScreenState extends State<LoginScreen> {
       sl.appState.currentAccountId = accountId;
       sl.settingService.setLastAccountId(accountId);
 
-      if (widget.anonAccountIdToMigrate != null && widget.anonAccountIdToMigrate!.isNotEmpty) {
-        await sl.accountService.migrateAccount(widget.anonAccountIdToMigrate!, accountId);
-        await sl.accountService.deleteAccount(widget.anonAccountIdToMigrate!);
+      // Step 3: Migrate anonymous data (if any)
+      final anonId = widget.anonAccountIdToMigrate;
+      if (anonId != null && anonId.isNotEmpty && anonId != accountId) {
+        await sl.accountService.migrateAccount(anonId, accountId);
+        await sl.accountService.deleteAccount(anonId);
       }
 
       _goHome();
