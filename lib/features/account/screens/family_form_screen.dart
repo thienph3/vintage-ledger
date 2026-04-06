@@ -6,6 +6,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
+import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 
 class FamilyFormScreen extends StatefulWidget {
   const FamilyFormScreen({super.key});
@@ -71,7 +72,7 @@ class _FamilyFormScreenState extends State<FamilyFormScreen> {
                   child: Text(_error!, style: AppTextStyles.error),
                 ),
               _loading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const ShimmerPlaceholder()
                   : FormSaveButton(isEdit: false, onPressed: _save),
             ],
           ),
