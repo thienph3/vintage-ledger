@@ -20,6 +20,7 @@ import 'package:vintage_ledger/core/bootstrap/bootstrap_models.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/category/screens/category_list_screen.dart';
 import 'package:vintage_ledger/features/recurring/screens/recurring_list_screen.dart';
+import 'package:vintage_ledger/features/debt/screens/debt_list_screen.dart';
 import 'package:vintage_ledger/features/account/screens/family_detail_screen.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -257,6 +258,7 @@ class _SettingScreenState extends State<SettingScreen> {
           _tile(Icons.account_balance_wallet_outlined, S.of(context, 'manageWallets'), onTap: () => context.pushScreen(const WalletListScreen())),
           _tile(Icons.category_outlined, S.of(context, 'manageCategories'), onTap: () => context.pushScreen(const CategoryListScreen())),
           _tile(Icons.repeat, S.of(context, 'recurringRules'), onTap: () => context.pushScreen(const RecurringListScreen())),
+          _tile(Icons.account_balance_outlined, S.of(context, 'debts'), onTap: () => context.pushScreen(const DebtListScreen())),
           const SizedBox(height: AppSpacing.lg),
 
           // ── Family (only when on family account) ──
