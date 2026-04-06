@@ -62,13 +62,24 @@ service cloud.firestore {
 
       // ── #3: Data subcollections (wallets, transactions, categories, budgets) ──
 
-      match /wallets/{docId} {
+      match /wallets/{walletId} {
         allow read: if isMember(accountId);
         allow create: if isMember(accountId) &&
           request.resource.data.name is string &&
           request.resource.data.name.size() > 0;
         allow update: if isMember(accountId);
         allow delete: if isMember(accountId);
+
+        match /goals/{goalId} {
+          allow read: if isMember(accountId);
+          allow create: if isMember(accountId) &&
+            request.resource.data.name is string &&
+            request.resource.data.name.size() > 0 &&
+            request.resource.data.target_amount is int &&
+            request.resource.data.target_amount > 0;
+          allow update: if isMember(accountId);
+          allow delete: if isMember(accountId);
+        }
       }
 
       match /transactions/{docId} {

@@ -318,4 +318,20 @@ const Map<String, String> en = {
   'transferOut': 'Transferred out',
   'transferIn': 'Received transfer',
   'selectDestWallet': 'Select destination wallet',
+
+  // Wallet goals
+  'walletTypeSpending': 'Spending',
+  'walletTypeSavings': 'Savings',
+  'goals': 'Goals',
+  'addGoal': 'Add goal',
+  'editGoal': 'Edit goal',
+  'deleteGoal': 'Delete goal',
+  'deleteGoalConfirm': 'Delete this goal?',
+  'targetAmount': 'Target',
+  'savedAmount': 'Saved',
+  'deadline': 'Deadline',
+  'unallocated': 'Unallocated',
+  'goalReached': 'Goal reached \uD83C\uDF89',
+  'goalName': 'Goal name',
+  'goalNameRequired': 'Enter a goal name',
 };

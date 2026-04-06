@@ -12,6 +12,7 @@ class WalletRepository extends FirestoreRepository<Wallet> {
     balance: data['balance'] ?? 0,
     initialBalance: data['initial_balance'] ?? 0,
     currency: data['currency'] ?? 'VND',
+    type: WalletType.fromString(data['type'] ?? 'spending'),
   );
 
   @override
@@ -20,6 +21,7 @@ class WalletRepository extends FirestoreRepository<Wallet> {
     'balance': item.balance,
     'initial_balance': item.initialBalance,
     'currency': item.currency,
+    'type': item.type.name,
   };
 
   Stream<List<Wallet>> watchWallets() => watchAll();

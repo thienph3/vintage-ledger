@@ -318,4 +318,20 @@ const Map<String, String> vi = {
   'transferOut': 'Chuyển đi',
   'transferIn': 'Nhận chuyển',
   'selectDestWallet': 'Chọn ví đích',
+
+  // Wallet goals
+  'walletTypeSpending': 'Chi tiêu',
+  'walletTypeSavings': 'Tiết kiệm',
+  'goals': 'Mục tiêu',
+  'addGoal': 'Thêm mục tiêu',
+  'editGoal': 'Sửa mục tiêu',
+  'deleteGoal': 'Xóa mục tiêu',
+  'deleteGoalConfirm': 'Xóa mục tiêu này luôn hả?',
+  'targetAmount': 'Mục tiêu',
+  'savedAmount': 'Đã tiết kiệm',
+  'deadline': 'Hạn chót',
+  'unallocated': 'Chưa phân bổ',
+  'goalReached': 'Đạt mục tiêu rồi 🎉',
+  'goalName': 'Tên mục tiêu',
+  'goalNameRequired': 'Nhập tên mục tiêu nhé',
 };
