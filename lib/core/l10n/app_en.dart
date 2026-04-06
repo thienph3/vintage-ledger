@@ -302,4 +302,9 @@ const Map<String, String> en = {
   'bootstrapSettings': 'Loading settings...',
   'bootstrapData': 'Getting ready...',
   'bootstrapAlmost': 'Almost ready...',
+
+  // Transaction edit/delete
+  'deleted': 'Deleted ✓',
+  'typeChangeWarning': 'Changing type will affect wallet balance',
+  'walletChangeInfo': 'Transaction will move to {name}',
 };

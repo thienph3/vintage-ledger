@@ -7,6 +7,7 @@ import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
+import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/common/widgets/type_selector.dart';
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/common/widgets/form_save_button.dart';
@@ -57,6 +58,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   String? _categoryId;
   String? _createdBy;
   TransactionType _type = TransactionType.expense;
+  TransactionType? _originalType;
+  String? _originalWalletId;
   DateTime _date = DateTime.now();
   BudgetStatus? _budgetStatus;
   bool _recurring = false;
@@ -73,6 +76,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       final t = source.transaction;
       _amountCtrl.text = t.amount > 0 ? t.amount.toString() : '0';
       _type = t.type;
+      _originalType = t.type;
+      _originalWalletId = t.walletId;
       if (t.categoryId.isNotEmpty) _categoryId = t.categoryId;
       if (t.walletId.isNotEmpty) _walletId = t.walletId;
       _date = DateTime.fromMillisecondsSinceEpoch(t.date);
@@ -352,7 +357,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             const SizedBox(height: AppSpacing.lg),
             if (widget.isEdit && _members.length > 1) _buildMemberDropdown(),
             if (!widget.isEdit) _buildRecurringToggle(),
+            if (widget.isEdit) _buildTypeChangeWarning(),
+            if (widget.isEdit) _buildWalletChangeInfo(),
             FormSaveButton(isEdit: widget.isEdit, onPressed: _save),
+            if (widget.isEdit) _buildDeleteButton(),
             const SizedBox(height: AppSpacing.xl),
           ],
         ),
@@ -418,6 +426,64 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildTypeChangeWarning() {
+    if (_originalType == null || _type == _originalType) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, size: 14, color: AppColors.accent),
+          const SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: Text(S.of(context, 'typeChangeWarning'), style: AppTextStyles.caption.copyWith(color: AppColors.accent)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWalletChangeInfo() {
+    if (_originalWalletId == null || _walletId == _originalWalletId) return const SizedBox.shrink();
+    final walletName = _wallets.where((w) => w.id == _walletId).firstOrNull?.name ?? '';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          const Icon(Icons.info_outline, size: 14, color: AppColors.primary),
+          const SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: Text(
+              S.of(context, 'walletChangeInfo').replaceAll('{name}', walletName),
+              style: AppTextStyles.caption.copyWith(color: AppColors.primary),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeleteButton() {
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.md),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton.icon(
+          onPressed: () async {
+            final confirm = await showDeleteConfirmation(
+              context, titleKey: 'deleteTransaction', contentKey: 'deleteTransactionConfirm',
+            );
+            if (confirm != true || !mounted) return;
+            await sl.transactionService.deleteTransaction(widget.existing!.transaction.id!);
+            if (mounted) Navigator.pop(context, true);
+          },
+          icon: const Icon(Icons.delete_outline, size: 18),
+          label: Text(S.of(context, 'deleteTransaction')),
+          style: OutlinedButton.styleFrom(foregroundColor: AppColors.expense),
+        ),
+      ),
     );
   }
 }

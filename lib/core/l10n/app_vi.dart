@@ -302,4 +302,9 @@ const Map<String, String> vi = {
   'bootstrapSettings': 'Đang tải cài đặt...',
   'bootstrapData': 'Đang chuẩn bị...',
   'bootstrapAlmost': 'Sắp xong rồi...',
+
+  // Transaction edit/delete
+  'deleted': 'Đã xóa ✓',
+  'typeChangeWarning': 'Đổi loại sẽ ảnh hưởng số dư ví',
+  'walletChangeInfo': 'Giao dịch sẽ chuyển sang ví {name}',
 };

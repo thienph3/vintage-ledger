@@ -35,8 +35,9 @@ class FeedItem extends StatelessWidget {
 
     final initials = actorName.isNotEmpty ? actorName[0].toUpperCase() : '?';
 
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         child: Row(

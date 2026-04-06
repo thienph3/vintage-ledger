@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
+import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
+import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/features/feed/feed_helper.dart';
 import 'package:vintage_ledger/features/feed/widgets/feed_item.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
@@ -42,7 +44,7 @@ class TransactionFeedItem extends StatelessWidget {
         ? timeFormatter!(txn.transaction.date)
         : DateFormatter.short(txn.transaction.date);
 
-    return Column(
+    final content = Column(
       children: [
         FeedItem(
           actorName: actor,
@@ -74,6 +76,22 @@ class TransactionFeedItem extends StatelessWidget {
             },
           ),
       ],
+    );
+
+    if (txn.transaction.id == null) return content;
+
+    return SwipeListItem(
+      itemKey: ValueKey(txn.transaction.id),
+      confirmDelete: () => showDeleteConfirmation(
+        context,
+        titleKey: 'deleteTransaction',
+        contentKey: 'deleteTransactionConfirm',
+      ),
+      onDelete: () async {
+        await sl.transactionService.deleteTransaction(txn.transaction.id!);
+        onChanged?.call();
+      },
+      child: content,
     );
   }
 }
