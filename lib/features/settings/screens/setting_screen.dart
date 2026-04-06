@@ -20,6 +20,8 @@ import 'package:vintage_ledger/core/bootstrap/bootstrap_models.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/category/screens/category_list_screen.dart';
 import 'package:vintage_ledger/features/recurring/screens/recurring_list_screen.dart';
+import 'package:vintage_ledger/features/account/screens/family_detail_screen.dart';
+import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/main.dart';
 import 'package:share_plus/share_plus.dart';
@@ -165,6 +167,60 @@ class _SettingScreenState extends State<SettingScreen> {
     );
   }
 
+  Future<void> _inviteByEmail() async {
+    final ctrl = TextEditingController();
+    final email = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(S.of(ctx, 'inviteMember')),
+        content: TextField(
+          controller: ctrl,
+          keyboardType: TextInputType.emailAddress,
+          decoration: InputDecoration(hintText: S.of(ctx, 'enterEmail')),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.of(ctx, 'cancel'))),
+          TextButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: Text(S.of(ctx, 'send'))),
+        ],
+      ),
+    );
+    if (email == null || email.isEmpty) return;
+    try {
+      await sl.accountService.sendInviteByEmail(
+        accountId: sl.appState.currentAccountId, email: email,
+      );
+      if (!mounted) return;
+      showAppSnackBar(context, S.of(context, 'inviteSent'));
+    } catch (e) {
+      if (!mounted) return;
+      final key = e.toString().replaceFirst('Exception: ', '');
+      showAppSnackBar(context, S.of(context, key), backgroundColor: AppColors.error);
+    }
+  }
+
+  Future<void> _leaveOrDeleteFamily() async {
+    final account = sl.cache.currentAccount;
+    if (account == null) return;
+    final isOwner = account.ownerId == sl.appState.currentUserId;
+    final confirm = await showDeleteConfirmation(
+      context,
+      titleKey: isOwner ? 'deleteFamily' : 'leaveFamily',
+      contentKey: isOwner ? 'deleteFamilyConfirm' : 'leaveFamilyConfirm',
+    );
+    if (confirm != true || !mounted) return;
+    if (isOwner) {
+      await sl.accountService.deleteFamily(accountId: account.id);
+    } else {
+      await sl.accountService.leaveFamily(accountId: account.id, userId: sl.appState.currentUserId!);
+    }
+    if (!mounted) return;
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const AccountPickerScreen()),
+      (_) => false,
+    );
+  }
+
   Future<void> _exportCsv() async {
     setState(() => _exporting = true);
     try {
@@ -202,6 +258,24 @@ class _SettingScreenState extends State<SettingScreen> {
           _tile(Icons.category_outlined, S.of(context, 'manageCategories'), onTap: () => context.pushScreen(const CategoryListScreen())),
           _tile(Icons.repeat, S.of(context, 'recurringRules'), onTap: () => context.pushScreen(const RecurringListScreen())),
           const SizedBox(height: AppSpacing.lg),
+
+          // ── Family (only when on family account) ──
+          if (sl.cache.currentAccount?.isFamily == true) ...[
+            _sectionLabel(S.of(context, 'members')),
+            _tile(Icons.people_outline, '${S.of(context, 'members')} (${sl.cache.memberProfiles.length})',
+              onTap: () => context.pushScreen(FamilyDetailScreen(account: sl.cache.currentAccount!)),
+            ),
+            _tile(Icons.person_add_outlined, S.of(context, 'inviteMember'), onTap: _inviteByEmail),
+            _tile(
+              Icons.exit_to_app,
+              sl.cache.currentAccount!.ownerId == sl.appState.currentUserId
+                  ? S.of(context, 'deleteFamily')
+                  : S.of(context, 'leaveFamily'),
+              color: AppColors.expense,
+              onTap: _leaveOrDeleteFamily,
+            ),
+            const SizedBox(height: AppSpacing.lg),
+          ],
 
           // ── Preferences ──
           _sectionLabel(S.of(context, 'settings')),

@@ -7,11 +7,12 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/async_content.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
+import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
+import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/features/account/models/account.dart';
 import 'package:vintage_ledger/features/splash/splash_bootstrap_screen.dart';
 import 'package:vintage_ledger/features/account/screens/family_form_screen.dart';
-import 'package:vintage_ledger/features/account/screens/family_detail_screen.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
@@ -143,34 +144,54 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
   Widget _buildAccountCard(Account a) {
     final photoUrl = a.isPersonal ? sl.authService.currentUser?.photoURL : null;
 
+    final card = LedgerCard(
+      child: Row(
+        children: [
+          if (a.isPersonal)
+            _buildAvatar(photoUrl, a.name)
+          else
+            _buildFamilyAvatars(a),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(a.name, style: AppTextStyles.bodyBold),
+                if (a.isFamily)
+                  Text('${a.memberIds.length} ${S.of(context, 'memberCount')}', style: AppTextStyles.bodySmall),
+              ],
+            ),
+          ),
+          Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
+        ],
+      ),
+    );
+
+    if (a.isFamily) {
+      final isOwner = a.ownerId == sl.appState.currentUserId;
+      return SwipeListItem(
+        itemKey: ValueKey(a.id),
+        onTap: () => _selectAccount(a),
+        confirmDelete: () => showDeleteConfirmation(
+          context,
+          titleKey: isOwner ? 'deleteFamily' : 'leaveFamily',
+          contentKey: isOwner ? 'deleteFamilyConfirm' : 'leaveFamilyConfirm',
+        ),
+        onDelete: () async {
+          if (isOwner) {
+            await sl.accountService.deleteFamily(accountId: a.id);
+          } else {
+            await sl.accountService.leaveFamily(accountId: a.id, userId: sl.appState.currentUserId!);
+          }
+          _load();
+        },
+        child: card,
+      );
+    }
+
     return GestureDetector(
       onTap: () => _selectAccount(a),
-      onLongPress: a.isFamily ? () async {
-        final result = await context.pushScreen(FamilyDetailScreen(account: a));
-        if (result == true) _load();
-      } : null,
-      child: LedgerCard(
-        child: Row(
-          children: [
-            if (a.isPersonal)
-              _buildAvatar(photoUrl, a.name)
-            else
-              _buildFamilyAvatars(a),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(a.name, style: AppTextStyles.bodyBold),
-                  if (a.isFamily)
-                    Text('${a.memberIds.length} ${S.of(context, 'memberCount')}', style: AppTextStyles.bodySmall),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
-          ],
-        ),
-      ),
+      child: card,
     );
   }
 
