@@ -162,6 +162,7 @@ class TransactionService {
   Future<void> updateTransfer({
     required String txnId,
     required String linkedTxnId,
+    String? linkedAccountId,
     required int oldAmount,
     required String sourceWalletId,
     required String destWalletId,
@@ -174,17 +175,22 @@ class TransactionService {
   }) async {
     final firestore = _repo.firestore;
     final now = FieldValue.serverTimestamp();
+    final isCrossAccount = linkedAccountId != null && linkedAccountId.isNotEmpty && linkedAccountId != sl.appState.currentAccountId;
 
     await firestore.runTransaction((txn) async {
       // Read ALL first
       final txnOutRef = _repo.collection.doc(txnId);
-      final txnInRef = _repo.collection.doc(linkedTxnId);
+      final txnInRef = isCrossAccount
+          ? firestore.collection('accounts').doc(linkedAccountId).collection('transactions').doc(linkedTxnId)
+          : _repo.collection.doc(linkedTxnId);
       final txnOutSnap = await txn.get(txnOutRef);
       final txnInSnap = await txn.get(txnInRef);
       if (!txnOutSnap.exists || !txnInSnap.exists) throw Exception('Transaction not found');
 
       final oldSrcRef = sl.walletService.repo.collection.doc(oldSourceWalletId);
-      final oldDstRef = sl.walletService.repo.collection.doc(oldDestWalletId);
+      final oldDstRef = isCrossAccount
+          ? firestore.collection('accounts').doc(linkedAccountId).collection('wallets').doc(oldDestWalletId)
+          : sl.walletService.repo.collection.doc(oldDestWalletId);
       final oldSrcSnap = await txn.get(oldSrcRef);
       final oldDstSnap = await txn.get(oldDstRef);
 

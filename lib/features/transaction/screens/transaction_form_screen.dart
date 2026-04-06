@@ -267,6 +267,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
           await sl.transactionService.updateTransfer(
             txnId: existing.id!,
             linkedTxnId: existing.linkedTransactionId!,
+            linkedAccountId: existing.toAccountId,
             oldAmount: existing.amount,
             sourceWalletId: _walletId!,
             destWalletId: _toWalletId!,
