@@ -231,14 +231,24 @@ class TransactionService {
       txn.update(dstRef, {'balance': dstAdjust + newAmount});
 
       // Update txn docs
+      // Resolve names for display
+      final srcWalletName = (oldSrcSnap.data()?['name'] as String?) ?? sl.cache.walletNameMap[sourceWalletId] ?? '';
+      final dstWalletName = (oldDstSnap.data()?['name'] as String?) ?? sl.cache.walletNameMap[destWalletId] ?? '';
+      final srcAccountName = isCrossAccount ? (sl.cache.currentAccount?.name ?? '') : null;
+      final dstAccountName = isCrossAccount ? (txnOutSnap.data()?['to_account_name'] as String? ?? '') : null;
+
       txn.update(txnOutRef, {
         'wallet_id': sourceWalletId, 'to_wallet_id': destWalletId,
+        'to_wallet_name': dstWalletName,
+        if (dstAccountName != null) 'to_account_name': dstAccountName,
         'amount': newAmount, 'note': note, 'date': date,
         if (createdBy != null) 'created_by': createdBy,
         'updated_at': now,
       });
       txn.update(txnInRef, {
         'wallet_id': destWalletId, 'to_wallet_id': sourceWalletId,
+        'to_wallet_name': srcWalletName,
+        if (srcAccountName != null) 'to_account_name': srcAccountName,
         'amount': newAmount, 'note': note, 'date': date,
         if (createdBy != null) 'created_by': createdBy,
         'updated_at': now,
