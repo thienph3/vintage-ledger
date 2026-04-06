@@ -430,7 +430,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               style: AppTextStyles.body,
             ),
             const SizedBox(height: AppSpacing.lg),
-            if (!_type.isTransfer && widget.isEdit && _members.length > 1) _buildMemberDropdown(),
+            if (widget.isEdit && _members.length > 1) _buildMemberDropdown(),
             if (!_type.isTransfer && !widget.isEdit) _buildRecurringToggle(),
             if (widget.isEdit) _buildTypeChangeWarning(),
             if (widget.isEdit) _buildWalletChangeInfo(),
