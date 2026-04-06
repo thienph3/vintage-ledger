@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/l10n/s.dart';
@@ -19,6 +20,7 @@ class TransactionFeedItem extends StatelessWidget {
   final String categoryName;
   final VoidCallback? onChanged;
   final String Function(int)? timeFormatter;
+  final Map<String, String> walletNames;
 
   const TransactionFeedItem({
     super.key,
@@ -26,23 +28,28 @@ class TransactionFeedItem extends StatelessWidget {
     required this.categoryName,
     this.onChanged,
     this.timeFormatter,
+    this.walletNames = const {},
   });
 
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).languageCode;
     final actor = FeedHelper.resolveName(txn.transaction.createdBy, S.of(context, 'youActor'));
+    final t = txn.transaction;
+
     final story = TransactionStory.format(
       actorName: actor,
       categoryName: categoryName,
-      amount: txn.transaction.amount,
-      type: txn.transaction.type,
+      amount: t.amount,
+      type: t.type,
       locale: locale,
-      note: txn.transaction.note,
+      note: t.note,
+      walletName: walletNames[t.walletId],
+      toWalletName: walletNames[t.toWalletId],
     );
     final time = timeFormatter != null
-        ? timeFormatter!(txn.transaction.date)
-        : DateFormatter.short(txn.transaction.date);
+        ? timeFormatter!(t.date)
+        : DateFormatter.short(t.date);
 
     final content = Column(
       children: [
@@ -50,25 +57,25 @@ class TransactionFeedItem extends StatelessWidget {
           actorName: actor,
           text: story,
           time: time,
-          photoUrl: FeedHelper.resolvePhoto(txn.transaction.createdBy),
+          photoUrl: FeedHelper.resolvePhoto(t.createdBy),
           onTap: () async {
             final result = await context.pushScreen(TransactionFormScreen(
-              walletId: txn.transaction.walletId,
+              walletId: t.walletId,
               existing: txn,
             ));
             if (result == true) onChanged?.call();
           },
         ),
-        if (txn.transaction.id != null)
+        if (t.id != null)
           StreamBuilder<Map<String, String>>(
-            stream: sl.reactionService.watchReactions(txn.transaction.id!),
+            stream: sl.reactionService.watchReactions(t.id!),
             builder: (context, snap) {
               final reactions = snap.data ?? {};
               return GestureDetector(
                 onLongPress: () async {
                   final emoji = await ReactionPicker.show(context);
                   if (emoji != null) {
-                    sl.reactionService.addReaction(txn.transaction.id!, emoji);
+                    sl.reactionService.addReaction(t.id!, emoji);
                   }
                 },
                 child: ReactionBar(reactions: reactions),
@@ -78,17 +85,17 @@ class TransactionFeedItem extends StatelessWidget {
       ],
     );
 
-    if (txn.transaction.id == null) return content;
+    if (t.id == null) return content;
 
     return SwipeListItem(
-      itemKey: ValueKey(txn.transaction.id),
+      itemKey: ValueKey(t.id),
       confirmDelete: () => showDeleteConfirmation(
         context,
         titleKey: 'deleteTransaction',
         contentKey: 'deleteTransactionConfirm',
       ),
       onDelete: () async {
-        await sl.transactionService.deleteTransaction(txn.transaction.id!);
+        await sl.transactionService.deleteTransaction(t.id!);
         onChanged?.call();
       },
       child: content,

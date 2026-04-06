@@ -272,6 +272,7 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                 txn: txn,
                 categoryName: _categoryNames[txn.transaction.categoryId] ?? S.of(context, 'other'),
                 onChanged: _loadCategories,
+                walletNames: sl.cache.walletNameMap,
               )),
               ],
             );

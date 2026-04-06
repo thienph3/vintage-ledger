@@ -217,7 +217,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }).toList();
   }
 
-  // ── Build ──
+  Map<String, String> get _walletNameMap => sl.cache.walletNameMap;
 
   @override
   Widget build(BuildContext context) {
@@ -524,6 +524,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         categoryName: _categoryNameMap[txns[index].transaction.categoryId] ?? S.of(context, 'other'),
         onChanged: _loadRange,
         timeFormatter: DateFormatter.time,
+        walletNames: _walletNameMap,
       ),
     );
   }
@@ -590,6 +591,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             categoryName: _categoryNameMap[t.transaction.categoryId] ?? S.of(context, 'other'),
             onChanged: _loadRange,
             timeFormatter: DateFormatter.time,
+            walletNames: _walletNameMap,
           )),
         const Divider(height: 1),
       ],
@@ -638,6 +640,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
             categoryName: _categoryNameMap[t.transaction.categoryId] ?? S.of(context, 'other'),
             onChanged: _loadRange,
             timeFormatter: DateFormatter.time,
+            walletNames: _walletNameMap,
           )),
       ],
     );

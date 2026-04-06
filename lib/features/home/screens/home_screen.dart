@@ -198,6 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
             categoryName: _categoryNames[t.transaction.categoryId] ?? S.of(context, 'other'),
             onChanged: _refresh,
             timeFormatter: DateFormatter.time,
+            walletNames: sl.cache.walletNameMap,
           )),
         ],
       ),

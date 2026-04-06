@@ -10,14 +10,18 @@ class TransactionStory {
     required TransactionType type,
     required String locale,
     String? note,
+    String? walletName,
+    String? toWalletName,
   }) {
     final amountStr = AmountFormatter.formatCompactCurrency(amount, locale);
 
     if (type.isTransferOut) {
-      return '$actorName chuyển $amountStr 💸';
+      final dest = toWalletName ?? '?';
+      return '$actorName chuyển $amountStr → $dest 💸';
     }
     if (type.isTransferIn) {
-      return 'Nhận $amountStr 💸';
+      final src = toWalletName ?? '?';
+      return 'Nhận $amountStr từ $src 💸';
     }
 
     final emoji = getCategoryEmoji(categoryName);

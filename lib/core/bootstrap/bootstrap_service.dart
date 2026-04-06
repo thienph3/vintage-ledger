@@ -198,10 +198,14 @@ class BootstrapService {
     final results = await Future.wait([
       sl.categoryService.getCategories(),
       sl.accountService.getAccount(accountId),
+      sl.walletService.getWallets(),
     ]);
 
     final categories = results[0] as List;
     sl.cache.setCategories(categories.cast());
+
+    final wallets = results[2] as List;
+    sl.cache.setWallets(wallets.cast());
 
     final account = results[1];
     if (account != null) {
