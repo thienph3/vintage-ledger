@@ -202,6 +202,11 @@ class TransactionService {
 
   Future<TransactionWithItems?> getTransactionWithItems(String id) => _repo.getById(id);
 
+  Future<void> updateTransactionField(String id, Map<String, dynamic> fields) async {
+    fields['updated_at'] = FieldValue.serverTimestamp();
+    await _repo.update(id, fields);
+  }
+
   /// Direct date range query (for TransactionListScreen lazy loading)
   Future<List<TransactionWithItems>> getByDateRange(int startDate, int endDate, {String? walletId}) =>
       _repo.getByDateRange(startDate, endDate, walletId: walletId);

@@ -15,6 +15,7 @@ class TransactionModel {
   final String? fundingWalletId;
   final String? fundingAccountId;
   final String? fundingTransferId;
+  final String? goalId;
 
   TransactionModel({
     this.id,
@@ -31,6 +32,7 @@ class TransactionModel {
     this.fundingWalletId,
     this.fundingAccountId,
     this.fundingTransferId,
+    this.goalId,
   });
 
   TransactionModel copyWith({
@@ -38,6 +40,7 @@ class TransactionModel {
     int? amount, String? note, int? date, String? createdBy,
     String? toWalletId, String? toAccountId, String? linkedTransactionId,
     String? fundingWalletId, String? fundingAccountId, String? fundingTransferId,
+    String? goalId,
   }) {
     return TransactionModel(
       id: id ?? this.id,
@@ -54,6 +57,7 @@ class TransactionModel {
       fundingWalletId: fundingWalletId ?? this.fundingWalletId,
       fundingAccountId: fundingAccountId ?? this.fundingAccountId,
       fundingTransferId: fundingTransferId ?? this.fundingTransferId,
+      goalId: goalId ?? this.goalId,
     );
   }
 
