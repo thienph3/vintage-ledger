@@ -1,17 +1,7 @@
 flutter analyze
 Analyzing vintage-ledger...                                             
 
-warning - Unused import: 'package:vintage_ledger/core/theme/app_colors.dart' -
-       lib\common\widgets\ledger_header.dart:4:8 - unused_import
-  error - The argument type 'SizedBox' can't be assigned to the parameter type 'Expanded'.  -
-         lib\common\widgets\type_selector.dart:57:22 - argument_type_not_assignable
-warning - Unused import: 'package:vintage_ledger/core/service_locator.dart' -
-       lib\features\auth\screens\login_screen.dart:4:8 - unused_import
-   info - The private field _loading could be 'final' -
-          lib\features\auth\screens\login_screen.dart:22:8 - prefer_final_fields
-warning - Unused import: 'package:vintage_ledger/core/theme/app_text_styles.dart' -
-       lib\features\budget\screens\budget_form_screen.dart:6:8 - unused_import
-   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check -
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check -     
           lib\features\category\screens\category_list_screen.dart:136:29 -
           use_build_context_synchronously
    info - Don't use 'BuildContext's across async gaps -
@@ -26,18 +16,8 @@ warning - Unused import: 'package:vintage_ledger/core/theme/app_text_styles.dart
           lib\features\coaching\coaching_service.dart:93:27 - use_build_context_synchronously        
    info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check -     
           lib\features\debt\screens\debt_detail_screen.dart:136:50 - use_build_context_synchronously 
-   info - The private field _loading could be 'final' -
-          lib\features\home\screens\home_screen.dart:31:8 - prefer_final_fields
-warning - The value of the field '_loading' isn't used -
-       lib\features\home\screens\home_screen.dart:31:8 - unused_field
-  error - Undefined class 'DashboardData' - lib\features\insights\screens\insights_tab.dart:27:3 -   
-         undefined_class
    info - Don't use 'BuildContext's across async gaps -
-          lib\features\insights\screens\insights_tab.dart:44:45 - use_build_context_synchronously    
-  error - The name 'TransactionWithItems' isn't a type, so it can't be used as a type argument -     
-         lib\features\insights\screens\insights_tab.dart:67:15 - non_type_as_type_argument
-warning - The declaration '_schedulePersist' isn't referenced -
-       lib\features\quick_add\quick_add_parser.dart:83:15 - unused_element
+          lib\features\insights\screens\insights_tab.dart:46:45 - use_build_context_synchronously    
    info - Don't use 'BuildContext's across async gaps -
           lib\features\reminder\reminder_service.dart:54:23 - use_build_context_synchronously        
    info - Don't use 'BuildContext's across async gaps -
@@ -50,29 +30,12 @@ warning - The declaration '_schedulePersist' isn't referenced -
           lib\features\settings\screens\setting_screen.dart:501:49 - use_build_context_synchronously 
    info - Don't use 'BuildContext's across async gaps -
           lib\features\settings\screens\setting_screen.dart:516:51 - use_build_context_synchronously 
-   info - Unnecessary use of multiple underscores -
-          lib\features\splash\splash_bootstrap_screen.dart:78:26 - unnecessary_underscores
-   info - Unnecessary use of multiple underscores -
-          lib\features\splash\splash_bootstrap_screen.dart:78:30 - unnecessary_underscores
-   info - Unnecessary use of multiple underscores -
-          lib\features\splash\splash_bootstrap_screen.dart:80:36 - unnecessary_underscores
    info - Don't use 'BuildContext's across async gaps -
           lib\features\transaction\screens\transaction_form_screen.dart:312:21 -
           use_build_context_synchronously
-warning - The declaration '_openForm' isn't referenced -
-       lib\features\transaction\screens\transaction_list_screen.dart:224:16 - unused_element
-warning - The value of the local variable 'snap' isn't used -
-       lib\features\transaction\services\transaction_service.dart:196:11 - unused_local_variable     
-warning - The value of the local variable 'dstSnap' isn't used -
-       lib\features\transaction\services\transaction_service.dart:311:11 - unused_local_variable     
-warning - Unused import: 'package:vintage_ledger/common/widgets/selection_sheet.dart' -
-       lib\features\transaction\widgets\category_dropdown.dart:8:8 - unused_import
-warning - Duplicate import - lib\features\wallet\screens\wallet_detail_screen.dart:19:8 -
-       duplicate_import
-warning - The value of the field '_categoryIcons' isn't used -
-       lib\features\wallet\screens\wallet_detail_screen.dart:37:21 - unused_field
-   info - Unnecessary use of 'toList' in a spread -
-          lib\features\wallet\screens\wallet_detail_screen.dart:195:18 -
-          unnecessary_to_list_in_spreads
+warning - Unused import: 'package:vintage_ledger/utils/navigator_x.dart' -
+       lib\features\transaction\screens\transaction_list_screen.dart:11:8 - unused_import
+warning - The value of the local variable 'dstWalletRef' isn't used -
+       lib\features\transaction\services\transaction_service.dart:298:11 - unused_local_variable     
 
-35 issues found. (ran in 49.1s)
+17 issues found. (ran in 8.0s)
