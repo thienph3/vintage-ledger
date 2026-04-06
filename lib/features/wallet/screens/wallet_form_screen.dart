@@ -28,6 +28,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
   final _nameCtrl = TextEditingController();
   final _initialBalanceCtrl = TextEditingController();
   String _currency = Currency.defaultCurrency.code;
+  WalletType _walletType = WalletType.spending;
 
   bool get isEdit => widget.wallet != null;
 
@@ -38,6 +39,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
       _nameCtrl.text = widget.wallet!.name;
       _initialBalanceCtrl.text = widget.wallet!.initialBalance.toString();
       _currency = widget.wallet!.currency;
+      _walletType = widget.wallet!.type;
     } else {
       _initialBalanceCtrl.text = '0';
     }
@@ -61,10 +63,11 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
         await sl.walletService.updateWallet(
           widget.wallet!.id!, name,
           currency: _currency,
+          type: _walletType != widget.wallet!.type ? _walletType : null,
           initialBalance: initialBalance != widget.wallet!.initialBalance ? initialBalance : null,
         );
       } else {
-        await sl.walletService.createWallet(name, initialBalance, currency: _currency);
+        await sl.walletService.createWallet(name, initialBalance, currency: _currency, type: _walletType);
       }
       if (!mounted) return;
       if (initialBalance > 0) AmountHistory.record(initialBalance);
@@ -85,6 +88,8 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
           key: _formKey,
           child: ListView(
             children: [
+              _buildWalletTypePicker(),
+              const SizedBox(height: AppSpacing.md),
               TextFormField(
                 controller: _nameCtrl,
                 decoration: InputDecoration(labelText: S.of(context, 'walletName')),
@@ -110,6 +115,44 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
               FormSaveButton(isEdit: isEdit, onPressed: _save),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWalletTypePicker() {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppColors.divider.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          _typePill(WalletType.spending, '💳 ${S.of(context, 'walletTypeSpending')}'),
+          const SizedBox(width: 4),
+          _typePill(WalletType.savings, '🏦 ${S.of(context, 'walletTypeSavings')}'),
+        ],
+      ),
+    );
+  }
+
+  Widget _typePill(WalletType type, String label) {
+    final selected = _walletType == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _walletType = type),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.primary.withValues(alpha: 0.12) : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          alignment: Alignment.center,
+          child: Text(label, style: AppTextStyles.buttonLabel.copyWith(
+            color: selected ? AppColors.primary : AppColors.textPrimary, fontSize: 16,
+          )),
         ),
       ),
     );
