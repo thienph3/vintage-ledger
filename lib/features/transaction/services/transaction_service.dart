@@ -157,6 +157,89 @@ class TransactionService {
     });
   }
 
+  // ── Update Transfer ──
+
+  Future<void> updateTransfer({
+    required String txnId,
+    required String linkedTxnId,
+    required int oldAmount,
+    required String sourceWalletId,
+    required String destWalletId,
+    required String oldSourceWalletId,
+    required String oldDestWalletId,
+    required int newAmount,
+    String? note,
+    required int date,
+    String? createdBy,
+  }) async {
+    final firestore = _repo.firestore;
+    final now = FieldValue.serverTimestamp();
+
+    await firestore.runTransaction((txn) async {
+      // Read ALL first
+      final txnOutRef = _repo.collection.doc(txnId);
+      final txnInRef = _repo.collection.doc(linkedTxnId);
+      final txnOutSnap = await txn.get(txnOutRef);
+      final txnInSnap = await txn.get(txnInRef);
+      if (!txnOutSnap.exists || !txnInSnap.exists) throw Exception('Transaction not found');
+
+      final oldSrcRef = sl.walletService.repo.collection.doc(oldSourceWalletId);
+      final oldDstRef = sl.walletService.repo.collection.doc(oldDestWalletId);
+      final oldSrcSnap = await txn.get(oldSrcRef);
+      final oldDstSnap = await txn.get(oldDstRef);
+
+      final walletsChanged = sourceWalletId != oldSourceWalletId || destWalletId != oldDestWalletId;
+      DocumentSnapshot<Map<String, dynamic>>? newSrcSnap;
+      DocumentSnapshot<Map<String, dynamic>>? newDstSnap;
+      DocumentReference<Map<String, dynamic>>? newSrcRef;
+      DocumentReference<Map<String, dynamic>>? newDstRef;
+      if (walletsChanged) {
+        if (sourceWalletId != oldSourceWalletId) {
+          newSrcRef = sl.walletService.repo.collection.doc(sourceWalletId);
+          newSrcSnap = await txn.get(newSrcRef);
+        }
+        if (destWalletId != oldDestWalletId) {
+          newDstRef = sl.walletService.repo.collection.doc(destWalletId);
+          newDstSnap = await txn.get(newDstRef);
+        }
+      }
+
+      // Write ALL
+      // Revert old wallets
+      if (oldSrcSnap.exists) {
+        txn.update(oldSrcRef, {'balance': (oldSrcSnap.data()?['balance'] as int? ?? 0) + oldAmount});
+      }
+      if (oldDstSnap.exists) {
+        txn.update(oldDstRef, {'balance': (oldDstSnap.data()?['balance'] as int? ?? 0) - oldAmount});
+      }
+
+      // Apply new wallets
+      final srcRef = newSrcRef ?? oldSrcRef;
+      final dstRef = newDstRef ?? oldDstRef;
+      final srcBalance = (newSrcSnap ?? oldSrcSnap).data()?['balance'] as int? ?? 0;
+      final dstBalance = (newDstSnap ?? oldDstSnap).data()?['balance'] as int? ?? 0;
+      // If same ref as old, balance already reverted above
+      final srcAdjust = srcRef == oldSrcRef ? srcBalance + oldAmount : srcBalance;
+      final dstAdjust = dstRef == oldDstRef ? dstBalance - oldAmount : dstBalance;
+      txn.update(srcRef, {'balance': srcAdjust - newAmount});
+      txn.update(dstRef, {'balance': dstAdjust + newAmount});
+
+      // Update txn docs
+      txn.update(txnOutRef, {
+        'wallet_id': sourceWalletId, 'to_wallet_id': destWalletId,
+        'amount': newAmount, 'note': note, 'date': date,
+        if (createdBy != null) 'created_by': createdBy,
+        'updated_at': now,
+      });
+      txn.update(txnInRef, {
+        'wallet_id': destWalletId, 'to_wallet_id': sourceWalletId,
+        'amount': newAmount, 'note': note, 'date': date,
+        if (createdBy != null) 'created_by': createdBy,
+        'updated_at': now,
+      });
+    });
+  }
+
   // ── Atomic Delete (#3) ──
 
   Future<void> deleteTransaction(String id) async {

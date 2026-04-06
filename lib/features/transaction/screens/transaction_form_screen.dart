@@ -244,13 +244,30 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         return;
       }
       try {
-        await sl.transactionService.createTransfer(
-          sourceWalletId: _walletId!,
-          destWalletId: _toWalletId!,
-          amount: amount,
-          note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
-          date: _date.millisecondsSinceEpoch,
-        );
+        if (widget.isEdit) {
+          final existing = widget.existing!.transaction;
+          await sl.transactionService.updateTransfer(
+            txnId: existing.id!,
+            linkedTxnId: existing.linkedTransactionId!,
+            oldAmount: existing.amount,
+            sourceWalletId: _walletId!,
+            destWalletId: _toWalletId!,
+            oldSourceWalletId: existing.walletId,
+            oldDestWalletId: existing.toWalletId!,
+            newAmount: amount,
+            note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
+            date: _date.millisecondsSinceEpoch,
+            createdBy: _createdBy,
+          );
+        } else {
+          await sl.transactionService.createTransfer(
+            sourceWalletId: _walletId!,
+            destWalletId: _toWalletId!,
+            amount: amount,
+            note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
+            date: _date.millisecondsSinceEpoch,
+          );
+        }
         if (mounted) Navigator.pop(context, true);
       } catch (e) {
         if (mounted) showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
