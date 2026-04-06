@@ -24,49 +24,41 @@ class TypeSelector extends StatelessWidget {
       'transfer': S.of(context, 'transfer'),
     };
 
+    final children = <Widget>[];
+    for (var i = 0; i < types.length; i++) {
+      if (i > 0) children.add(const SizedBox(width: 4));
+      final type = types[i];
+      final selected = value == type;
+      children.add(Expanded(
+        child: GestureDetector(
+          onTap: () => onChanged(type),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: BoxDecoration(
+              color: selected ? AppColors.primary.withValues(alpha: 0.12) : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              labels[type] ?? type,
+              style: AppTextStyles.buttonLabel.copyWith(
+                color: selected ? AppColors.primary : AppColors.textPrimary,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
+      ));
+    }
+
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: AppColors.divider.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(16),
       ),
-      child: Row(
-        children: types.map((type) {
-          final selected = value == type;
-          return Expanded(
-            child: GestureDetector(
-              onTap: () => onChanged(type),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  color: selected ? AppColors.primary.withValues(alpha: 0.12) : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  labels[type] ?? type,
-                  style: AppTextStyles.buttonLabel.copyWith(
-                    color: selected ? AppColors.primary : AppColors.textPrimary,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).separated(const SizedBox(width: 4)).toList(),
-      ),
+      child: Row(children: children),
     );
-  }
-}
-
-extension _SeparatedIterable<T> on Iterable<T> {
-  Iterable<T> separated(T separator) sync* {
-    var first = true;
-    for (final item in this) {
-      if (!first) yield separator;
-      yield item;
-      first = false;
-    }
   }
 }

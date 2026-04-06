@@ -6,7 +6,6 @@ import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
-import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -217,16 +216,6 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
       return dt.year == _selectedDate.year && dt.month == _selectedDate.month && dt.day == _selectedDate.day;
     }).toList();
-  }
-
-  // ── Actions ──
-
-  Future<void> _openForm({TransactionWithItems? txn}) async {
-    final result = await context.pushScreen(TransactionFormScreen(
-      walletId: txn?.transaction.walletId ?? widget.walletId ?? _filterWalletId,
-      existing: txn,
-    ));
-    if (result == true) _loadRange();
   }
 
   // ── Build ──

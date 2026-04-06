@@ -80,12 +80,6 @@ class QuickAddParser {
 
   // ── Debounced persist (#4) ──
 
-  static void _schedulePersist() {
-    _dirty = true;
-    _persistTimer?.cancel();
-    _persistTimer = Timer(const Duration(seconds: 5), _persist);
-  }
-
   /// Call on app pause (WidgetsBindingObserver) to flush pending writes
   static Future<void> flush() async {
     if (_dirty) await _persist();

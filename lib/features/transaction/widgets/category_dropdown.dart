@@ -5,7 +5,6 @@ import 'package:vintage_ledger/core/constants/category_icons.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
-import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 
 class CategoryDropdown extends StatelessWidget {

@@ -75,9 +75,9 @@ class _SplashBootstrapScreenState extends State<SplashBootstrapScreen> {
     Navigator.pushAndRemoveUntil(
       context,
       PageRouteBuilder(
-        pageBuilder: (_, __, ___) => destination,
+        pageBuilder: (_, _, _) => destination,
         transitionDuration: const Duration(milliseconds: 200),
-        transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
+        transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
       ),
       (_) => false,
     );

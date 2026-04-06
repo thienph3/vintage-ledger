@@ -191,12 +191,6 @@ class TransactionService {
 
       txn.delete(txnRef);
     });
-
-    // Cross-account: also delete linked transaction
-    final snap = await txnRef.get();
-    // txnRef already deleted, but we read data before delete above
-    // Re-read from the original snap is not possible after delete.
-    // Instead, handle linked cleanup via the data we already have.
   }
 
   // ── Items (embedded) ──
@@ -308,7 +302,6 @@ class TransactionService {
 
     // Read balances
     final srcSnap = await srcWalletRef.get();
-    final dstSnap = await dstWalletRef.get();
 
     final batch = firestore.batch();
 

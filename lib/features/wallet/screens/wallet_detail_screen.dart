@@ -16,7 +16,6 @@ import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_feed_item.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_list_screen.dart';
-import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
@@ -34,7 +33,6 @@ class WalletDetailScreen extends StatefulWidget {
 class _WalletDetailScreenState extends State<WalletDetailScreen> {
   late String _walletName;
   Map<String, String> _categoryNames = {};
-  Map<String, int?> _categoryIcons = {};
   bool _loading = true;
   bool _balanceVisible = true;
 
@@ -50,7 +48,6 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
     if (!mounted) return;
     setState(() {
       _categoryNames = {for (var c in cats) if (c.id != null) c.id!: c.name};
-      _categoryIcons = {for (var c in cats) if (c.id != null) c.id!: c.icon};
       _loading = false;
     });
   }
@@ -192,7 +189,7 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                 txn: txn,
                 categoryName: _categoryNames[txn.transaction.categoryId] ?? S.of(context, 'other'),
                 onChanged: _loadCategories,
-              )).toList(),
+              )),
               ],
             );
           },
