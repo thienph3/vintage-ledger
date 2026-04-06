@@ -55,9 +55,11 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   List<Category> _categories = [];
   List<Wallet> _wallets = [];
   List<TransactionItemEntry> _items = [];
+  List<_AccountWallets> _allAccountWallets = [];
 
   String? _walletId;
   String? _toWalletId;
+  String? _toAccountId;
   String? _categoryId;
   String? _createdBy;
   TransactionType _type = TransactionType.expense;
@@ -86,6 +88,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       if (t.categoryId.isNotEmpty) _categoryId = t.categoryId;
       if (t.walletId.isNotEmpty) _walletId = t.walletId;
       if (t.toWalletId != null) _toWalletId = t.toWalletId;
+      if (t.toAccountId != null) _toAccountId = t.toAccountId;
       _date = DateTime.fromMillisecondsSinceEpoch(t.date);
       _noteCtrl.text = t.note ?? '';
       _createdBy = t.createdBy;
@@ -142,6 +145,21 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       _walletId ??= _wallets.isNotEmpty ? _wallets.first.id : null;
     });
     _loadGoals();
+    _loadAllAccountWallets();
+  }
+
+  Future<void> _loadAllAccountWallets() async {
+    final userId = sl.appState.currentUserId;
+    if (userId == null) return;
+    final accounts = await sl.accountService.getAccountsForUser(userId);
+    final result = <_AccountWallets>[];
+    for (final a in accounts) {
+      final wallets = a.id == sl.appState.currentAccountId
+          ? _wallets
+          : await sl.walletService.getWalletsForAccount(a.id);
+      result.add(_AccountWallets(accountId: a.id, accountName: a.name, wallets: wallets));
+    }
+    if (mounted) setState(() => _allAccountWallets = result);
   }
 
   Future<void> _loadGoals() async {
@@ -266,6 +284,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             amount: amount,
             note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
             date: _date.millisecondsSinceEpoch,
+            destAccountId: _toAccountId,
           );
         }
         if (mounted) Navigator.pop(context, true);
@@ -477,15 +496,40 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Widget _buildToWalletDropdown() {
-    final walletName = _wallets.where((w) => w.id == _toWalletId).firstOrNull?.name;
-    final available = _wallets.where((w) => w.id != _walletId).toList();
+    // Build items from all accounts
+    final items = <SelectionItem<String>>[];
+    String? displayName;
+    for (final aw in _allAccountWallets) {
+      for (final w in aw.wallets) {
+        if (w.id == _walletId && aw.accountId == sl.appState.currentAccountId) continue;
+        final label = _allAccountWallets.length > 1
+            ? '${aw.accountName} / ${w.name}'
+            : w.name;
+        items.add(SelectionItem(value: '${aw.accountId}:${w.id}', label: label, icon: Icons.account_balance_wallet_outlined));
+        if (w.id == _toWalletId) displayName = label;
+      }
+    }
+    // Fallback: same-account wallets if cross-account not loaded yet
+    if (items.isEmpty) {
+      for (final w in _wallets.where((w) => w.id != _walletId)) {
+        items.add(SelectionItem(value: ':${w.id}', label: w.name, icon: Icons.account_balance_wallet_outlined));
+        if (w.id == _toWalletId) displayName = w.name;
+      }
+    }
     return DropdownField<String>(
       label: S.of(context, 'toWallet'),
-      value: walletName,
+      value: displayName,
       prefixIcon: Icons.account_balance_wallet_outlined,
-      items: available.map((w) => SelectionItem(value: w.id!, label: w.name, icon: Icons.account_balance_wallet_outlined)).toList(),
-      selected: _toWalletId,
-      onChanged: (v) => setState(() => _toWalletId = v),
+      items: items,
+      selected: _toAccountId != null ? '$_toAccountId:$_toWalletId' : ':$_toWalletId',
+      onChanged: (v) {
+        if (v == null) return;
+        final parts = v.split(':');
+        setState(() {
+          _toAccountId = parts[0].isNotEmpty ? parts[0] : null;
+          _toWalletId = parts[1];
+        });
+      },
       validator: (v) => v == null && _toWalletId == null ? S.of(context, 'selectDestWallet') : null,
     );
   }
@@ -615,4 +659,11 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       ),
     );
   }
+}
+
+class _AccountWallets {
+  final String accountId;
+  final String accountName;
+  final List<Wallet> wallets;
+  _AccountWallets({required this.accountId, required this.accountName, required this.wallets});
 }
