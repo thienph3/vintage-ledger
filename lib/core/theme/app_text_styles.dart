@@ -67,4 +67,10 @@ class AppTextStyles {
   // Emoji
   static const TextStyle emoji = TextStyle(fontSize: 24);
   static const TextStyle emojiLarge = TextStyle(fontSize: 28);
+  static const TextStyle emojiXl = TextStyle(fontSize: 40);
+
+  // Calendar
+  static const TextStyle calendarExpense = TextStyle(
+    fontSize: 9, fontWeight: FontWeight.w400, color: AppColors.expense,
+  );
 }

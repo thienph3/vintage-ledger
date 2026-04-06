@@ -107,10 +107,7 @@ class CalendarGrid extends StatelessWidget {
               if (expense != null && expense > 0)
                 Text(
                   '-${AmountFormatter.formatCompact(expense, locale)}',
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: AppColors.expense.withAlpha(180),
-                  ),
+                  style: AppTextStyles.calendarExpense,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 )

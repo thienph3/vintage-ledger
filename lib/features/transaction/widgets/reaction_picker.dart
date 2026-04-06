@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
+import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 
 const _kEmojis = ['😂', '😅', '👍', '❤️', '😱', '💸'];
 
@@ -82,7 +83,7 @@ class _EmojiButtonState extends State<_EmojiButton> with SingleTickerProviderSta
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,
-          child: Text(widget.emoji, style: const TextStyle(fontSize: 24)),
+          child: Text(widget.emoji, style: AppTextStyles.emoji),
         ),
       ),
     );

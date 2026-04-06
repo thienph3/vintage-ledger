@@ -19,7 +19,7 @@ class EmptyState extends StatelessWidget {
             if (emoji != null)
               Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: Text(emoji!, style: const TextStyle(fontSize: 40)),
+                child: Text(emoji!, style: AppTextStyles.emojiXl),
               ),
             Text(
               message,
