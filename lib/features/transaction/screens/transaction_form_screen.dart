@@ -85,6 +85,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       _originalWalletId = t.walletId;
       if (t.categoryId.isNotEmpty) _categoryId = t.categoryId;
       if (t.walletId.isNotEmpty) _walletId = t.walletId;
+      if (t.toWalletId != null) _toWalletId = t.toWalletId;
       _date = DateTime.fromMillisecondsSinceEpoch(t.date);
       _noteCtrl.text = t.note ?? '';
       _createdBy = t.createdBy;
