@@ -13,7 +13,7 @@ class TransactionStory {
   }) {
     final amountStr = AmountFormatter.formatCompactCurrency(amount, locale);
 
-    if (type.isTransfer || type.isTransferOut) {
+    if (type.isTransferOut) {
       return '$actorName chuyển $amountStr 💸';
     }
     if (type.isTransferIn) {

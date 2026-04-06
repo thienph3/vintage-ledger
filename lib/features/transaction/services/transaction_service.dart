@@ -170,39 +170,59 @@ class TransactionService {
       final type = TransactionType.fromString(data['type'] ?? 'expense');
       final amount = data['amount'] as int? ?? 0;
       final walletId = data['wallet_id'] as String? ?? '';
+      final linkedId = data['linked_transaction_id'] as String?;
+      final toWalletId = data['to_wallet_id'] as String? ?? '';
 
-      if (type == TransactionType.transfer) {
-        // Same-account transfer: read ALL wallets first, then write
-        final toWalletId = data['to_wallet_id'] as String? ?? '';
-        DocumentSnapshot<Map<String, dynamic>>? srcSnap;
-        DocumentSnapshot<Map<String, dynamic>>? dstSnap;
-        DocumentReference<Map<String, dynamic>>? srcRef;
-        DocumentReference<Map<String, dynamic>>? dstRef;
+      // Read ALL documents first
+      DocumentSnapshot<Map<String, dynamic>>? walletSnap;
+      DocumentReference<Map<String, dynamic>>? walletRef;
+      DocumentSnapshot<Map<String, dynamic>>? linkedWalletSnap;
+      DocumentReference<Map<String, dynamic>>? linkedWalletRef;
+      DocumentSnapshot<Map<String, dynamic>>? linkedTxnSnap;
+      DocumentReference<Map<String, dynamic>>? linkedTxnRef;
 
-        if (walletId.isNotEmpty) {
-          srcRef = sl.walletService.repo.collection.doc(walletId);
-          srcSnap = await txn.get(srcRef);
+      if (walletId.isNotEmpty) {
+        walletRef = sl.walletService.repo.collection.doc(walletId);
+        walletSnap = await txn.get(walletRef);
+      }
+
+      if (linkedId != null && linkedId.isNotEmpty) {
+        // Linked txn in same account (same-account transfer) or cross-account
+        final linkedAccountId = data['to_account_id'] as String?;
+        if (linkedAccountId != null && linkedAccountId.isNotEmpty) {
+          linkedTxnRef = firestore.collection('accounts').doc(linkedAccountId).collection('transactions').doc(linkedId);
+        } else {
+          linkedTxnRef = _repo.collection.doc(linkedId);
         }
+        linkedTxnSnap = await txn.get(linkedTxnRef);
+
         if (toWalletId.isNotEmpty) {
-          dstRef = sl.walletService.repo.collection.doc(toWalletId);
-          dstSnap = await txn.get(dstRef);
+          if (linkedAccountId != null && linkedAccountId.isNotEmpty) {
+            linkedWalletRef = firestore.collection('accounts').doc(linkedAccountId).collection('wallets').doc(toWalletId);
+          } else {
+            linkedWalletRef = sl.walletService.repo.collection.doc(toWalletId);
+          }
+          linkedWalletSnap = await txn.get(linkedWalletRef);
         }
+      }
 
-        // Now write
-        if (srcSnap != null && srcSnap.exists && srcRef != null) {
-          txn.update(srcRef, {'balance': (srcSnap.data()?['balance'] as int? ?? 0) + amount});
+      // Now write ALL
+      // Revert this wallet
+      if (walletSnap != null && walletSnap.exists && walletRef != null) {
+        final balance = walletSnap.data()?['balance'] as int? ?? 0;
+        final delta = type.isIncome || type.isTransferIn ? -amount : amount;
+        txn.update(walletRef, {'balance': balance + delta});
+      }
+
+      // Revert linked wallet + delete linked txn
+      if (linkedTxnSnap != null && linkedTxnSnap.exists && linkedTxnRef != null) {
+        if (linkedWalletSnap != null && linkedWalletSnap.exists && linkedWalletRef != null) {
+          final linkedBalance = linkedWalletSnap.data()?['balance'] as int? ?? 0;
+          // Linked txn is the opposite: if we're transfer_out, linked is transfer_in
+          final linkedDelta = type.isTransferOut ? -amount : amount;
+          txn.update(linkedWalletRef, {'balance': linkedBalance + linkedDelta});
         }
-        if (dstSnap != null && dstSnap.exists && dstRef != null) {
-          txn.update(dstRef, {'balance': (dstSnap.data()?['balance'] as int? ?? 0) - amount});
-        }
-      } else if (walletId.isNotEmpty) {
-        final walletRef = sl.walletService.repo.collection.doc(walletId);
-        final walletSnap = await txn.get(walletRef);
-        if (walletSnap.exists) {
-          final balance = walletSnap.data()?['balance'] as int? ?? 0;
-          final delta = type.isIncome || type.isTransferIn ? -amount : amount;
-          txn.update(walletRef, {'balance': balance + delta});
-        }
+        txn.delete(linkedTxnRef);
       }
 
       txn.delete(txnRef);
@@ -239,29 +259,39 @@ class TransactionService {
     final now = FieldValue.serverTimestamp();
 
     if (!isCrossAccount) {
-      // Same-account transfer
+      // Same-account transfer: 2 linked txns (out + in)
       final srcRef = sl.walletService.repo.collection.doc(sourceWalletId);
       final dstRef = sl.walletService.repo.collection.doc(destWalletId);
-      final txnRef = _repo.collection.doc();
-      final txnData = _repo.toFirestore(TransactionWithItems(
-        transaction: TransactionModel(
-          walletId: sourceWalletId, categoryId: '', type: TransactionType.transfer,
-          amount: amount, note: note, date: date,
-          createdBy: sl.appState.currentUserId, toWalletId: destWalletId,
-        ),
-      ));
-      txnData['created_at'] = now;
-      txnData['updated_at'] = now;
+      final txnOutRef = _repo.collection.doc();
+      final txnInRef = _repo.collection.doc();
+
+      final outData = {
+        'wallet_id': sourceWalletId, 'category_id': '', 'type': 'transfer_out',
+        'amount': amount, 'note': note, 'date': date,
+        'created_by': sl.appState.currentUserId,
+        'to_wallet_id': destWalletId,
+        'linked_transaction_id': txnInRef.id,
+        'created_at': now, 'updated_at': now,
+      };
+      final inData = {
+        'wallet_id': destWalletId, 'category_id': '', 'type': 'transfer_in',
+        'amount': amount, 'note': note, 'date': date,
+        'created_by': sl.appState.currentUserId,
+        'to_wallet_id': sourceWalletId,
+        'linked_transaction_id': txnOutRef.id,
+        'created_at': now, 'updated_at': now,
+      };
 
       await firestore.runTransaction((txn) async {
         final srcSnap = await txn.get(srcRef);
         final dstSnap = await txn.get(dstRef);
         if (!srcSnap.exists || !dstSnap.exists) throw Exception('Wallet not found');
+        txn.set(txnOutRef, outData);
+        txn.set(txnInRef, inData);
         txn.update(srcRef, {'balance': (srcSnap.data()?['balance'] as int? ?? 0) - amount});
         txn.update(dstRef, {'balance': (dstSnap.data()?['balance'] as int? ?? 0) + amount});
-        txn.set(txnRef, txnData);
       });
-      return txnRef.id;
+      return txnOutRef.id;
     }
 
     // Cross-account transfer

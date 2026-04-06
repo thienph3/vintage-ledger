@@ -13,7 +13,7 @@ class TypeSelector extends StatelessWidget {
     super.key,
     required this.value,
     required this.onChanged,
-    this.types = const ['income', 'expense', 'transfer'],
+    this.types = const ['income', 'expense', 'transfer_out'],
   });
 
   @override
@@ -21,7 +21,7 @@ class TypeSelector extends StatelessWidget {
     final labels = {
       'income': S.of(context, 'income'),
       'expense': S.of(context, 'expense'),
-      'transfer': S.of(context, 'transfer'),
+      'transfer_out': S.of(context, 'transfer'),
     };
 
     final children = <Widget>[];

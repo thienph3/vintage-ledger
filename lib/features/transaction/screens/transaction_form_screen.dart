@@ -359,7 +359,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            TypeSelector(value: _type.value, onChanged: _onTypeChanged),
+            TypeSelector(value: _type.isTransfer ? 'transfer_out' : _type.value, onChanged: _onTypeChanged),
             const SizedBox(height: AppSpacing.lg),
             AmountInputField(controller: _amountCtrl),
             const SizedBox(height: AppSpacing.md),

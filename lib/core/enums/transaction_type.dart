@@ -1,7 +1,6 @@
 enum TransactionType {
   income,
   expense,
-  transfer,
   transferOut,
   transferIn;
 
@@ -27,7 +26,7 @@ enum TransactionType {
 
   bool get isIncome => this == TransactionType.income;
   bool get isExpense => this == TransactionType.expense;
-  bool get isTransfer => this == transfer || this == transferOut || this == transferIn;
+  bool get isTransfer => this == transferOut || this == transferIn;
   bool get isTransferOut => this == transferOut;
   bool get isTransferIn => this == transferIn;
 }
