@@ -7,7 +7,7 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/common/widgets/amount_history.dart';
 
-const _maxDigits = 8;
+const _maxDigits = 9;
 
 class AmountInputField extends StatefulWidget {
   final TextEditingController controller;
