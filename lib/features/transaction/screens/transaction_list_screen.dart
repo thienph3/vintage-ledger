@@ -7,7 +7,6 @@ import 'package:vintage_ledger/common/widgets/empty_state.dart';
 
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
-import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -40,7 +39,6 @@ class TransactionListScreen extends StatefulWidget {
 }
 
 class _TransactionListScreenState extends State<TransactionListScreen> {
-  final TransactionRepository _txnRepo = TransactionRepository();
 
   List<TransactionWithItems> _allTransactions = [];
   List<Wallet> _wallets = [];
@@ -119,7 +117,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
   Future<void> _loadRange() async {
     final (start, end) = _dateRange;
-    final txns = await _txnRepo.getByDateRange(
+    final txns = await sl.transactionService.getByDateRange(
       start.millisecondsSinceEpoch,
       end.millisecondsSinceEpoch,
       walletId: widget.walletId,

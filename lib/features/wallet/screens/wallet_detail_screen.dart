@@ -16,7 +16,7 @@ import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_feed_item.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_list_screen.dart';
-import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
+import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
@@ -176,7 +176,7 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
         ),
         const SizedBox(height: AppSpacing.sm),
         StreamBuilder<List<TransactionWithItems>>(
-          stream: TransactionRepository().watchRecent(20, walletId: widget.wallet.id!),
+          stream: sl.transactionService.watchRecent(20, walletId: widget.wallet.id!),
           builder: (context, snap) {
             final txns = snap.data ?? [];
             if (txns.isEmpty) {

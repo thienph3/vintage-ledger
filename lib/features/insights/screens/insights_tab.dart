@@ -7,9 +7,6 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
-import 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
-import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
-import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
 import 'package:vintage_ledger/features/transaction/widgets/chart_section.dart';
 import 'package:vintage_ledger/features/budget/widgets/budget_summary_card.dart';
 import 'package:vintage_ledger/features/insights/models/insight.dart';
@@ -72,7 +69,7 @@ class _InsightsTabState extends State<InsightsTab> {
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
     final lastWeekStart = weekStart.subtract(const Duration(days: 7));
     final lastWeekEnd = weekStart.subtract(const Duration(milliseconds: 1));
-    return TransactionRepository().getByDateRange(
+    return sl.transactionService.getByDateRange(
       lastWeekStart.millisecondsSinceEpoch,
       lastWeekEnd.millisecondsSinceEpoch,
     );
@@ -122,7 +119,7 @@ class _InsightsTabState extends State<InsightsTab> {
       child: LedgerCard(
         child: Row(
           children: [
-            const Text('\uD83D\uDD25', style: TextStyle(fontSize: 20)),
+            const Text('\uD83D\uDD25', style: AppTextStyles.emoji),
             const SizedBox(width: AppSpacing.sm),
             Text('$_streak ${S.of(context, 'streakDays')}', style: AppTextStyles.bodySmall),
           ],

@@ -12,7 +12,6 @@ import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/common/widgets/amount_text.dart';
 import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
 import 'package:vintage_ledger/features/transaction/models/dashboard_data.dart';
-import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class MonthlyInsightScreen extends StatefulWidget {
@@ -42,8 +41,7 @@ class _MonthlyInsightScreenState extends State<MonthlyInsightScreen> {
       final now = DateTime.now();
       final lastStart = DateTime(now.year, now.month - 1, 1);
       final lastEnd = DateTime(now.year, now.month, 0, 23, 59, 59);
-      final txnRepo = TransactionRepository();
-      final lastMonth = await txnRepo.getByDateRange(
+      final lastMonth = await sl.transactionService.getByDateRange(
         lastStart.millisecondsSinceEpoch, lastEnd.millisecondsSinceEpoch,
       );
 

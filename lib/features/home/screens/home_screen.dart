@@ -16,7 +16,6 @@ import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_feed_item.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
-import 'package:vintage_ledger/features/transaction/repositories/transaction_repository.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -54,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Stream<List<TransactionWithItems>> get _todayStream =>
-      TransactionRepository().watchByDateRange(
+      sl.transactionService.watchByDateRange(
         _todayStart.millisecondsSinceEpoch,
         _todayEnd.millisecondsSinceEpoch,
       );
