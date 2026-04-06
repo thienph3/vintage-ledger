@@ -46,7 +46,7 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
   }
 
   Future<void> _loadCategories() async {
-    final cats = await sl.categoryService.getCategories();
+    final cats = sl.cache.categories;
     if (!mounted) return;
     setState(() {
       _categoryNames = {for (var c in cats) if (c.id != null) c.id!: c.name};

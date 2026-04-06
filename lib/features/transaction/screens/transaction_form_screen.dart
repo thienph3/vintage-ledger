@@ -108,7 +108,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Future<void> _loadCategories() async {
-    final list = await sl.categoryService.getCategoriesByType(_type.value);
+    final list = sl.cache.categories.where((c) => c.type?.value == _type.value).toList();
     setState(() {
       _categories = list;
       if (_categoryId != null && !_categories.any((c) => c.id == _categoryId)) {
@@ -121,9 +121,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   Future<void> _loadWallets() async {
     final list = await sl.walletService.getWallets();
-    // Auto-select: last used wallet or first available
-    String? lastWalletId;
-    try { lastWalletId = await sl.settingService.getLastWalletId(); } catch (_) {}
+    final lastWalletId = sl.cache.lastWalletId;
     setState(() {
       _wallets = list;
       if (_walletId == null && lastWalletId != null && list.any((w) => w.id == lastWalletId)) {
@@ -134,13 +132,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Future<void> _loadMembers() async {
-    try {
-      final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
-      if (account != null && account.memberIds.length > 1) {
-        final members = await sl.accountService.getMemberProfiles(account.memberIds);
-        if (mounted) setState(() => _members = members);
-      }
-    } catch (_) {}
+    final account = sl.cache.currentAccount;
+    if (account != null && account.memberIds.length > 1) {
+      setState(() => _members = sl.cache.memberProfiles);
+    }
   }
 
   void _onTypeChanged(String type) {

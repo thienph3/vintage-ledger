@@ -35,7 +35,7 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
   }
 
   Future<void> _loadCategories() async {
-    final cats = await sl.categoryService.getCategories();
+    final cats = sl.cache.categories;
     setState(() {
       _catNames = {for (var c in cats) if (c.id != null) c.id!: c.name};
       _catIcons = {for (var c in cats) if (c.id != null) c.id!: c.icon};

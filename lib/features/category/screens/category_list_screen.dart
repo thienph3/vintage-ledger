@@ -36,7 +36,7 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
   }
 
   Future<void> _load() async {
-    final items = await sl.categoryService.getCategories();
+    final items = sl.cache.categories;
     if (!mounted) return;
     setState(() { _items = items; _loading = false; });
   }
