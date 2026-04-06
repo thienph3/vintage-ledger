@@ -76,11 +76,11 @@ service cloud.firestore {
         allow create: if isMember(accountId) &&
           request.resource.data.amount is int &&
           request.resource.data.amount > 0 &&
-          request.resource.data.type in ['income', 'expense'];
+          request.resource.data.type in ['income', 'expense', 'transfer', 'transfer_out', 'transfer_in'];
         allow update: if isMember(accountId) &&
           request.resource.data.amount is int &&
           request.resource.data.amount > 0 &&
-          request.resource.data.type in ['income', 'expense'];
+          request.resource.data.type in ['income', 'expense', 'transfer', 'transfer_out', 'transfer_in'];
         allow delete: if isMember(accountId);
 
         match /reactions/{userId} {

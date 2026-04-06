@@ -15,6 +15,12 @@ class WalletService {
 
   Future<Wallet?> getWallet(String id) => _repo.getById(id);
 
+  Future<List<Wallet>> getWalletsForAccount(String accountId) async {
+    final snap = await FirebaseFirestore.instance
+        .collection('accounts').doc(accountId).collection('wallets').get();
+    return snap.docs.map((d) => _repo.fromFirestore(d.id, d.data())).toList();
+  }
+
   Future<String> createWallet(String name, int initialBalance, {String currency = 'VND'}) async {
     if (name.trim().isEmpty) throw Exception("Wallet name cannot be empty");
     final id = await _repo.add(Wallet(

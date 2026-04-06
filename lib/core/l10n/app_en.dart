@@ -307,4 +307,15 @@ const Map<String, String> en = {
   'deleted': 'Deleted ✓',
   'typeChangeWarning': 'Changing type will affect wallet balance',
   'walletChangeInfo': 'Transaction will move to {name}',
+
+  // Transfer
+  'transfer': 'Transfer',
+  'fromWallet': 'From wallet',
+  'toWallet': 'To wallet',
+  'fromAccount': 'From ledger',
+  'toAccount': 'To ledger',
+  'sameWalletError': 'Cannot transfer to same wallet',
+  'transferOut': 'Transferred out',
+  'transferIn': 'Received transfer',
+  'selectDestWallet': 'Select destination wallet',
 };

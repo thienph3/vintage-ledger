@@ -25,6 +25,9 @@ class TransactionRepository extends FirestoreRepository<TransactionWithItems> {
         note: data['note'],
         date: data['date'] ?? 0,
         createdBy: data['created_by'],
+        toWalletId: data['to_wallet_id'],
+        toAccountId: data['to_account_id'],
+        linkedTransactionId: data['linked_transaction_id'],
       ),
       items: items,
     );
@@ -41,6 +44,9 @@ class TransactionRepository extends FirestoreRepository<TransactionWithItems> {
       'note': t.note,
       'date': t.date,
       'created_by': t.createdBy,
+      if (t.toWalletId != null) 'to_wallet_id': t.toWalletId,
+      if (t.toAccountId != null) 'to_account_id': t.toAccountId,
+      if (t.linkedTransactionId != null) 'linked_transaction_id': t.linkedTransactionId,
       'items': item.items.map((i) => i.toMap()).toList(),
     };
   }

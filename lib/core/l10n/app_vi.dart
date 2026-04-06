@@ -307,4 +307,15 @@ const Map<String, String> vi = {
   'deleted': 'Đã xóa ✓',
   'typeChangeWarning': 'Đổi loại sẽ ảnh hưởng số dư ví',
   'walletChangeInfo': 'Giao dịch sẽ chuyển sang ví {name}',
+
+  // Transfer
+  'transfer': 'Chuyển',
+  'fromWallet': 'Từ ví',
+  'toWallet': 'Sang ví',
+  'fromAccount': 'Từ sổ',
+  'toAccount': 'Sang sổ',
+  'sameWalletError': 'Không thể chuyển cùng ví',
+  'transferOut': 'Chuyển đi',
+  'transferIn': 'Nhận chuyển',
+  'selectDestWallet': 'Chọn ví đích',
 };

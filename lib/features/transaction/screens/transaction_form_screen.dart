@@ -55,6 +55,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   List<TransactionItemEntry> _items = [];
 
   String? _walletId;
+  String? _toWalletId;
   String? _categoryId;
   String? _createdBy;
   TransactionType _type = TransactionType.expense;
@@ -146,8 +147,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   void _onTypeChanged(String type) {
     final parsed = TransactionType.fromString(type);
     if (_type == parsed) return;
-    setState(() { _type = parsed; _budgetStatus = null; });
-    _loadCategories();
+    setState(() { _type = parsed; _budgetStatus = null; _toWalletId = null; });
+    if (!parsed.isTransfer) _loadCategories();
   }
 
   Future<void> _checkBudget() async {
@@ -208,9 +209,39 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_walletId == null || _categoryId == null) return;
+    if (_walletId == null) return;
 
     var amount = int.tryParse(_amountCtrl.text) ?? 0;
+
+    if (_type.isTransfer) {
+      if (_toWalletId == null) {
+        showAppSnackBar(context, S.of(context, 'selectDestWallet'));
+        return;
+      }
+      if (_walletId == _toWalletId) {
+        showAppSnackBar(context, S.of(context, 'sameWalletError'));
+        return;
+      }
+      if (amount <= 0) {
+        showAppSnackBar(context, S.of(context, 'amountMustBePositive'));
+        return;
+      }
+      try {
+        await sl.transactionService.createTransfer(
+          sourceWalletId: _walletId!,
+          destWalletId: _toWalletId!,
+          amount: amount,
+          note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
+          date: _date.millisecondsSinceEpoch,
+        );
+        if (mounted) Navigator.pop(context, true);
+      } catch (e) {
+        if (mounted) showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
+      }
+      return;
+    }
+
+    if (_categoryId == null) return;
     final itemTotal = _items.fold<int>(0, (s, e) => s + (int.tryParse(e.amountController.text) ?? 0));
 
     if (amount == 0 && itemTotal > 0) {
@@ -302,7 +333,12 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               _buildWalletDropdown(),
               const SizedBox(height: AppSpacing.md),
             ],
-            CategoryDropdown(
+            if (_type.isTransfer) ...[
+              _buildToWalletDropdown(),
+              const SizedBox(height: AppSpacing.md),
+            ],
+            if (!_type.isTransfer) ...[
+              CategoryDropdown(
               value: _categoryId,
               categories: _categories,
               onChanged: (v) {
@@ -310,8 +346,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 _checkBudget();
               },
               onAdd: _onAddCategory,
-            ),
-            if (_budgetStatus != null && (_budgetStatus!.isNearLimit || _budgetStatus!.isExceeded))
+              ),
+            ],
+            if (!_type.isTransfer && _budgetStatus != null && (_budgetStatus!.isNearLimit || _budgetStatus!.isExceeded))
               Padding(
                 padding: const EdgeInsets.only(top: AppSpacing.xs),
                 child: Row(
@@ -345,8 +382,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               onTap: _pickDateTime, style: AppTextStyles.body,
             ),
             const SizedBox(height: AppSpacing.md),
-            TransactionItemList(items: _items, onAdd: _addItem, onRemove: _removeItem),
-            const SizedBox(height: AppSpacing.md),
+            if (!_type.isTransfer) ...[
+              TransactionItemList(items: _items, onAdd: _addItem, onRemove: _removeItem),
+              const SizedBox(height: AppSpacing.md),
+            ],
             TextFormField(
               controller: _noteCtrl, maxLines: 2,
               decoration: InputDecoration(
@@ -355,8 +394,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
               style: AppTextStyles.body,
             ),
             const SizedBox(height: AppSpacing.lg),
-            if (widget.isEdit && _members.length > 1) _buildMemberDropdown(),
-            if (!widget.isEdit) _buildRecurringToggle(),
+            if (!_type.isTransfer && widget.isEdit && _members.length > 1) _buildMemberDropdown(),
+            if (!_type.isTransfer && !widget.isEdit) _buildRecurringToggle(),
             if (widget.isEdit) _buildTypeChangeWarning(),
             if (widget.isEdit) _buildWalletChangeInfo(),
             FormSaveButton(isEdit: widget.isEdit, onPressed: _save),
@@ -371,13 +410,27 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   Widget _buildWalletDropdown() {
     final walletName = _wallets.where((w) => w.id == _walletId).firstOrNull?.name;
     return DropdownField<String>(
-      label: S.of(context, 'selectWallet'),
+      label: _type.isTransfer ? S.of(context, 'fromWallet') : S.of(context, 'selectWallet'),
       value: walletName,
       prefixIcon: Icons.account_balance_wallet_outlined,
       items: _wallets.map((w) => SelectionItem(value: w.id!, label: w.name, icon: Icons.account_balance_wallet_outlined)).toList(),
       selected: _walletId,
       onChanged: (v) => setState(() => _walletId = v),
       validator: (v) => v == null && _walletId == null ? S.of(context, 'selectWalletRequired') : null,
+    );
+  }
+
+  Widget _buildToWalletDropdown() {
+    final walletName = _wallets.where((w) => w.id == _toWalletId).firstOrNull?.name;
+    final available = _wallets.where((w) => w.id != _walletId).toList();
+    return DropdownField<String>(
+      label: S.of(context, 'toWallet'),
+      value: walletName,
+      prefixIcon: Icons.account_balance_wallet_outlined,
+      items: available.map((w) => SelectionItem(value: w.id!, label: w.name, icon: Icons.account_balance_wallet_outlined)).toList(),
+      selected: _toWalletId,
+      onChanged: (v) => setState(() => _toWalletId = v),
+      validator: (v) => v == null && _toWalletId == null ? S.of(context, 'selectDestWallet') : null,
     );
   }
 
