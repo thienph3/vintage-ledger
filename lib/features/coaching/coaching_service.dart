@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// ignore_for_file: use_build_context_synchronously
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/features/coaching/coaching_tip.dart';

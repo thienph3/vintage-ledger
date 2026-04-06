@@ -295,7 +295,6 @@ class TransactionService {
 
     // Refs
     final srcWalletRef = firestore.collection('accounts').doc(fundingAccountId).collection('wallets').doc(fundingWalletId);
-    final dstWalletRef = firestore.collection('accounts').doc(familyAccountId).collection('wallets').doc(walletId);
     final transferOutRef = firestore.collection('accounts').doc(fundingAccountId).collection('transactions').doc();
     final transferInRef = firestore.collection('accounts').doc(familyAccountId).collection('transactions').doc();
     final expenseRef = firestore.collection('accounts').doc(familyAccountId).collection('transactions').doc();

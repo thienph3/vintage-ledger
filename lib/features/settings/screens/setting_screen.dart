@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -71,7 +72,8 @@ class _SettingScreenState extends State<SettingScreen> {
         displayName: user.displayName ?? '',
         photoUrl: user.photoURL,
       );
-      if (mounted) setState(() {});
+      if (!mounted) return;
+      setState(() {});
       showAppSnackBar(context, S.of(context, 'googleLinked'));
     } catch (e) {
       if (!mounted) return;

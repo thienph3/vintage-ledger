@@ -8,7 +8,6 @@ import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/category/models/category.dart';
-import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';

@@ -40,10 +40,10 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Future<void> _load() async {
     try {
+      final locale = Localizations.localeOf(context).languageCode;
       final dashboard = await sl.transactionService.getDashboard();
       final streak = await sl.settingService.recordDailyUsage();
       final lastWeekTxns = await _loadLastWeek();
-      final locale = Localizations.localeOf(context).languageCode;
       final insights = InsightService.generate(dashboard, lastWeekTxns, locale);
       if (!mounted) return;
       setState(() {
