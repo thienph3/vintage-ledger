@@ -122,30 +122,35 @@ class TransactionService {
       final newWalletId = updated.transaction.walletId;
       final sameWallet = oldWalletId == newWalletId;
 
+      // Read ALL wallets first (before any writes)
+      final walletRef = sl.walletService.repo.collection.doc(newWalletId);
+      final walletSnap = await txn.get(walletRef);
+      if (!walletSnap.exists) throw Exception("Wallet not found");
+
+      DocumentSnapshot<Map<String, dynamic>>? oldWalletSnap;
+      DocumentReference<Map<String, dynamic>>? oldWalletRef;
+      if (!sameWallet && oldWalletId.isNotEmpty) {
+        oldWalletRef = sl.walletService.repo.collection.doc(oldWalletId);
+        oldWalletSnap = await txn.get(oldWalletRef);
+      }
+
+      // Now do all writes
       if (sameWallet) {
-        final walletRef = sl.walletService.repo.collection.doc(newWalletId);
-        final walletSnap = await txn.get(walletRef);
-        if (!walletSnap.exists) throw Exception("Wallet not found");
         var balance = walletSnap.data()?['balance'] as int? ?? 0;
         balance += oldType.isIncome ? -oldAmount : oldAmount;
         balance += updated.transaction.type.isIncome ? updated.transaction.amount : -updated.transaction.amount;
         txn.update(walletRef, {'balance': balance});
       } else {
         // Revert old wallet
-        final oldWalletRef = sl.walletService.repo.collection.doc(oldWalletId);
-        final oldWalletSnap = await txn.get(oldWalletRef);
-        if (oldWalletSnap.exists) {
+        if (oldWalletSnap != null && oldWalletSnap.exists && oldWalletRef != null) {
           final oldBalance = oldWalletSnap.data()?['balance'] as int? ?? 0;
           final revert = oldType.isIncome ? -oldAmount : oldAmount;
           txn.update(oldWalletRef, {'balance': oldBalance + revert});
         }
         // Apply to new wallet
-        final newWalletRef = sl.walletService.repo.collection.doc(newWalletId);
-        final newWalletSnap = await txn.get(newWalletRef);
-        if (!newWalletSnap.exists) throw Exception("Wallet not found");
-        final newBalance = newWalletSnap.data()?['balance'] as int? ?? 0;
+        final newBalance = walletSnap.data()?['balance'] as int? ?? 0;
         final apply = updated.transaction.type.isIncome ? updated.transaction.amount : -updated.transaction.amount;
-        txn.update(newWalletRef, {'balance': newBalance + apply});
+        txn.update(walletRef, {'balance': newBalance + apply});
       }
 
       txn.update(txnRef, newData);
