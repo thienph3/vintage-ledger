@@ -354,4 +354,10 @@ const Map<String, String> vi = {
   'paymentHistory': 'Lịch sử trả',
   'debtSettled': 'Tất toán rồi 🎉',
   'noDebts': 'Chưa có khoản nợ nào',
+
+  // Funding source
+  'fundingSource': 'Nguồn tiền',
+  'fundingDefault': 'Ví gia đình (mặc định)',
+  'fundingPersonal': 'Ví cá nhân',
+  'fundingAutoTransfer': 'Sẽ tự chuyển {amount} từ {wallet}',
 };

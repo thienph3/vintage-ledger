@@ -283,6 +283,75 @@ class TransactionService {
     return txnARef.id;
   }
 
+  // ── Funded Expense (personal wallet → family expense) ──
+
+  Future<String> createWithFunding({
+    required String walletId,
+    required String categoryId,
+    required int amount,
+    String? note,
+    required int date,
+    required String fundingWalletId,
+    required String fundingAccountId,
+  }) async {
+    if (amount <= 0) throw Exception('Amount must be greater than 0');
+    final familyAccountId = sl.appState.currentAccountId;
+    final firestore = _repo.firestore;
+    final now = FieldValue.serverTimestamp();
+
+    // Refs
+    final srcWalletRef = firestore.collection('accounts').doc(fundingAccountId).collection('wallets').doc(fundingWalletId);
+    final dstWalletRef = firestore.collection('accounts').doc(familyAccountId).collection('wallets').doc(walletId);
+    final transferOutRef = firestore.collection('accounts').doc(fundingAccountId).collection('transactions').doc();
+    final transferInRef = firestore.collection('accounts').doc(familyAccountId).collection('transactions').doc();
+    final expenseRef = firestore.collection('accounts').doc(familyAccountId).collection('transactions').doc();
+
+    // Read balances
+    final srcSnap = await srcWalletRef.get();
+    final dstSnap = await dstWalletRef.get();
+
+    final batch = firestore.batch();
+
+    // Transfer out (personal)
+    batch.set(transferOutRef, {
+      'wallet_id': fundingWalletId, 'category_id': '', 'type': 'transfer_out',
+      'amount': amount, 'note': note, 'date': date,
+      'created_by': sl.appState.currentUserId,
+      'to_wallet_id': walletId, 'to_account_id': familyAccountId,
+      'linked_transaction_id': transferInRef.id,
+      'created_at': now, 'updated_at': now,
+    });
+
+    // Transfer in (family)
+    batch.set(transferInRef, {
+      'wallet_id': walletId, 'category_id': '', 'type': 'transfer_in',
+      'amount': amount, 'note': note, 'date': date,
+      'created_by': sl.appState.currentUserId,
+      'to_wallet_id': fundingWalletId, 'to_account_id': fundingAccountId,
+      'linked_transaction_id': transferOutRef.id,
+      'created_at': now, 'updated_at': now,
+    });
+
+    // Expense (family)
+    batch.set(expenseRef, {
+      'wallet_id': walletId, 'category_id': categoryId, 'type': 'expense',
+      'amount': amount, 'note': note, 'date': date,
+      'created_by': sl.appState.currentUserId,
+      'funding_wallet_id': fundingWalletId,
+      'funding_account_id': fundingAccountId,
+      'funding_transfer_id': transferOutRef.id,
+      'created_at': now, 'updated_at': now,
+    });
+
+    // Wallet balance updates (transfer in + expense out cancel for family wallet)
+    batch.update(srcWalletRef, {'balance': (srcSnap.data()?['balance'] as int? ?? 0) - amount});
+    // Family wallet: +amount (transfer in) -amount (expense) = net 0
+    // No update needed for family wallet balance
+
+    await batch.commit();
+    return expenseRef.id;
+  }
+
   void _logActivity(String action, int amount, String? note) {
     final accountId = sl.appState.currentAccountId;
     final userId = sl.appState.currentUserId;

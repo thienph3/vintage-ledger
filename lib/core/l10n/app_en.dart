@@ -354,4 +354,10 @@ const Map<String, String> en = {
   'paymentHistory': 'Payment history',
   'debtSettled': 'Settled \uD83C\uDF89',
   'noDebts': 'No debts yet',
+
+  // Funding source
+  'fundingSource': 'Funding source',
+  'fundingDefault': 'Family wallet (default)',
+  'fundingPersonal': 'Personal wallet',
+  'fundingAutoTransfer': 'Will auto-transfer {amount} from {wallet}',
 };

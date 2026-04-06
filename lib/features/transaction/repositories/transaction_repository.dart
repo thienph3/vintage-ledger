@@ -28,6 +28,9 @@ class TransactionRepository extends FirestoreRepository<TransactionWithItems> {
         toWalletId: data['to_wallet_id'],
         toAccountId: data['to_account_id'],
         linkedTransactionId: data['linked_transaction_id'],
+        fundingWalletId: data['funding_wallet_id'],
+        fundingAccountId: data['funding_account_id'],
+        fundingTransferId: data['funding_transfer_id'],
       ),
       items: items,
     );
@@ -47,6 +50,9 @@ class TransactionRepository extends FirestoreRepository<TransactionWithItems> {
       if (t.toWalletId != null) 'to_wallet_id': t.toWalletId,
       if (t.toAccountId != null) 'to_account_id': t.toAccountId,
       if (t.linkedTransactionId != null) 'linked_transaction_id': t.linkedTransactionId,
+      if (t.fundingWalletId != null) 'funding_wallet_id': t.fundingWalletId,
+      if (t.fundingAccountId != null) 'funding_account_id': t.fundingAccountId,
+      if (t.fundingTransferId != null) 'funding_transfer_id': t.fundingTransferId,
       'items': item.items.map((i) => i.toMap()).toList(),
     };
   }
