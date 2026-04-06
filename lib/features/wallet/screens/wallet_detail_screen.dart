@@ -262,8 +262,8 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
             if (txns.isEmpty) {
               return EmptyState(emoji: '📝', message: S.of(context, 'emptyTransactionHint'));
             }
-            final monthIncome = txns.where((t) => t.transaction.type == TransactionType.income).fold(0, (s, t) => s + t.transaction.amount);
-            final monthExpense = txns.where((t) => t.transaction.type == TransactionType.expense).fold(0, (s, t) => s + t.transaction.amount);
+            final monthIncome = txns.where((t) => t.transaction.type == TransactionType.income || t.transaction.type == TransactionType.transferIn).fold(0, (s, t) => s + t.transaction.amount);
+            final monthExpense = txns.where((t) => t.transaction.type == TransactionType.expense || t.transaction.type == TransactionType.transferOut).fold(0, (s, t) => s + t.transaction.amount);
             return Column(
               children: [
                 IncomeExpenseSummaryRow(income: monthIncome, expense: monthExpense),

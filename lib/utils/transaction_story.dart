@@ -12,16 +12,19 @@ class TransactionStory {
     String? note,
     String? walletName,
     String? toWalletName,
+    String? toAccountName,
   }) {
     final amountStr = AmountFormatter.formatCompactCurrency(amount, locale);
 
     if (type.isTransferOut) {
       final dest = toWalletName ?? '?';
-      return '$actorName chuyển $amountStr → $dest 💸';
+      final prefix = toAccountName != null ? '$toAccountName / ' : '';
+      return '$actorName chuyển $amountStr → $prefix$dest 💸';
     }
     if (type.isTransferIn) {
       final src = toWalletName ?? '?';
-      return 'Nhận $amountStr từ $src 💸';
+      final prefix = toAccountName != null ? '$toAccountName / ' : '';
+      return 'Nhận $amountStr từ $prefix$src 💸';
     }
 
     final emoji = getCategoryEmoji(categoryName);

@@ -347,12 +347,14 @@ class TransactionService {
       final dstRef = sl.walletService.repo.collection.doc(destWalletId);
       final txnOutRef = _repo.collection.doc();
       final txnInRef = _repo.collection.doc();
+      final srcName = sl.cache.walletNameMap[sourceWalletId] ?? '';
+      final dstName = sl.cache.walletNameMap[destWalletId] ?? '';
 
       final outData = {
         'wallet_id': sourceWalletId, 'category_id': '', 'type': 'transfer_out',
         'amount': amount, 'note': note, 'date': date,
         'created_by': sl.appState.currentUserId,
-        'to_wallet_id': destWalletId,
+        'to_wallet_id': destWalletId, 'to_wallet_name': dstName,
         'linked_transaction_id': txnInRef.id,
         'created_at': now, 'updated_at': now,
       };
@@ -360,7 +362,7 @@ class TransactionService {
         'wallet_id': destWalletId, 'category_id': '', 'type': 'transfer_in',
         'amount': amount, 'note': note, 'date': date,
         'created_by': sl.appState.currentUserId,
-        'to_wallet_id': sourceWalletId,
+        'to_wallet_id': sourceWalletId, 'to_wallet_name': srcName,
         'linked_transaction_id': txnOutRef.id,
         'created_at': now, 'updated_at': now,
       };
@@ -383,12 +385,23 @@ class TransactionService {
     final txnARef = firestore.collection('accounts').doc(sourceAccountId).collection('transactions').doc();
     final txnBRef = firestore.collection('accounts').doc(destAccountId).collection('transactions').doc();
 
+    // Resolve names for display
+    final srcWalletSnap = await srcWalletRef.get();
+    final dstWalletSnap = await dstWalletRef.get();
+    final srcWalletName = srcWalletSnap.data()?['name'] as String? ?? '';
+    final dstWalletName = dstWalletSnap.data()?['name'] as String? ?? '';
+    final srcAccount = await sl.accountService.getAccount(sourceAccountId);
+    final dstAccount = await sl.accountService.getAccount(destAccountId);
+    final srcAccountName = srcAccount?.name ?? '';
+    final dstAccountName = dstAccount?.name ?? '';
+
     final batch = firestore.batch();
     batch.set(txnARef, {
       'wallet_id': sourceWalletId, 'category_id': '', 'type': 'transfer_out',
       'amount': amount, 'note': note, 'date': date,
       'created_by': sl.appState.currentUserId,
       'to_wallet_id': destWalletId, 'to_account_id': destAccountId,
+      'to_wallet_name': dstWalletName, 'to_account_name': dstAccountName,
       'linked_transaction_id': txnBRef.id,
       'created_at': now, 'updated_at': now,
     });
@@ -397,15 +410,14 @@ class TransactionService {
       'amount': amount, 'note': note, 'date': date,
       'created_by': sl.appState.currentUserId,
       'to_wallet_id': sourceWalletId, 'to_account_id': sourceAccountId,
+      'to_wallet_name': srcWalletName, 'to_account_name': srcAccountName,
       'linked_transaction_id': txnARef.id,
       'created_at': now, 'updated_at': now,
     });
 
-    // Read balances then update in batch (eventual consistency OK for transfers)
-    final srcSnap = await srcWalletRef.get();
-    final dstSnap = await dstWalletRef.get();
-    batch.update(srcWalletRef, {'balance': (srcSnap.data()?['balance'] as int? ?? 0) - amount});
-    batch.update(dstWalletRef, {'balance': (dstSnap.data()?['balance'] as int? ?? 0) + amount});
+    // Balance updates
+    batch.update(srcWalletRef, {'balance': (srcWalletSnap.data()?['balance'] as int? ?? 0) - amount});
+    batch.update(dstWalletRef, {'balance': (dstWalletSnap.data()?['balance'] as int? ?? 0) + amount});
 
     await batch.commit();
     return txnARef.id;

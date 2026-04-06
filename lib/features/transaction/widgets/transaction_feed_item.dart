@@ -45,7 +45,8 @@ class TransactionFeedItem extends StatelessWidget {
       locale: locale,
       note: t.note,
       walletName: walletNames[t.walletId],
-      toWalletName: walletNames[t.toWalletId],
+      toWalletName: t.toWalletName ?? walletNames[t.toWalletId],
+      toAccountName: t.toAccountName,
     );
     final time = timeFormatter != null
         ? timeFormatter!(t.date)

@@ -58,7 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
   int _todayExpense(List<TransactionWithItems> txns) => txns
-      .where((t) => t.transaction.type == TransactionType.expense)
+      .where((t) =>
+          t.transaction.type == TransactionType.expense ||
+          (t.transaction.type.isTransferOut && t.transaction.toAccountId != null))
       .fold(0, (s, t) => s + t.transaction.amount);
 
   String? _resolveDefaultWallet(List<Wallet> wallets) {

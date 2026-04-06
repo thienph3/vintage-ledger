@@ -12,6 +12,8 @@ class TransactionModel {
   final String? toWalletId;
   final String? toAccountId;
   final String? linkedTransactionId;
+  final String? toWalletName;
+  final String? toAccountName;
   final String? fundingWalletId;
   final String? fundingAccountId;
   final String? fundingTransferId;
@@ -29,6 +31,8 @@ class TransactionModel {
     this.toWalletId,
     this.toAccountId,
     this.linkedTransactionId,
+    this.toWalletName,
+    this.toAccountName,
     this.fundingWalletId,
     this.fundingAccountId,
     this.fundingTransferId,
@@ -39,6 +43,7 @@ class TransactionModel {
     String? id, String? walletId, String? categoryId, TransactionType? type,
     int? amount, String? note, int? date, String? createdBy,
     String? toWalletId, String? toAccountId, String? linkedTransactionId,
+    String? toWalletName, String? toAccountName,
     String? fundingWalletId, String? fundingAccountId, String? fundingTransferId,
     String? goalId,
   }) {
@@ -54,6 +59,8 @@ class TransactionModel {
       toWalletId: toWalletId ?? this.toWalletId,
       toAccountId: toAccountId ?? this.toAccountId,
       linkedTransactionId: linkedTransactionId ?? this.linkedTransactionId,
+      toWalletName: toWalletName ?? this.toWalletName,
+      toAccountName: toAccountName ?? this.toAccountName,
       fundingWalletId: fundingWalletId ?? this.fundingWalletId,
       fundingAccountId: fundingAccountId ?? this.fundingAccountId,
       fundingTransferId: fundingTransferId ?? this.fundingTransferId,

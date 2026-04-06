@@ -203,7 +203,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   Map<int, int> _buildDailyExpenseMap() {
     final map = <int, int>{};
     for (var t in _filtered) {
-      if (!t.transaction.type.isExpense) continue;
+      if (!_countsAsExpense(t)) continue;
       final day = DateTime.fromMillisecondsSinceEpoch(t.transaction.date).day;
       map[day] = (map[day] ?? 0) + t.transaction.amount;
     }
@@ -219,12 +219,32 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
   Map<String, String> get _walletNameMap => sl.cache.walletNameMap;
 
+  bool _countsAsExpense(TransactionWithItems t) {
+    final type = t.transaction.type;
+    if (type.isExpense) return true;
+    if (!type.isTransfer) return false;
+    // Transfer: count if viewing single wallet, or if cross-account
+    final viewingSingleWallet = widget.walletId != null || _filterWalletId != null;
+    if (viewingSingleWallet) return type.isTransferOut;
+    // All wallets: only count cross-account transfers
+    return type.isTransferOut && t.transaction.toAccountId != null;
+  }
+
+  bool _countsAsIncome(TransactionWithItems t) {
+    final type = t.transaction.type;
+    if (type.isIncome) return true;
+    if (!type.isTransfer) return false;
+    final viewingSingleWallet = widget.walletId != null || _filterWalletId != null;
+    if (viewingSingleWallet) return type.isTransferIn;
+    return type.isTransferIn && t.transaction.toAccountId != null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final txns = _filtered;
     final locale = Localizations.localeOf(context).languageCode;
-    final totalExpense = txns.where((t) => t.transaction.type.isExpense).fold<int>(0, (s, t) => s + t.transaction.amount);
-    final totalIncome = txns.where((t) => t.transaction.type.isIncome).fold<int>(0, (s, t) => s + t.transaction.amount);
+    final totalExpense = txns.where(_countsAsExpense).fold<int>(0, (s, t) => s + t.transaction.amount);
+    final totalIncome = txns.where(_countsAsIncome).fold<int>(0, (s, t) => s + t.transaction.amount);
 
     return AppScaffold(
       title: S.of(context, 'transactionLedger'),
@@ -652,6 +672,6 @@ class _DayGroup {
   final DateTime date;
   final List<TransactionWithItems> items;
   _DayGroup({required this.day, required this.date, required this.items});
-  int get income => items.where((t) => t.transaction.type.isIncome).fold(0, (s, t) => s + t.transaction.amount);
-  int get expense => items.where((t) => t.transaction.type.isExpense).fold(0, (s, t) => s + t.transaction.amount);
+  int get income => items.where((t) => t.transaction.type.isIncome || t.transaction.type.isTransferIn).fold(0, (s, t) => s + t.transaction.amount);
+  int get expense => items.where((t) => t.transaction.type.isExpense || t.transaction.type.isTransferOut).fold(0, (s, t) => s + t.transaction.amount);
 }
