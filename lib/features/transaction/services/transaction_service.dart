@@ -172,17 +172,28 @@ class TransactionService {
       final walletId = data['wallet_id'] as String? ?? '';
 
       if (type == TransactionType.transfer) {
-        // Same-account transfer: revert both wallets
+        // Same-account transfer: read ALL wallets first, then write
         final toWalletId = data['to_wallet_id'] as String? ?? '';
+        DocumentSnapshot<Map<String, dynamic>>? srcSnap;
+        DocumentSnapshot<Map<String, dynamic>>? dstSnap;
+        DocumentReference<Map<String, dynamic>>? srcRef;
+        DocumentReference<Map<String, dynamic>>? dstRef;
+
         if (walletId.isNotEmpty) {
-          final ref = sl.walletService.repo.collection.doc(walletId);
-          final snap = await txn.get(ref);
-          if (snap.exists) txn.update(ref, {'balance': (snap.data()?['balance'] as int? ?? 0) + amount});
+          srcRef = sl.walletService.repo.collection.doc(walletId);
+          srcSnap = await txn.get(srcRef);
         }
         if (toWalletId.isNotEmpty) {
-          final ref = sl.walletService.repo.collection.doc(toWalletId);
-          final snap = await txn.get(ref);
-          if (snap.exists) txn.update(ref, {'balance': (snap.data()?['balance'] as int? ?? 0) - amount});
+          dstRef = sl.walletService.repo.collection.doc(toWalletId);
+          dstSnap = await txn.get(dstRef);
+        }
+
+        // Now write
+        if (srcSnap != null && srcSnap.exists && srcRef != null) {
+          txn.update(srcRef, {'balance': (srcSnap.data()?['balance'] as int? ?? 0) + amount});
+        }
+        if (dstSnap != null && dstSnap.exists && dstRef != null) {
+          txn.update(dstRef, {'balance': (dstSnap.data()?['balance'] as int? ?? 0) - amount});
         }
       } else if (walletId.isNotEmpty) {
         final walletRef = sl.walletService.repo.collection.doc(walletId);
