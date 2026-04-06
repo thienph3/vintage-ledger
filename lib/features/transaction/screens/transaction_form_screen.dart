@@ -95,7 +95,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
     }
 
     _loadCategories();
-    if (widget.walletId == null) _loadWallets();
+    _loadWallets();
     _loadMembers();
   }
 
@@ -330,10 +330,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             const SizedBox(height: AppSpacing.lg),
             AmountInputField(controller: _amountCtrl),
             const SizedBox(height: AppSpacing.md),
-            if (widget.walletId == null) ...[
-              _buildWalletDropdown(),
-              const SizedBox(height: AppSpacing.md),
-            ],
+            _buildWalletDropdown(),
+            const SizedBox(height: AppSpacing.md),
             if (_type.isTransfer) ...[
               _buildToWalletDropdown(),
               const SizedBox(height: AppSpacing.md),
