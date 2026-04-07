@@ -2,6 +2,7 @@ const Map<String, String> goalVi = {
   'goalTitle': 'Mục tiêu',
   'goals': 'Mục tiêu',
   'allGoals': 'Tất cả',
+  'noGoals': 'Chưa có mục tiêu nào',
   'addGoal': 'Thêm mục tiêu',
   'editGoal': 'Sửa mục tiêu',
   'deleteGoal': 'Xóa mục tiêu',

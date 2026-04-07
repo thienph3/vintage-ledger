@@ -2,6 +2,7 @@ const Map<String, String> goalEn = {
   'goalTitle': 'Goals',
   'goals': 'Goals',
   'allGoals': 'All',
+  'noGoals': 'No goals yet',
   'addGoal': 'Add goal',
   'editGoal': 'Edit goal',
   'deleteGoal': 'Delete goal',
