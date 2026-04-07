@@ -1,1 +1,95 @@
-import 'dart:async';\n\nclass CacheEntry<T> {\n  final T value;\n  final DateTime createdAt;\n  final Duration? ttl;\n\n  CacheEntry(this.value, this.createdAt, this.ttl);\n\n  bool get isExpired {\n    if (ttl == null) return false;\n    return DateTime.now().difference(createdAt) > ttl!;\n  }\n}\n\nclass CacheService {\n  static final CacheService _instance = CacheService._internal();\n  factory CacheService() => _instance;\n  CacheService._internal();\n\n  final Map<String, CacheEntry> _cache = {};\n  Timer? _cleanupTimer;\n\n  static const Duration _defaultTtl = Duration(minutes: 5);\n  static const Duration _cleanupInterval = Duration(minutes: 1);\n\n  void _startCleanupTimer() {\n    _cleanupTimer?.cancel();\n    _cleanupTimer = Timer.periodic(_cleanupInterval, (_) => _cleanup());\n  }\n\n  void _cleanup() {\n    final expiredKeys = <String>[];\n    for (final entry in _cache.entries) {\n      if (entry.value.isExpired) {\n        expiredKeys.add(entry.key);\n      }\n    }\n    for (final key in expiredKeys) {\n      _cache.remove(key);\n    }\n  }\n\n  T? get<T>(String key) {\n    final entry = _cache[key];\n    if (entry == null) return null;\n    if (entry.isExpired) {\n      _cache.remove(key);\n      return null;\n    }\n    return entry.value as T?;\n  }\n\n  void set<T>(String key, T value, {Duration? ttl}) {\n    if (_cleanupTimer == null) _startCleanupTimer();\n    _cache[key] = CacheEntry(value, DateTime.now(), ttl ?? _defaultTtl);\n  }\n\n  void invalidate(String key) {\n    _cache.remove(key);\n  }\n\n  void invalidatePattern(String pattern) {\n    final regex = RegExp(pattern);\n    final keysToRemove = _cache.keys.where((key) => regex.hasMatch(key)).toList();\n    for (final key in keysToRemove) {\n      _cache.remove(key);\n    }\n  }\n\n  void clear() {\n    _cache.clear();\n    _cleanupTimer?.cancel();\n    _cleanupTimer = null;\n  }\n\n  int get size => _cache.length;\n\n  // Convenience methods for common cache patterns\n  Future<T> getOrSet<T>(String key, Future<T> Function() fetcher, {Duration? ttl}) async {\n    final cached = get<T>(key);\n    if (cached != null) return cached;\n    \n    final value = await fetcher();\n    set(key, value, ttl: ttl);\n    return value;\n  }\n\n  // Cache keys for different data types\n  static String userProfileKey(String userId) => 'user_profile:$userId';\n  static String accountKey(String accountId) => 'account:$accountId';\n  static String walletKey(String walletId) => 'wallet:$walletId';\n  static String categoriesKey(String accountId) => 'categories:$accountId';\n  static String memberProfilesKey(String accountId) => 'member_profiles:$accountId';\n}\n
+import 'dart:async';
+
+class CacheEntry<T> {
+  final T value;
+  final DateTime createdAt;
+  final Duration? ttl;
+
+  CacheEntry(this.value, this.createdAt, this.ttl);
+
+  bool get isExpired {
+    if (ttl == null) return false;
+    return DateTime.now().difference(createdAt) > ttl!;
+  }
+}
+
+class CacheService {
+  static final CacheService _instance = CacheService._internal();
+  factory CacheService() => _instance;
+  CacheService._internal();
+
+  final Map<String, CacheEntry> _cache = {};
+  Timer? _cleanupTimer;
+
+  static const Duration _defaultTtl = Duration(minutes: 5);
+  static const Duration _cleanupInterval = Duration(minutes: 1);
+
+  void _startCleanupTimer() {
+    _cleanupTimer?.cancel();
+    _cleanupTimer = Timer.periodic(_cleanupInterval, (_) => _cleanup());
+  }
+
+  void _cleanup() {
+    final expiredKeys = <String>[];
+    for (final entry in _cache.entries) {
+      if (entry.value.isExpired) {
+        expiredKeys.add(entry.key);
+      }
+    }
+    for (final key in expiredKeys) {
+      _cache.remove(key);
+    }
+  }
+
+  T? get<T>(String key) {
+    final entry = _cache[key];
+    if (entry == null) return null;
+    if (entry.isExpired) {
+      _cache.remove(key);
+      return null;
+    }
+    return entry.value as T?;
+  }
+
+  void set<T>(String key, T value, {Duration? ttl}) {
+    if (_cleanupTimer == null) _startCleanupTimer();
+    _cache[key] = CacheEntry(value, DateTime.now(), ttl ?? _defaultTtl);
+  }
+
+  void invalidate(String key) {
+    _cache.remove(key);
+  }
+
+  void invalidatePattern(String pattern) {
+    final regex = RegExp(pattern);
+    final keysToRemove = _cache.keys.where((key) => regex.hasMatch(key)).toList();
+    for (final key in keysToRemove) {
+      _cache.remove(key);
+    }
+  }
+
+  void clear() {
+    _cache.clear();
+    _cleanupTimer?.cancel();
+    _cleanupTimer = null;
+  }
+
+  int get size => _cache.length;
+
+  // Convenience methods for common cache patterns
+  Future<T> getOrSet<T>(String key, Future<T> Function() fetcher, {Duration? ttl}) async {
+    final cached = get<T>(key);
+    if (cached != null) return cached;
+    
+    final value = await fetcher();
+    set(key, value, ttl: ttl);
+    return value;
+  }
+
+  // Cache keys for different data types
+  static String userProfileKey(String userId) => 'user_profile:$userId';
+  static String accountKey(String accountId) => 'account:$accountId';
+  static String walletKey(String walletId) => 'wallet:$walletId';
+  static String categoriesKey(String accountId) => 'categories:$accountId';
+  static String memberProfilesKey(String accountId) => 'member_profiles:$accountId';
+}

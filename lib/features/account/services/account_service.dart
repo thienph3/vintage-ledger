@@ -95,7 +95,7 @@ class AccountService {
 
     // Batch read optimization: 1 + 1 reads instead of 1 + N reads
     final accountRefs = accountIds.map((id) => _accounts.doc(id)).toList();
-    final docs = await _firestore.getAll(accountRefs);
+    final docs = await Future.wait(accountRefs.map((ref) => ref.get()));
     ReadCounter.trackBatchRead('getAccounts', ['accounts'], accountIds.length);
     
     final results = <Account>[];
@@ -237,15 +237,15 @@ class AccountService {
     
     // Batch read optimization: 1 read instead of N reads
     final userRefs = memberIds.map((id) => _users.doc(id)).toList();
-    final docs = await _firestore.getAll(userRefs);
+    final docs = await Future.wait(userRefs.map((ref) => ref.get()));
     ReadCounter.trackBatchRead('getMemberProfiles', ['users'], memberIds.length);
     
-    final results = <Map<String, String>>[];
+    final results = <Map<String, dynamic>>[];
     for (int i = 0; i < docs.length; i++) {
       final doc = docs[i];
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
-        final profile = {
+        final profile = <String, dynamic>{
           'id': memberIds[i],
           'name': data['display_name'] ?? '',
           'email': data['email'] ?? '',
