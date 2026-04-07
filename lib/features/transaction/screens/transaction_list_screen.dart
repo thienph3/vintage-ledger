@@ -351,7 +351,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _buildToggleIcon(Icons.view_list_rounded, ViewMode.list),
-        const SizedBox(width: 4),
+        const SizedBox(width: AppSpacing.xs),
         _buildToggleIcon(Icons.calendar_month_rounded, ViewMode.calendar),
       ],
     );
@@ -437,7 +437,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     return Column(
       children: [
         Text(label, style: AppTextStyles.caption),
-        const SizedBox(height: 2),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           AmountFormatter.formatCompactCurrency(amount, locale),
           style: AppTextStyles.bodyBold.copyWith(color: color),

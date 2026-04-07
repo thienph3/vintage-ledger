@@ -169,7 +169,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Tổng số', style: AppTextStyles.caption),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       AmountFormatter.formatCurrency(debt.totalAmount, 'vi'),
                       style: AppTextStyles.headline,
@@ -182,7 +182,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Đã trả', style: AppTextStyles.caption),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       AmountFormatter.formatCurrency(debt.paidAmount, 'vi'),
                       style: AppTextStyles.headline.copyWith(color: AppColors.income),
@@ -197,7 +197,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Còn lại', style: AppTextStyles.caption),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 AmountFormatter.formatCurrency(debt.remainingAmount, 'vi'),
                 style: AppTextStyles.headline.copyWith(

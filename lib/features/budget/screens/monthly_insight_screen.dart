@@ -237,9 +237,9 @@ class _MonthlyInsightScreenState extends State<MonthlyInsightScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(cat, style: AppTextStyles.caption),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: AppSpacing.xs),
                   _bar(current, maxAmount, AppColors.expense),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: AppSpacing.xs),
                   _bar(last, maxAmount, AppColors.divider),
                 ],
               ),
@@ -272,7 +272,7 @@ class _MonthlyInsightScreenState extends State<MonthlyInsightScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-        const SizedBox(width: 4),
+        const SizedBox(width: AppSpacing.xs),
         Text(label, style: AppTextStyles.caption),
       ],
     );

@@ -61,7 +61,7 @@ class GoalSummaryWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Đang thực hiện', style: AppTextStyles.caption),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             '${goals.length} mục tiêu',
                             style: AppTextStyles.bodyBold,
@@ -74,7 +74,7 @@ class GoalSummaryWidget extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Tiến độ', style: AppTextStyles.caption),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             '${(overallProgress * 100).toInt()}%',
                             style: AppTextStyles.bodyBold.copyWith(color: AppColors.income),

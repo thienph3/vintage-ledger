@@ -72,7 +72,7 @@ class BreakdownChart extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(
                         entries[i].key,

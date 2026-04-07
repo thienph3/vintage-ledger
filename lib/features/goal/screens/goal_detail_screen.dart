@@ -139,7 +139,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Hiện tại', style: AppTextStyles.caption),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       AmountFormatter.formatCurrency(goal.currentAmount, 'vi'),
                       style: AppTextStyles.headline.copyWith(color: AppColors.income),
@@ -152,7 +152,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('Mục tiêu', style: AppTextStyles.caption),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: AppSpacing.xs),
                     Text(
                       AmountFormatter.formatCurrency(goal.targetAmount, 'vi'),
                       style: AppTextStyles.headline,
@@ -167,7 +167,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Còn lại', style: AppTextStyles.caption),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 AmountFormatter.formatCurrency(goal.remainingAmount, 'vi'),
                 style: AppTextStyles.headline.copyWith(color: AppColors.expense),

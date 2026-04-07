@@ -66,7 +66,7 @@ class _BudgetSummaryCardState extends State<BudgetSummaryCard> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(S.of(context, 'viewAll'), style: AppTextStyles.link),
-                        const SizedBox(width: 4),
+                        const SizedBox(width: AppSpacing.xs),
                         const Icon(Icons.arrow_forward, size: 16),
                       ],
                     ),

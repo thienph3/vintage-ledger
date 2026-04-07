@@ -78,7 +78,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
           child: Column(
             children: [
               Icon(icon, size: 16, color: isSelected ? Colors.white : AppColors.textSecondary),
-              const SizedBox(height: 2),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 labels[filter]!,
                 style: AppTextStyles.caption.copyWith(
@@ -280,7 +280,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(S.of(context, 'delete'), style: const TextStyle(color: AppColors.error)),
+            child: Text(S.of(context, 'delete'), style: AppTextStyles.buttonLabel.copyWith(color: AppColors.error)),
           ),
         ],
       ),

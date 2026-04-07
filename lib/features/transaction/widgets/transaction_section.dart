@@ -39,7 +39,7 @@ class TransactionSection extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(S.of(context, 'viewAll'), style: AppTextStyles.link),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: AppSpacing.xs),
                   const Icon(Icons.arrow_forward, size: 14),
                 ],
               ),

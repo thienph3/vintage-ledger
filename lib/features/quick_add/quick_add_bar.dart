@@ -221,7 +221,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: _suggestions.length,
-                    separatorBuilder: (_, _) => const SizedBox(width: 6),
+                    separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.xs),
                     itemBuilder: (_, i) {
                       final e = _suggestions[i];
                       return ActionChip(
@@ -282,7 +282,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
                 const SizedBox(width: AppSpacing.sm),
                 _saving
                     ? const SizedBox(width: 40, height: 40, child: Padding(
-                        padding: EdgeInsets.all(8),
+                        padding: EdgeInsets.all(AppSpacing.sm),
                         child: CircularProgressIndicator(strokeWidth: 2),
                       ))
                     : IconButton(
@@ -328,7 +328,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
           size: 14,
           color: isIncome ? AppColors.income : AppColors.expense,
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: AppSpacing.xs),
         Text(amountStr, style: AppTextStyles.bodySmall.copyWith(
           color: isIncome ? AppColors.income : AppColors.expense,
           fontWeight: FontWeight.w600,
@@ -382,10 +382,10 @@ class _QuickAddBarState extends State<QuickAddBar> {
       child: Row(
         children: [
           const Icon(Icons.account_balance_wallet, size: 14, color: AppColors.textSecondary),
-          const SizedBox(width: 4),
+          const SizedBox(width: AppSpacing.xs),
           Text(name, style: AppTextStyles.caption),
           if (widget.wallets.length > 1) ...[
-            const SizedBox(width: 2),
+            const SizedBox(width: AppSpacing.xs),
             const Icon(Icons.unfold_more, size: 12, color: AppColors.textSecondary),
           ],
         ],

@@ -75,7 +75,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(emoji, style: AppTextStyles.emoji),
-              const SizedBox(height: 4),
+              const SizedBox(height: AppSpacing.xs),
               Text(
                 label,
                 style: AppTextStyles.caption.copyWith(
@@ -265,7 +265,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(S.of(context, 'delete'), style: const TextStyle(color: AppColors.error)),
+            child: Text(S.of(context, 'delete'), style: AppTextStyles.buttonLabel.copyWith(color: AppColors.error)),
           ),
         ],
       ),

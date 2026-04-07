@@ -135,7 +135,7 @@ class _ChartSectionState extends State<ChartSection> {
           height: 8,
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: AppSpacing.xs),
         Text(label, style: AppTextStyles.caption),
       ],
     );

@@ -479,7 +479,7 @@ class _SettingScreenState extends State<SettingScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 16, color: c),
-            const SizedBox(width: 6),
+            const SizedBox(width: AppSpacing.xs),
             Text(label, style: AppTextStyles.caption.copyWith(color: c, fontWeight: FontWeight.w600)),
           ],
         ),

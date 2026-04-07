@@ -61,7 +61,7 @@ class FeedItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(text, style: AppTextStyles.body),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(time, style: AppTextStyles.caption),
                 ],
               ),

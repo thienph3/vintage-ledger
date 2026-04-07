@@ -94,7 +94,7 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
         child: Row(
           children: [
             Icon(getCategoryIcon(catIcon), size: 22, color: AppColors.primary),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.md2),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

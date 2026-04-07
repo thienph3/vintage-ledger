@@ -112,7 +112,7 @@ class CalendarGrid extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 )
               else
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md2),
             ],
           ),
         ),

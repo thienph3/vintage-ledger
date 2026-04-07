@@ -98,12 +98,12 @@ class DebtSummaryWidget extends StatelessWidget {
     return Column(
       children: [
         Text(label, style: AppTextStyles.caption),
-        const SizedBox(height: 4),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           AmountFormatter.formatCompactCurrency(amount, 'vi'),
           style: AppTextStyles.amount.copyWith(color: color),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: AppSpacing.xs),
         Text(
           '$count khoản',
           style: AppTextStyles.caption,
