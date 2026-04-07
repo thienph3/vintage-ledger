@@ -32,7 +32,7 @@ enum TransferStatus {
   }
 }
 
-class TransferV2 {
+class Transfer {
   final String id;
   final TransferType type;
   final String sourceWalletId;
@@ -47,7 +47,7 @@ class TransferV2 {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  const TransferV2({
+  const Transfer({
     required this.id,
     required this.type,
     required this.sourceWalletId,
@@ -79,8 +79,8 @@ class TransferV2 {
   String get displayNote => note ?? 'Chuyển tiền';
 
   // Factory constructors
-  factory TransferV2.fromMap(String id, Map<String, dynamic> data) {
-    return TransferV2(
+  factory Transfer.fromMap(String id, Map<String, dynamic> data) {
+    return Transfer(
       id: id,
       type: TransferType.values.firstWhere(
         (e) => e.name == data['type'],
@@ -120,7 +120,7 @@ class TransferV2 {
     };
   }
 
-  TransferV2 copyWith({
+  Transfer copyWith({
     String? id,
     TransferType? type,
     String? sourceWalletId,
@@ -135,7 +135,7 @@ class TransferV2 {
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
-    return TransferV2(
+    return Transfer(
       id: id ?? this.id,
       type: type ?? this.type,
       sourceWalletId: sourceWalletId ?? this.sourceWalletId,
@@ -155,7 +155,7 @@ class TransferV2 {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is TransferV2 && other.id == id;
+    return other is Transfer && other.id == id;
   }
 
   @override
@@ -163,7 +163,7 @@ class TransferV2 {
 
   @override
   String toString() {
-    return 'TransferV2(id: $id, type: $type, amount: $amount, status: $status)';
+    return 'Transfer(id: $id, type: $type, amount: $amount, status: $status)';
   }
 }
 

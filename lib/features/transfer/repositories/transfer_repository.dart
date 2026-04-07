@@ -1,8 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/features/transfer/models/transfer_v2.dart';
+import 'package:vintage_ledger/features/transfer/models/transfer.dart';
 
-class TransferRepositoryV2 {
+class TransferRepository {
   final _firestore = FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> get _transfers =>
@@ -13,43 +13,43 @@ class TransferRepositoryV2 {
 
   // ── Transfers ──
 
-  Future<List<TransferV2>> getTransfers() async {
+  Future<List<Transfer>> getTransfers() async {
     final snap = await _transfers.orderBy('date', descending: true).limit(100).get();
-    return snap.docs.map((d) => TransferV2.fromMap(d.id, d.data())).toList();
+    return snap.docs.map((d) => Transfer.fromMap(d.id, d.data())).toList();
   }
 
-  Future<List<TransferV2>> getTransfersByType(TransferType type) async {
+  Future<List<Transfer>> getTransfersByType(TransferType type) async {
     final snap = await _transfers
         .where('type', isEqualTo: type.name)
         .orderBy('date', descending: true)
         .limit(50)
         .get();
-    return snap.docs.map((d) => TransferV2.fromMap(d.id, d.data())).toList();
+    return snap.docs.map((d) => Transfer.fromMap(d.id, d.data())).toList();
   }
 
-  Future<List<TransferV2>> getPendingTransfers() async {
+  Future<List<Transfer>> getPendingTransfers() async {
     final snap = await _transfers
         .where('status', isEqualTo: TransferStatus.pending.name)
         .orderBy('date', descending: true)
         .get();
-    return snap.docs.map((d) => TransferV2.fromMap(d.id, d.data())).toList();
+    return snap.docs.map((d) => Transfer.fromMap(d.id, d.data())).toList();
   }
 
-  Stream<List<TransferV2>> watchRecentTransfers() {
+  Stream<List<Transfer>> watchRecentTransfers() {
     return _transfers
         .orderBy('date', descending: true)
         .limit(20)
         .snapshots()
-        .map((snap) => snap.docs.map((d) => TransferV2.fromMap(d.id, d.data())).toList());
+        .map((snap) => snap.docs.map((d) => Transfer.fromMap(d.id, d.data())).toList());
   }
 
-  Future<TransferV2?> getTransfer(String id) async {
+  Future<Transfer?> getTransfer(String id) async {
     final doc = await _transfers.doc(id).get();
     if (!doc.exists) return null;
-    return TransferV2.fromMap(doc.id, doc.data()!);
+    return Transfer.fromMap(doc.id, doc.data()!);
   }
 
-  Future<String> addTransfer(TransferV2 transfer) async {
+  Future<String> addTransfer(Transfer transfer) async {
     final doc = await _transfers.add(transfer.toMap());
     return doc.id;
   }

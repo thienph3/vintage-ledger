@@ -1,9 +1,9 @@
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/features/transfer/models/transfer_v2.dart';
-import 'package:vintage_ledger/features/transfer/repositories/transfer_repository_v2.dart';
+import 'package:vintage_ledger/features/transfer/models/transfer.dart';
+import 'package:vintage_ledger/features/transfer/repositories/transfer_repository.dart';
 
-class TransferServiceV2 {
-  final _repo = TransferRepositoryV2();
+class TransferService {
+  final _repo = TransferRepository();
 
   // ── Internal Transfers ──
 
@@ -14,7 +14,7 @@ class TransferServiceV2 {
     String? note,
   }) async {
     final now = DateTime.now();
-    final transfer = TransferV2(
+    final transfer = Transfer(
       id: '',
       type: TransferType.internal,
       sourceWalletId: fromWalletId,
@@ -41,7 +41,7 @@ class TransferServiceV2 {
     String? note,
   }) async {
     final now = DateTime.now();
-    final transfer = TransferV2(
+    final transfer = Transfer(
       id: '',
       type: TransferType.funding,
       sourceWalletId: personalWalletId,
@@ -66,7 +66,7 @@ class TransferServiceV2 {
     String? note,
   }) async {
     final now = DateTime.now();
-    final transfer = TransferV2(
+    final transfer = Transfer(
       id: '',
       type: TransferType.funding,
       sourceWalletId: personalWalletId,
@@ -93,7 +93,7 @@ class TransferServiceV2 {
     String? note,
   }) async {
     final now = DateTime.now();
-    final transfer = TransferV2(
+    final transfer = Transfer(
       id: '',
       type: TransferType.crossAccount,
       sourceWalletId: fromWalletId,
@@ -113,23 +113,23 @@ class TransferServiceV2 {
 
   // ── Queries ──
 
-  Future<List<TransferV2>> getLichSuChuyenTien() async {
+  Future<List<Transfer>> getLichSuChuyenTien() async {
     return await _repo.getTransfers();
   }
 
-  Future<List<TransferV2>> getTransfersByType(TransferType type) async {
+  Future<List<Transfer>> getTransfersByType(TransferType type) async {
     return await _repo.getTransfersByType(type);
   }
 
-  Future<List<TransferV2>> getPendingTransfers() async {
+  Future<List<Transfer>> getPendingTransfers() async {
     return await _repo.getPendingTransfers();
   }
 
-  Stream<List<TransferV2>> watchRecentTransfers() {
+  Stream<List<Transfer>> watchRecentTransfers() {
     return _repo.watchRecentTransfers();
   }
 
-  Future<TransferV2?> getTransfer(String id) async {
+  Future<Transfer?> getTransfer(String id) async {
     return await _repo.getTransfer(id);
   }
 

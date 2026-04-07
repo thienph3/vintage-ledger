@@ -5,8 +5,8 @@ import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/features/transfer/models/transfer_v2.dart';
-import 'package:vintage_ledger/features/transfer/services/transfer_service_v2.dart';
+import 'package:vintage_ledger/features/transfer/models/transfer.dart';
+import 'package:vintage_ledger/features/transfer/services/transfer_service.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
 
@@ -19,7 +19,7 @@ class TransferScreen extends StatefulWidget {
 
 class _TransferScreenState extends State<TransferScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _service = TransferServiceV2();
+  final _service = TransferService();
   final _walletService = WalletService();
   
   TransferType _type = TransferType.internal;
