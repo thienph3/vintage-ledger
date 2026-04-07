@@ -213,7 +213,7 @@ class BootstrapService {
       final memberIds = (account as dynamic).memberIds as List<String>;
       if (memberIds.length > 1) {
         final profiles = await sl.accountService.getMemberProfiles(memberIds);
-        sl.cache.memberProfiles = profiles.cast<Map<String, dynamic>>();
+        sl.cache.memberProfiles = profiles.map((p) => Map<String, dynamic>.from(p)).toList();
         await FeedHelper.preloadNames(memberIds);
       }
     }

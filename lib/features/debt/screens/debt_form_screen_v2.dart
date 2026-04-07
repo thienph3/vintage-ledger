@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
@@ -55,7 +56,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: widget.debt == null ? 'THÊM KHOẢN NỢ' : 'SỬA KHOẢN NỢ',
+      title: widget.debt == null ? S.of(context, 'addDebtV2') : S.of(context, 'editDebt'),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -65,10 +66,10 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
             const SizedBox(height: AppSpacing.lg),
             _buildTextField(
               controller: _partyNameController,
-              label: 'Tên người ${_type == DebtType.lend ? 'vay' : 'cho vay'}',
-              hint: 'Nhập tên',
+              label: '${S.of(context, 'debtPerson')} ${_type == DebtType.lend ? S.of(context, 'borrow').toLowerCase() : S.of(context, 'lend').toLowerCase()}',
+              hint: S.of(context, 'partyNameRequired'),
               icon: Icons.person,
-              validator: (v) => v?.isEmpty ?? true ? 'Vui lòng nhập tên' : null,
+              validator: (v) => v?.isEmpty ?? true ? S.of(context, 'partyNameRequired') : null,
             ),
             const SizedBox(height: AppSpacing.md),
             _buildTextField(
@@ -81,13 +82,13 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
             const SizedBox(height: AppSpacing.md),
             _buildTextField(
               controller: _amountController,
-              label: 'Số tiền',
-              hint: 'Nhập số tiền',
+              label: S.of(context, 'debtAmount'),
+              hint: S.of(context, 'enterAmount'),
               icon: Icons.attach_money,
               keyboardType: TextInputType.number,
               validator: (v) {
-                if (v?.isEmpty ?? true) return 'Vui lòng nhập số tiền';
-                if (int.tryParse(v!) == null) return 'Số tiền không hợp lệ';
+                if (v?.isEmpty ?? true) return S.of(context, 'enterAmount');
+                if (int.tryParse(v!) == null) return S.of(context, 'amountMustBePositive');
                 return null;
               },
             ),
@@ -104,8 +105,8 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
             const SizedBox(height: AppSpacing.md),
             _buildTextField(
               controller: _descriptionController,
-              label: 'Ghi chú (tùy chọn)',
-              hint: 'Nhập ghi chú',
+              label: '${S.of(context, 'debtNote')} (tùy chọn)',
+              hint: S.of(context, 'noteHint'),
               icon: Icons.note,
               maxLines: 3,
             ),
@@ -123,7 +124,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
         Expanded(
           child: _buildTypeOption(
             type: DebtType.lend,
-            label: 'Cho vay',
+            label: S.of(context, 'lendDebts'),
             icon: Icons.trending_up,
             color: AppColors.income,
           ),
@@ -132,7 +133,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
         Expanded(
           child: _buildTypeOption(
             type: DebtType.borrow,
-            label: 'Vay mượn',
+            label: S.of(context, 'borrowDebts'),
             icon: Icons.trending_down,
             color: AppColors.expense,
           ),
@@ -203,7 +204,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
       onTap: _selectDate,
       child: InputDecorator(
         decoration: const InputDecoration(
-          labelText: 'Hạn trả (tùy chọn)',
+          labelText: '${S.of(context, 'debtDueDate')} (tùy chọn)',
           prefixIcon: Icon(Icons.calendar_today),
         ),
         child: Text(
@@ -225,7 +226,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
                 width: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : Text(widget.debt == null ? 'Thêm khoản nợ' : 'Cập nhật'),
+            : Text(widget.debt == null ? S.of(context, 'createDebt') : S.of(context, 'updateDebt')),
       ),
     );
   }
@@ -293,7 +294,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: $e')),
+          SnackBar(content: Text('${S.of(context, 'error')}: $e')),
         );
       }
     } finally {

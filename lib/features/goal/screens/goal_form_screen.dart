@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
@@ -63,7 +64,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: widget.goal == null ? 'TẠO MỤC TIÊU' : 'SỬA MỤC TIÊU',
+      title: widget.goal == null ? S.of(context, 'createGoal') : S.of(context, 'updateGoal'),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -73,21 +74,21 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
             const SizedBox(height: AppSpacing.lg),
             _buildTextField(
               controller: _nameController,
-              label: 'Tên mục tiêu',
-              hint: 'Nhập tên mục tiêu',
+              label: S.of(context, 'goalName'),
+              hint: S.of(context, 'goalNameRequired'),
               icon: Icons.flag,
-              validator: (v) => v?.isEmpty ?? true ? 'Vui lòng nhập tên' : null,
+              validator: (v) => v?.isEmpty ?? true ? S.of(context, 'goalNameRequired') : null,
             ),
             const SizedBox(height: AppSpacing.md),
             _buildTextField(
               controller: _targetAmountController,
-              label: 'Số tiền mục tiêu',
-              hint: 'Nhập số tiền',
+              label: S.of(context, 'targetAmount'),
+              hint: S.of(context, 'enterAmount'),
               icon: Icons.attach_money,
               keyboardType: TextInputType.number,
               validator: (v) {
-                if (v?.isEmpty ?? true) return 'Vui lòng nhập số tiền';
-                if (int.tryParse(v!) == null) return 'Số tiền không hợp lệ';
+                if (v?.isEmpty ?? true) return S.of(context, 'enterAmount');
+                if (int.tryParse(v!) == null) return S.of(context, 'amountMustBePositive');
                 return null;
               },
             ),
@@ -107,7 +108,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Loại mục tiêu', style: AppTextStyles.titleSmall),
+        Text(S.of(context, 'goalCategory'), style: AppTextStyles.titleSmall),
         const SizedBox(height: AppSpacing.md),
         Wrap(
           spacing: AppSpacing.sm,
@@ -177,7 +178,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
       onTap: _selectDate,
       child: InputDecorator(
         decoration: const InputDecoration(
-          labelText: 'Ngày mục tiêu (tùy chọn)',
+          labelText: '${S.of(context, 'goalTargetDate')} (tùy chọn)',
           prefixIcon: Icon(Icons.calendar_today),
         ),
         child: Text(
@@ -196,7 +197,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
     return DropdownButtonFormField<String>(
       initialValue: _selectedWalletId,
       decoration: const InputDecoration(
-        labelText: 'Ví nguồn',
+        labelText: S.of(context, 'goalWallet'),
         prefixIcon: Icon(Icons.account_balance_wallet),
       ),
       items: _wallets.map((wallet) {
@@ -206,7 +207,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
         );
       }).toList(),
       onChanged: (value) => setState(() => _selectedWalletId = value),
-      validator: (v) => v == null ? 'Vui lòng chọn ví' : null,
+      validator: (v) => v == null ? S.of(context, 'selectWalletRequired') : null,
     );
   }
 
@@ -221,7 +222,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
                 width: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : Text(widget.goal == null ? 'Tạo mục tiêu' : 'Cập nhật'),
+            : Text(widget.goal == null ? S.of(context, 'createGoal') : S.of(context, 'updateGoal')),
       ),
     );
   }
@@ -273,7 +274,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: $e')),
+          SnackBar(content: Text('${S.of(context, 'error')}: $e')),
         );
       }
     } finally {

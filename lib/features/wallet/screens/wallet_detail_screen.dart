@@ -106,10 +106,6 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                       children: [
                         _buildBalanceCard(),
                         const SizedBox(height: AppSpacing.lg),
-                        if (widget.wallet.isSavings) ...[
-                          _buildGoalsSection(),
-                          const SizedBox(height: AppSpacing.lg),
-                        ],
                         _buildFeedSection(),
                       ],
                     ),

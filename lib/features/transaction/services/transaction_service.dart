@@ -27,12 +27,17 @@ class TransactionService {
     final monthStart = DateTime(now.year, now.month, 1);
     final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
 
+    print('[getDashboard] Loading dashboard for ${monthStart.toString().substring(0, 10)} to ${monthEnd.toString().substring(0, 10)}');
+
     final recent = await _repo.getRecent(5, walletId: walletId);
     final monthly = await _repo.getByDateRange(
       monthStart.millisecondsSinceEpoch,
       monthEnd.millisecondsSinceEpoch,
       walletId: walletId,
     );
+    
+    print('[getDashboard] Found ${recent.length} recent, ${monthly.length} monthly transactions');
+    
     final categories = await sl.categoryService.getCategories();
     final categoryMap = {for (var c in categories) c.id!: c};
 

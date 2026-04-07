@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/transfer/screens/transfer_screen.dart';
-import 'package:vintage_ledger/features/debt/screens/debt_form_screen_v2.dart';
-import 'package:vintage_ledger/features/goal/screens/goal_form_screen.dart';
+import 'package:vintage_ledger/features/debt/screens/debt_payment_screen.dart';
+import 'package:vintage_ledger/features/goal/screens/goal_contribution_screen.dart';
 
 class QuickActionsFab extends StatefulWidget {
   const QuickActionsFab({super.key});
@@ -71,7 +72,7 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
             ),
           ),
         Padding(
-          padding: const EdgeInsets.only(bottom: 140),
+          padding: const EdgeInsets.only(bottom: 190),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -79,7 +80,7 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
               ScaleTransition(
                 scale: _expandAnimation,
                 child: _buildActionButton(
-                  label: 'Thêm giao dịch',
+                  label: S.of(context, 'fabAddTransaction'),
                   icon: Icons.receipt_long,
                   color: AppColors.primary,
                   onTap: () {
@@ -95,8 +96,8 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
               ScaleTransition(
                 scale: _expandAnimation,
                 child: _buildActionButton(
-                  label: 'Chuyển tiền',
-                  icon: Icons.swap_horiz,
+                  label: S.of(context, 'fabFunding'),
+                  icon: Icons.account_balance,
                   color: AppColors.accent,
                   onTap: () {
                     _close();
@@ -111,14 +112,14 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
               ScaleTransition(
                 scale: _expandAnimation,
                 child: _buildActionButton(
-                  label: 'Thêm nợ',
-                  icon: Icons.trending_up,
+                  label: S.of(context, 'fabSavings'),
+                  icon: Icons.savings,
                   color: AppColors.income,
                   onTap: () {
                     _close();
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const DebtFormScreen()),
+                      MaterialPageRoute(builder: (_) => const GoalContributionScreen()),
                     );
                   },
                 ),
@@ -127,14 +128,14 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
               ScaleTransition(
                 scale: _expandAnimation,
                 child: _buildActionButton(
-                  label: 'Tạo mục tiêu',
-                  icon: Icons.flag,
+                  label: S.of(context, 'fabPayDebt'),
+                  icon: Icons.payment,
                   color: AppColors.expense,
                   onTap: () {
                     _close();
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (_) => const GoalFormScreen()),
+                      MaterialPageRoute(builder: (_) => const DebtPaymentScreen()),
                     );
                   },
                 ),

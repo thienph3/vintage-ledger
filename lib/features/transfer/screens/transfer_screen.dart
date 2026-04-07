@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -58,7 +59,7 @@ class _TransferScreenState extends State<TransferScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: 'CHUYỂN TIỀN',
+      title: S.of(context, 'transferTitle'),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -70,21 +71,21 @@ class _TransferScreenState extends State<TransferScreen> {
             const SizedBox(height: AppSpacing.md),
             _buildTextField(
               controller: _amountController,
-              label: 'Số tiền',
-              hint: 'Nhập số tiền',
+              label: S.of(context, 'amount'),
+              hint: S.of(context, 'enterAmount'),
               icon: Icons.attach_money,
               keyboardType: TextInputType.number,
               validator: (v) {
-                if (v?.isEmpty ?? true) return 'Vui lòng nhập số tiền';
-                if (int.tryParse(v!) == null) return 'Số tiền không hợp lệ';
+                if (v?.isEmpty ?? true) return S.of(context, 'enterAmount');
+                if (int.tryParse(v!) == null) return S.of(context, 'amountMustBePositive');
                 return null;
               },
             ),
             const SizedBox(height: AppSpacing.md),
             _buildTextField(
               controller: _noteController,
-              label: 'Ghi chú (tùy chọn)',
-              hint: 'Nhập ghi chú',
+              label: '${S.of(context, 'note')} (tùy chọn)',
+              hint: S.of(context, 'noteHint'),
               icon: Icons.note,
               maxLines: 2,
             ),
@@ -102,14 +103,14 @@ class _TransferScreenState extends State<TransferScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Loại chuyển tiền', style: AppTextStyles.titleSmall),
+        Text(S.of(context, 'transferType'), style: AppTextStyles.titleSmall),
         const SizedBox(height: AppSpacing.md),
         Row(
           children: [
             Expanded(
               child: _buildTypeOption(
                 type: TransferType.internal,
-                label: 'Nội bộ',
+                label: S.of(context, 'transferInternal'),
                 icon: Icons.swap_horiz,
               ),
             ),
@@ -117,7 +118,7 @@ class _TransferScreenState extends State<TransferScreen> {
             Expanded(
               child: _buildTypeOption(
                 type: TransferType.funding,
-                label: 'Nạp gia đình',
+                label: S.of(context, 'transferFunding'),
                 icon: Icons.family_restroom,
               ),
             ),
@@ -176,7 +177,7 @@ class _TransferScreenState extends State<TransferScreen> {
           DropdownButtonFormField<String>(
             initialValue: _sourceWalletId,
             decoration: const InputDecoration(
-              labelText: 'Từ ví',
+              labelText: S.of(context, 'fromWalletLabel'),
               prefixIcon: Icon(Icons.account_balance_wallet),
             ),
             items: _wallets.map((wallet) {
@@ -186,7 +187,7 @@ class _TransferScreenState extends State<TransferScreen> {
               );
             }).toList(),
             onChanged: (value) => setState(() => _sourceWalletId = value),
-            validator: (v) => v == null ? 'Vui lòng chọn ví nguồn' : null,
+            validator: (v) => v == null ? S.of(context, 'selectSourceWallet') : null,
           ),
           const SizedBox(height: AppSpacing.md),
           const Icon(Icons.arrow_downward, color: AppColors.primary),
@@ -194,7 +195,7 @@ class _TransferScreenState extends State<TransferScreen> {
           DropdownButtonFormField<String>(
             initialValue: _destWalletId,
             decoration: InputDecoration(
-              labelText: _type == TransferType.funding ? 'Đến ví gia đình' : 'Đến ví',
+              labelText: _type == TransferType.funding ? S.of(context, 'toFamilyWalletLabel') : S.of(context, 'toWalletLabel'),
               prefixIcon: const Icon(Icons.account_balance_wallet),
             ),
             items: _wallets
@@ -206,7 +207,7 @@ class _TransferScreenState extends State<TransferScreen> {
               );
             }).toList(),
             onChanged: (value) => setState(() => _destWalletId = value),
-            validator: (v) => v == null ? 'Vui lòng chọn ví đích' : null,
+            validator: (v) => v == null ? S.of(context, 'selectDestWallet') : null,
           ),
         ],
       ),
@@ -246,7 +247,7 @@ class _TransferScreenState extends State<TransferScreen> {
                 width: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : const Text('Chuyển tiền'),
+            : Text(S.of(context, 'transferButton')),
       ),
     );
   }
@@ -255,7 +256,7 @@ class _TransferScreenState extends State<TransferScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Phím tắt', style: AppTextStyles.titleSmall),
+        Text(S.of(context, 'shortcuts'), style: AppTextStyles.titleSmall),
         const SizedBox(height: AppSpacing.md),
         StreamBuilder<List<TransferShortcut>>(
           stream: _service.watchShortcuts(),
@@ -263,7 +264,7 @@ class _TransferScreenState extends State<TransferScreen> {
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
               return LedgerCard(
                 child: Center(
-                  child: Text('Chưa có phím tắt nào', style: AppTextStyles.hint),
+                  child: Text(S.of(context, 'noShortcuts'), style: AppTextStyles.hint),
                 ),
               );
             }
@@ -323,7 +324,7 @@ class _TransferScreenState extends State<TransferScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã chuyển tiền thành công')),
+          SnackBar(content: Text(S.of(context, 'transferSuccess'))),
         );
         _amountController.clear();
         _noteController.clear();
@@ -331,7 +332,7 @@ class _TransferScreenState extends State<TransferScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: $e')),
+          SnackBar(content: Text('${S.of(context, 'error')}: $e')),
         );
       }
     } finally {

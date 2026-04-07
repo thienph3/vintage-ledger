@@ -21,23 +21,21 @@ class WalletService {
     return snap.docs.map((d) => _repo.fromFirestore(d.id, d.data())).toList();
   }
 
-  Future<String> createWallet(String name, int initialBalance, {String currency = 'VND', WalletType type = WalletType.spending}) async {
+  Future<String> createWallet(String name, int initialBalance, {String currency = 'VND'}) async {
     if (name.trim().isEmpty) throw Exception("Wallet name cannot be empty");
     final id = await _repo.add(Wallet(
       name: name,
       balance: initialBalance,
       initialBalance: initialBalance,
       currency: currency,
-      type: type,
     ));
     _log('wallet', 'đã tạo ví $name');
     return id;
   }
 
-  Future<void> updateWallet(String id, String name, {String? currency, int? initialBalance, WalletType? type}) async {
+  Future<void> updateWallet(String id, String name, {String? currency, int? initialBalance}) async {
     final data = <String, dynamic>{'name': name};
     if (currency != null) data['currency'] = currency;
-    if (type != null) data['type'] = type.name;
     if (initialBalance != null) {
       data['initial_balance'] = initialBalance;
       // Recalculate balance with new initialBalance

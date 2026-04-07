@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -26,8 +27,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: 'NỢ',
-      showBackButton: false,
+      title: S.of(context, 'debtTitle'),
       body: Column(
         children: [
           _buildFilterRow(),
@@ -43,13 +43,13 @@ class _DebtListScreenState extends State<DebtListScreen> {
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
         children: [
-          _buildFilterChip('Tất cả', DebtFilter.all, Icons.all_inclusive),
+          _buildFilterChip(DebtFilter.all, Icons.all_inclusive),
           const SizedBox(width: AppSpacing.sm),
-          _buildFilterChip('Cho vay', DebtFilter.lend, Icons.trending_up),
+          _buildFilterChip(DebtFilter.lend, Icons.trending_up),
           const SizedBox(width: AppSpacing.sm),
-          _buildFilterChip('Vay mượn', DebtFilter.borrow, Icons.trending_down),
+          _buildFilterChip(DebtFilter.borrow, Icons.trending_down),
           const SizedBox(width: AppSpacing.sm),
-          _buildFilterChip('Quá hạn', DebtFilter.overdue, Icons.warning_amber),
+          _buildFilterChip(DebtFilter.overdue, Icons.warning_amber),
         ],
       ),
     );
@@ -57,6 +57,12 @@ class _DebtListScreenState extends State<DebtListScreen> {
 
   Widget _buildFilterChip(String label, DebtFilter filter, IconData icon) {
     final isSelected = _filter == filter;
+    final labels = {
+      DebtFilter.all: S.of(context, 'allDebts'),
+      DebtFilter.lend: S.of(context, 'lendDebts'),
+      DebtFilter.borrow: S.of(context, 'borrowDebts'),
+      DebtFilter.overdue: S.of(context, 'overdueDebts'),
+    };
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _filter = filter),
@@ -72,7 +78,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
               Icon(icon, size: 16, color: isSelected ? Colors.white : AppColors.textSecondary),
               const SizedBox(height: 2),
               Text(
-                label,
+                labels[filter]!,
                 style: AppTextStyles.caption.copyWith(
                   color: isSelected ? Colors.white : AppColors.textSecondary,
                 ),
@@ -103,7 +109,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
 
         if (debts.isEmpty) {
           return Center(
-            child: Text('Chưa có khoản nợ nào', style: AppTextStyles.hint),
+            child: Text(S.of(context, 'noDebts'), style: AppTextStyles.hint),
           );
         }
 
@@ -177,7 +183,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          'Quá hạn',
+                          S.of(context, 'overdue'),
                           style: AppTextStyles.caption.copyWith(color: AppColors.error),
                         ),
                       ),
@@ -190,7 +196,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Tổng số', style: AppTextStyles.caption),
+                          Text(S.of(context, 'totalAmount'), style: AppTextStyles.caption),
                           Text(
                             AmountFormatter.formatCurrency(debt.totalAmount, 'vi'),
                             style: AppTextStyles.amount,
@@ -202,7 +208,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Còn lại', style: AppTextStyles.caption),
+                          Text(S.of(context, 'remainingAmount'), style: AppTextStyles.caption),
                           Text(
                             AmountFormatter.formatCurrency(debt.remainingAmount, 'vi'),
                             style: AppTextStyles.amount.copyWith(
@@ -229,7 +235,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
                 if (debt.dueDate != null) ...[
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'Hạn: ${_formatDate(debt.dueDate!)}',
+                    '${S.of(context, 'goalDeadline')}: ${_formatDate(debt.dueDate!)}',
                     style: AppTextStyles.caption,
                   ),
                 ],
@@ -249,7 +255,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
         child: ElevatedButton.icon(
           onPressed: _navigateToForm,
           icon: const Icon(Icons.add),
-          label: const Text('Thêm khoản nợ'),
+          label: Text(S.of(context, 'addDebtV2')),
         ),
       ),
     );
@@ -263,16 +269,16 @@ class _DebtListScreenState extends State<DebtListScreen> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xóa khoản nợ?'),
-        content: Text('Bạn có chắc muốn xóa "${debt.displayTitle}"?'),
+        title: Text(S.of(context, 'deleteDebtQuestion')),
+        content: Text(S.of(context, 'deleteDebtMessage').replaceAll('{name}', debt.displayTitle)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
+            child: Text(S.of(context, 'cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xóa', style: TextStyle(color: AppColors.error)),
+            child: Text(S.of(context, 'delete'), style: const TextStyle(color: AppColors.error)),
           ),
         ],
       ),

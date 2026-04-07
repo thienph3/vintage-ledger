@@ -38,6 +38,15 @@ class _InsightsTabState extends State<InsightsTab> {
     _load();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Reload when tab becomes visible
+    if (mounted && !_loading) {
+      _load();
+    }
+  }
+
   Future<void> _load() async {
     try {
       final locale = Localizations.localeOf(context).languageCode;
@@ -98,12 +107,13 @@ class _InsightsTabState extends State<InsightsTab> {
                       tip: _coachingTip!,
                       onDismissed: () => setState(() => _coachingTip = null),
                     ),
-                  if (_dashboard != null)
+                  if (_dashboard != null) ...[
                     LedgerCard(child: ChartSection(dashboard: _dashboard!)),
-                  const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
                   const BudgetSummaryCard(),
                   if (_streak >= 2) _buildStreakCard(),
-                  if (_insights.isEmpty && _dashboard == null)
+                  if (_insights.isEmpty && (_dashboard?.monthly.isEmpty ?? true))
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
                       child: Text(S.of(context, 'noInsights'), style: AppTextStyles.hint, textAlign: TextAlign.center),

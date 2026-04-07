@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -39,14 +40,14 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const AppScaffold(
-            title: 'CHI TIẾT MỤC TIÊU',
+            title: '',
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
         final goal = snapshot.data!;
         return AppScaffold(
-          title: 'CHI TIẾT MỤC TIÊU',
+          title: S.of(context, 'goalTitle'),
           actions: [
             IconButton(
               icon: const Icon(Icons.edit),
@@ -191,7 +192,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 const Icon(Icons.check_circle, color: AppColors.income, size: 24),
                 const SizedBox(width: AppSpacing.sm),
                 Text(
-                  'Đã hoàn thành mục tiêu!',
+                  S.of(context, 'goalCompleted'),
                   style: AppTextStyles.bodyBold.copyWith(color: AppColors.income),
                 ),
               ],
@@ -217,7 +218,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                   const Icon(Icons.autorenew, color: AppColors.primary),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
-                    child: Text('Tiết kiệm tự động', style: AppTextStyles.titleSmall),
+                    child: Text(S.of(context, 'autoSaving'), style: AppTextStyles.titleSmall),
                   ),
                   if (rule != null)
                     Switch(
@@ -246,7 +247,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 ElevatedButton.icon(
                   onPressed: () => _showAutoSavingDialog(goal),
                   icon: const Icon(Icons.add),
-                  label: const Text('Thiết lập'),
+                  label: Text(S.of(context, 'setupAutoSavingButton')),
                 ),
               ],
             ],
@@ -261,13 +262,13 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Nạp tiền vào mục tiêu', style: AppTextStyles.titleSmall),
+          Text(S.of(context, 'contributeToGoal'), style: AppTextStyles.titleSmall),
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _amountController,
             decoration: const InputDecoration(
-              labelText: 'Số tiền',
-              hintText: 'Nhập số tiền',
+              labelText: S.of(context, 'contributionAmount'),
+              hintText: S.of(context, 'enterAmount'),
               prefixIcon: Icon(Icons.attach_money),
             ),
             keyboardType: TextInputType.number,
@@ -276,8 +277,8 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           TextField(
             controller: _noteController,
             decoration: const InputDecoration(
-              labelText: 'Ghi chú (tùy chọn)',
-              hintText: 'Nhập ghi chú',
+              labelText: '${S.of(context, 'note')} (tùy chọn)',
+              hintText: S.of(context, 'noteHint'),
               prefixIcon: Icon(Icons.note),
             ),
           ),
@@ -286,7 +287,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () => _contribute(goal),
-              child: const Text('Nạp tiền'),
+              child: Text(S.of(context, 'contribute')),
             ),
           ),
         ],
@@ -298,7 +299,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Lịch sử đóng góp', style: AppTextStyles.titleSmall),
+        Text(S.of(context, 'contributionHistory'), style: AppTextStyles.titleSmall),
         const SizedBox(height: AppSpacing.md),
         StreamBuilder<List<GoalContribution>>(
           stream: _service.watchContributions(goal.id),
@@ -311,7 +312,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             if (contributions.isEmpty) {
               return LedgerCard(
                 child: Center(
-                  child: Text('Chưa có đóng góp nào', style: AppTextStyles.hint),
+                  child: Text(S.of(context, 'noContributions'), style: AppTextStyles.hint),
                 ),
               );
             }
@@ -367,7 +368,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     final amountText = _amountController.text;
     if (amountText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập số tiền')),
+        SnackBar(content: Text(S.of(context, 'enterAmount'))),
       );
       return;
     }
@@ -375,7 +376,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     final amount = int.tryParse(amountText);
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Số tiền không hợp lệ')),
+        SnackBar(content: Text(S.of(context, 'amountMustBePositive'))),
       );
       return;
     }
@@ -392,14 +393,14 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã nạp tiền vào mục tiêu')),
+          SnackBar(content: Text(S.of(context, 'contributionRecorded'))),
         );
         setState(() {});
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: $e')),
+          SnackBar(content: Text('${S.of(context, 'error')}: $e')),
         );
       }
     }
@@ -413,22 +414,22 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text('Thiết lập tiết kiệm tự động'),
+          title: Text(S.of(context, 'setupAutoSaving')),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: amountController,
                 decoration: const InputDecoration(
-                  labelText: 'Số tiền',
-                  hintText: 'Nhập số tiền',
+                  labelText: S.of(context, 'autoSavingAmount'),
+                  hintText: S.of(context, 'enterAmount'),
                 ),
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<RecurrenceType>(
                 initialValue: frequency,
-                decoration: const InputDecoration(labelText: 'Tần suất'),
+                decoration: InputDecoration(labelText: S.of(context, 'recurrence')),
                 items: RecurrenceType.values.map((f) {
                   return DropdownMenuItem(
                     value: f,
@@ -442,7 +443,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Hủy'),
+              child: Text(S.of(context, 'cancel')),
             ),
             TextButton(
               onPressed: () async {
@@ -456,7 +457,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                   if (context.mounted) Navigator.pop(context);
                 }
               },
-              child: const Text('Lưu'),
+              child: Text(S.of(context, 'save')),
             ),
           ],
         ),

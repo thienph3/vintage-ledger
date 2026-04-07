@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -38,14 +39,14 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const AppScaffold(
-            title: 'CHI TIẾT NỢ',
+            title: '',
             body: Center(child: CircularProgressIndicator()),
           );
         }
 
         final debt = snapshot.data!;
         return AppScaffold(
-          title: 'CHI TIẾT NỢ',
+          title: S.of(context, 'debtTitle'),
           actions: [
             IconButton(
               icon: const Icon(Icons.edit),
@@ -234,7 +235,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(
-                'Đã hoàn thành',
+                S.of(context, 'settled'),
                 style: AppTextStyles.headline.copyWith(color: AppColors.income),
               ),
             ),
@@ -248,15 +249,15 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            debt.type == DebtType.lend ? 'Nhận tiền trả' : 'Trả nợ',
+            S.of(context, 'recordPaymentTitle'),
             style: AppTextStyles.titleSmall,
           ),
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _amountController,
             decoration: const InputDecoration(
-              labelText: 'Số tiền',
-              hintText: 'Nhập số tiền',
+              labelText: S.of(context, 'paymentAmount'),
+              hintText: S.of(context, 'enterAmount'),
               prefixIcon: Icon(Icons.attach_money),
             ),
             keyboardType: TextInputType.number,
@@ -265,8 +266,8 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
           TextField(
             controller: _noteController,
             decoration: const InputDecoration(
-              labelText: 'Ghi chú (tùy chọn)',
-              hintText: 'Nhập ghi chú',
+              labelText: '${S.of(context, 'note')} (tùy chọn)',
+              hintText: S.of(context, 'noteHint'),
               prefixIcon: Icon(Icons.note),
             ),
           ),
@@ -275,7 +276,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () => _recordPayment(debt),
-              child: Text(debt.type == DebtType.lend ? 'Nhận tiền' : 'Trả tiền'),
+              child: Text(S.of(context, 'recordPaymentButton')),
             ),
           ),
         ],
@@ -287,7 +288,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Lịch sử thanh toán', style: AppTextStyles.titleSmall),
+        Text(S.of(context, 'debtPaymentHistory'), style: AppTextStyles.titleSmall),
         const SizedBox(height: AppSpacing.md),
         StreamBuilder<List<DebtPaymentV2>>(
           stream: _service.watchPayments(debt.id),
@@ -300,7 +301,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
             if (payments.isEmpty) {
               return LedgerCard(
                 child: Center(
-                  child: Text('Chưa có thanh toán nào', style: AppTextStyles.hint),
+                  child: Text(S.of(context, 'noPayments'), style: AppTextStyles.hint),
                 ),
               );
             }
@@ -350,7 +351,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
     final amountText = _amountController.text;
     if (amountText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng nhập số tiền')),
+        SnackBar(content: Text(S.of(context, 'enterAmount'))),
       );
       return;
     }
@@ -358,7 +359,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
     final amount = int.tryParse(amountText);
     if (amount == null || amount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Số tiền không hợp lệ')),
+        SnackBar(content: Text(S.of(context, 'amountMustBePositive'))),
       );
       return;
     }
@@ -383,14 +384,14 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã ghi nhận thanh toán')),
+          SnackBar(content: Text(S.of(context, 'paymentRecorded'))),
         );
         setState(() {});
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi: $e')),
+          SnackBar(content: Text('${S.of(context, 'error')}: $e')),
         );
       }
     }

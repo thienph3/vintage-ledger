@@ -15,12 +15,16 @@ class DebtRepositoryV2 {
   // ── Debts ──
 
   Future<List<DebtV2>> getDebts() async {
-    final snap = await _debts.orderBy('created_at', descending: true).get();
+    final snap = await _debts
+        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
+        .orderBy('created_at', descending: true)
+        .get();
     return snap.docs.map((d) => DebtV2.fromMap(d.id, d.data())).toList();
   }
 
   Future<List<DebtV2>> getDebtsByType(DebtType type) async {
     final snap = await _debts
+        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('type', isEqualTo: type.name)
         .where('status', isEqualTo: DebtStatus.active.name)
         .orderBy('created_at', descending: true)
@@ -31,6 +35,7 @@ class DebtRepositoryV2 {
   Future<List<DebtV2>> getOverdueDebts() async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final snap = await _debts
+        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('status', isEqualTo: DebtStatus.active.name)
         .where('due_date', isLessThan: now)
         .orderBy('due_date')
@@ -39,13 +44,16 @@ class DebtRepositoryV2 {
   }
 
   Stream<List<DebtV2>> watchDebts() {
-    return _debts.orderBy('created_at', descending: true).snapshots().map(
-      (snap) => snap.docs.map((d) => DebtV2.fromMap(d.id, d.data())).toList(),
-    );
+    return _debts
+        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
+        .orderBy('created_at', descending: true)
+        .snapshots()
+        .map((snap) => snap.docs.map((d) => DebtV2.fromMap(d.id, d.data())).toList());
   }
 
   Stream<List<DebtV2>> watchActiveDebts() {
     return _debts
+        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('status', isEqualTo: DebtStatus.active.name)
         .orderBy('created_at', descending: true)
         .snapshots()
@@ -59,7 +67,9 @@ class DebtRepositoryV2 {
   }
 
   Future<String> addDebt(DebtV2 debt) async {
-    final doc = await _debts.add(debt.toMap());
+    final map = debt.toMap();
+    map['created_by'] = sl.appState.currentUserId ?? '';
+    final doc = await _debts.add(map);
     return doc.id;
   }
 

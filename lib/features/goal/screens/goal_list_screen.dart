@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
@@ -24,8 +25,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: 'MỤC TIÊU',
-      showBackButton: false,
+      title: S.of(context, 'goalTitle'),
       body: Column(
         children: [
           _buildCategoryFilter(),
@@ -38,12 +38,12 @@ class _GoalListScreenState extends State<GoalListScreen> {
 
   Widget _buildCategoryFilter() {
     return SizedBox(
-      height: 81,
+      height: 89,
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         children: [
-          _buildCategoryChip(null, 'Tất cả', '🎯'),
+          _buildCategoryChip(null, S.of(context, 'allGoals'), '🎯'),
           ...GoalCategory.values.map((cat) => _buildCategoryChip(
             cat,
             cat.displayName,
@@ -109,7 +109,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
 
         if (goals.isEmpty) {
           return Center(
-            child: Text('Chưa có mục tiêu nào', style: AppTextStyles.hint),
+            child: Text(S.of(context, 'noGoals'), style: AppTextStyles.hint),
           );
         }
 
@@ -166,7 +166,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          'Hoàn thành',
+                          S.of(context, 'goalCompleted'),
                           style: AppTextStyles.caption.copyWith(color: AppColors.income),
                         ),
                       ),
@@ -179,7 +179,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Hiện tại', style: AppTextStyles.caption),
+                          Text(S.of(context, 'currentAmount'), style: AppTextStyles.caption),
                           Text(
                             AmountFormatter.formatCurrency(goal.currentAmount, 'vi'),
                             style: AppTextStyles.amount.copyWith(color: AppColors.income),
@@ -191,7 +191,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Mục tiêu', style: AppTextStyles.caption),
+                          Text(S.of(context, 'targetGoal'), style: AppTextStyles.caption),
                           Text(
                             AmountFormatter.formatCurrency(goal.targetAmount, 'vi'),
                             style: AppTextStyles.amount,
@@ -218,7 +218,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
                     Text(goal.progressText, style: AppTextStyles.caption),
                     if (goal.targetDate != null)
                       Text(
-                        'Hạn: ${_formatDate(goal.targetDate!)}',
+                        '${S.of(context, 'goalDeadline')}: ${_formatDate(goal.targetDate!)}',
                         style: AppTextStyles.caption.copyWith(
                           color: goal.isOverdue ? AppColors.error : AppColors.textSecondary,
                         ),
@@ -241,7 +241,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
         child: ElevatedButton.icon(
           onPressed: _navigateToForm,
           icon: const Icon(Icons.add),
-          label: const Text('Tạo mục tiêu mới'),
+          label: Text(S.of(context, 'createGoalButton')),
         ),
       ),
     );
@@ -255,16 +255,16 @@ class _GoalListScreenState extends State<GoalListScreen> {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xóa mục tiêu?'),
-        content: Text('Bạn có chắc muốn xóa "${goal.name}"?'),
+        title: Text(S.of(context, 'deleteGoalQuestion')),
+        content: Text(S.of(context, 'deleteGoalMessage').replaceAll('{name}', goal.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
+            child: Text(S.of(context, 'cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xóa', style: TextStyle(color: AppColors.error)),
+            child: Text(S.of(context, 'delete'), style: const TextStyle(color: AppColors.error)),
           ),
         ],
       ),

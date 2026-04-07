@@ -1,157 +1,240 @@
 # Vintage Ledger
 
-A personal expense tracker with a vintage-style UI, built with Flutter.
+A family expense tracker with a vintage-style UI, built with Flutter and Firebase.
 
 ## Features
 
-- **Wallet Management** — Create multiple wallets, track balance per wallet
-- **Income/Expense Transactions** — Record transactions with category, notes, and date
-- **Custom Categories** — Create categories with optional Material icons
-- **Charts** — Visualize income/expenses with charts (fl_chart)
-- **Biometric Authentication** — Lock app with fingerprint/Face ID/Windows Hello (local_auth)
-- **Multi-language** — Vietnamese / English, switchable in settings
-- **Cross-platform** — Supports Android, iOS, Windows, Linux, macOS, Web
+### Core
+- **Multi-Wallet Management** — Create and manage multiple wallets, track balance per wallet
+- **Income/Expense Transactions** — Record transactions with categories, notes, items, and date/time
+- **Transfer Between Wallets** — Internal transfers and cross-account transfers
+- **Custom Categories** — Create categories with Material icons for income/expense
+- **Budgets** — Set monthly spending limits per category with progress tracking
+- **Recurring Transactions** — Automate daily/weekly/monthly transactions
+
+### Family & Collaboration
+- **Family Accounts** — Share wallets and transactions with family members
+- **Activity Feed** — See who added what, with reactions (👍❤️😂)
+- **Member Profiles** — Track who created each transaction
+- **Invitations** — Invite family members via email
+- **Notifications** — Real-time push notifications for family activities
+
+### Goals & Debts (V2)
+- **Goal Tracking** — Save for 9 categories (vacation, education, emergency, etc.) with any wallet
+- **Goal Contributions** — Track deposits/withdrawals with history
+- **Auto-Saving Rules** — Automated recurring contributions
+- **Debt Management** — Track money lent/borrowed with payment schedules
+- **Debt Payments** — Record partial/full payments with progress tracking
+
+### Insights & Analytics
+- **Charts** — 4 chart types (trend, daily, breakdown, summary) with fl_chart
+- **Dashboard** — Monthly income/expense overview with category breakdown
+- **Smart Insights** — AI-generated spending insights and coaching tips
+- **Streak Tracking** — Daily usage streaks with fire emoji 🔥
+
+### UX & Security
+- **Biometric Lock** — Fingerprint/Face ID/Windows Hello (local_auth)
+- **Quick Add Bar** — Fast transaction entry with wallet selector and suggestions
+- **Quick Actions FAB** — 4 quick actions (transaction, funding, savings, pay debt)
+- **Multi-language** — Vietnamese (default) / English
+- **Offline Support** — Works offline with Firestore cache
+- **Cross-platform** — Android, iOS, Windows, Linux, macOS, Web
 
 ## Tech Stack
 
-- **Flutter** (Dart)
-- **SQLite** (sqflite + sqflite_common_ffi for desktop)
-- **fl_chart** — Charts
+### Frontend
+- **Flutter** (Dart) — Cross-platform UI framework
+- **google_fonts** — SpecialElite (typewriter) + PatrickHand (handwritten)
+- **fl_chart** — Beautiful charts
 - **local_auth** — Biometric authentication
-- **google_fonts** — Fonts (SpecialElite, PatrickHand)
-- **flutter_slidable** — Swipe actions
+- **flutter_slidable** — Swipe-to-delete actions
+
+### Backend
+- **Firebase Firestore** — NoSQL cloud database with realtime sync
+- **Firebase Cloud Messaging** — Push notifications
+- **Firebase Security Rules** — Server-side access control
+
+### Architecture
+- **Feature-first** — Organized by feature (wallet, transaction, goal, debt, etc.)
+- **Repository pattern** — Service → Repository → Firestore
+- **Stream-based** — Realtime updates with StreamBuilder
+- **Localization** — S helper with vi/en locale files
 
 ## Project Structure
 
 ```
 lib/
 ├── core/
-│   ├── constants/       # Shared constants (category icons, ...)
-│   ├── l10n/            # Localization (vi, en) & S helper
-│   ├── theme/           # App theme, colors, typography, spacing
-│   └── database.dart    # SQLite database setup & migrations
+│   ├── constants/          # Category icons, currency
+│   ├── l10n/               # Localization (app_vi.dart, app_en.dart, s.dart)
+│   ├── theme/              # AppColors, AppTextStyles, AppSpacing, theme.dart
+│   ├── enums/              # TransactionType, etc.
+│   ├── firestore/          # FirestoreRepository base class
+│   ├── bootstrap/          # App initialization & auth flow
+│   ├── service_locator.dart # Dependency injection (GetIt)
+│   └── app_state.dart      # Global state (currentAccountId, currentUserId)
 ├── common/
-│   └── widgets/         # Reusable UI components
+│   └── widgets/            # Reusable UI (AppScaffold, LedgerCard, AmountText, etc.)
 ├── features/
-│   ├── auth/            # Biometric lock screen
-│   ├── category/        # Category CRUD (models, repos, services, screens, widgets)
-│   ├── settings/        # Language settings (repos, services, screens)
-│   ├── transaction/     # Transaction CRUD + charts
-│   ├── wallet/          # Wallet CRUD
-│   └── home_screen.dart # Main home screen
-├── utils/               # Formatters (amount, date)
-└── main.dart            # App entry point
+│   ├── account/            # Family account management
+│   ├── auth/               # Biometric lock screen
+│   ├── budget/             # Budget CRUD + tracking
+│   ├── category/           # Category CRUD
+│   ├── debt/               # Debt V2 (lend/borrow + payments)
+│   ├── goal/               # Goal V2 (savings goals + contributions + auto-saving)
+│   ├── home/               # Home screen with dashboard
+│   ├── insights/           # Insights tab with charts + coaching
+│   ├── notification/       # FCM notification handling
+│   ├── quick_add/          # Quick add bar + suggestions
+│   ├── recurring/          # Recurring transaction rules
+│   ├── settings/           # Settings screen + language picker
+│   ├── transaction/        # Transaction CRUD + charts + feed
+│   ├── transfer/           # Transfer V2 (internal/funding/cross-account)
+│   ├── wallet/             # Wallet CRUD
+│   └── main_shell.dart     # Bottom navigation (4 tabs)
+├── utils/                  # AmountFormatter, DateFormatter
+└── main.dart               # App entry point
+
+docs/
+├── style_guides/           # Design & coding style guides (see below)
+├── features/               # Feature specs by release (r3-r10)
+├── tasks/                  # Implementation task lists
+└── reviews/                # Code review reports
+
+firestore.rules             # Firestore security rules
+firestore.indexes.json      # Composite indexes for queries
 ```
 
 ## Getting Started
 
+### Prerequisites
+- Flutter SDK 3.0+
+- Firebase project with Firestore + FCM enabled
+- `google-services.json` (Android) / `GoogleService-Info.plist` (iOS)
+
+### Installation
+
 ```bash
+# Clone repo
+git clone <repo-url>
+cd vintage-ledger
+
+# Install dependencies
 flutter pub get
+
+# Run app
 flutter run
 ```
 
----
+### Firebase Setup
 
-## Style Guide
+1. Create Firebase project at https://console.firebase.google.com
+2. Enable Firestore Database
+3. Enable Cloud Messaging
+4. Download config files and place in:
+   - `android/app/google-services.json`
+   - `ios/Runner/GoogleService-Info.plist`
+5. Deploy Firestore rules:
+   ```bash
+   firebase deploy --only firestore:rules
+   firebase deploy --only firestore:indexes
+   ```
 
-All code and design must follow these conventions to maintain the vintage ledger identity.
+## Style Guides
 
-### Color Palette (`AppColors`)
+All code and design must follow the style guides in `docs/style_guides/`:
 
-| Token       | Hex       | Usage                                    |
-|-------------|-----------|------------------------------------------|
-| `paper`     | `#FAF3E0` | Scaffold background, card fill, input bg |
-| `inkBlue`   | `#1F3A5F` | Primary action, icons, focused borders   |
-| `inkPurple` | `#4A2C5A` | Titles, input labels                     |
-| `inkBlack`  | `#2B2B2B` | Body text, column headers                |
-| `inkRed`    | `#8B1E1E` | Destructive / error accent               |
-| `income`    | `#2E7D32` | Income amounts (green)                   |
-| `expense`   | `#C62828` | Expense amounts (red)                    |
-| `divider`   | `#8B6F47` | Dividers, card borders, subtle lines     |
+- **[Design Guide](docs/style_guides/design.md)** — Colors, typography, spacing, components, content tone, gestures, animations, screen structure
+- **[Coding Guide](docs/style_guides/coding.md)** — Architecture, patterns, state management, error handling, imports, naming, localization
 
-### Typography (`AppTextStyles`)
+### Quick Reference
 
-Two fonts only:
+**Colors**: `background` `surface` `primary` `accent` `textPrimary` `textSecondary` `income` `expense` `divider` `error`
 
-- **SpecialElite** — titles, amounts, headlines, button labels (typewriter feel)
-- **PatrickHand** — body text, hints, links, captions (handwritten feel)
+**Typography**: `title` `titleSmall` `headline` `body` `bodyBold` `bodySmall` `amount` `caption` `hint` `error` `buttonLabel` `link`
 
-| Style          | Font         | Size | Usage                              |
-|----------------|--------------|------|------------------------------------|
-| `title`        | SpecialElite | 24   | Section titles, screen headers     |
-| `titleSmall`   | SpecialElite | 16   | Group headers, sub-titles          |
-| `headline`     | SpecialElite | 20   | Lock screen, large emphasis        |
-| `body`         | PatrickHand  | 18   | General text                       |
-| `bodyBold`     | PatrickHand  | 18   | List item names, emphasis          |
-| `bodySmall`    | PatrickHand  | 14   | Subtitles, secondary info          |
-| `amount`       | SpecialElite | 18   | Currency values (colored by type)  |
-| `caption`      | Default      | 10   | Chart labels, timestamps           |
-| `hint`         | PatrickHand  | 16   | Empty states, placeholder text     |
-| `link`         | PatrickHand  | 14   | "View all" action text             |
-| `buttonLabel`  | SpecialElite | 18   | Button text                        |
-| `columnHeader` | PatrickHand  | 18   | Table column headers               |
-| `keypad`       | Default      | 22   | Amount keypad digits               |
-| `error`        | PatrickHand  | 18   | Error messages                     |
-| `emoji`        | Default      | 24   | Flag/emoji in settings             |
-| `emojiLarge`   | Default      | 28   | Lock screen locale toggle          |
+**Spacing**: `xs(4)` `sm(8)` `md2(12)` `md(16)` `lg(24)` `xl(32)`
 
-### Spacing (`AppSpacing`)
+**Key Rules**:
+- No inline styles — use `AppColors`, `AppTextStyles`, `AppSpacing`
+- No relative imports — use `package:vintage_ledger/...`
+- No hardcoded strings — use `S.of(context, 'key')`
+- No `CircularProgressIndicator` — use `ShimmerPlaceholder`
+- No direct repository calls from screens — go through services
 
-| Token | Value | Usage                        |
-|-------|-------|------------------------------|
-| `xs`  | 4     | Tight gaps (icon-text)       |
-| `sm`  | 8     | Small gaps between elements  |
-| `md`  | 16    | Standard padding, card inner |
-| `lg`  | 24    | Section gaps                 |
-| `xl`  | 32    | Large section separators     |
+## Data Layer
 
-### Components
+### Architecture
+```
+Screen → Service → Repository → Firestore
+         ↓
+      Cache (for 3+ screens)
+```
 
-#### AppScaffold
-Every screen uses `AppScaffold(title:, body:)`. When `title` is non-empty, a `LedgerHeader` is rendered as the AppBar with a vintage divider underneath. Pass `showBackButton: false` for root screens.
+### Collections
 
-#### LedgerHeader
-Custom AppBar with SpecialElite bold title + Divider bottom. Supports `actions` for trailing icons (e.g. settings gear).
+```
+accounts/{accountId}
+├── wallets/{walletId}
+├── transactions/{txnId}
+│   └── reactions/{userId}
+├── categories/{categoryId}
+├── budgets/{budgetId}
+├── debts_v2/{debtId}
+│   └── payments/{paymentId}
+├── goals_v2/{goalId}
+│   └── contributions/{contributionId}
+├── auto_saving_rules/{ruleId}
+├── transfers_v2/{transferId}
+├── transfer_shortcuts/{shortcutId}
+├── recurring_rules/{ruleId}
+├── activities/{activityId}
+└── notification_events/{eventId}
 
-#### LedgerCard
-Standard content container: `paper` background, `divider` border at 0.4 alpha, 12px border radius, subtle drop shadow. Use for any grouped content block.
+users/{userId}
+├── settings/{docId}
+└── fcm_tokens/{tokenId}
 
-#### AmountText
-Displays formatted currency with color by type: `income` → green, `expense` → red. Uses `AmountFormatter.formatCurrency()` (Vietnamese đồng format with `.` separator and `đ` suffix).
+pending_invites/{inviteId}
+user_emails/{email}
+```
 
-#### EmptyState
-Centered hint-style text for empty lists.
+### Firestore Patterns
 
-#### SwipeListItem
-Dismissible wrapper with red delete background. Supports `confirmDelete` dialog and `onTap` for edit.
+- **Realtime**: Use `Stream<T>` with `watchAll()` / `watchById()` for live updates
+- **One-shot**: Use `Future<T>` with `getAll()` / `getById()` for static data
+- **Transactions**: Use `firestore.runTransaction()` for atomic wallet balance updates
+- **Batch writes**: Use `batch.commit()` for multi-document writes
+- **Queries**: Always filter at DB level with `where()` + `orderBy()` + `limit()`
+- **Indexes**: Composite indexes required for multi-field queries (see `firestore.indexes.json`)
 
-### Layout Rules
+## Localization
 
-1. **No inline `TextStyle()`** — always use `AppTextStyles.*` or `.copyWith()` from a base style
-2. **No inline `Divider(color:)`** — use `const Divider()`, styled by `DividerTheme`
-3. **No inline `ElevatedButton.styleFrom()`** for default buttons — theme handles bg/fg/padding/shape. Only override for variant buttons (e.g. filter pills)
-4. **No inline `FloatingLabelBehavior`** — set in `InputDecorationTheme`
-5. **Scaffold background** is always `paper` (set in theme)
-6. **Border radius** is `12` for cards/inputs/buttons, `24` for pill-shaped buttons
-7. **All imports** use `package:vintage_ledger/...` style (no relative imports)
+- **Default locale**: `vi` (Vietnamese)
+- **Supported locales**: `vi`, `en`
+- **Usage**: `S.of(context, 'key')` — never hardcode text
+- **Files**: `lib/core/l10n/app_vi.dart`, `lib/core/l10n/app_en.dart`
+- **Helper**: `lib/core/l10n/s.dart` provides `S.of(context, key)` method
 
-### Screen Patterns
+## Release History
 
-- **List screens** (wallets, categories): `AppScaffold` + `RefreshIndicator` + `ListView` with `SwipeListItem` rows + bottom `ElevatedButton.icon` to add
-- **Form screens** (wallet form, category form, transaction form): `AppScaffold` + `Form` + `ListView` of fields + bottom `ElevatedButton` to save
-- **Detail screens** (wallet detail): `AppScaffold` + `ListView` of `LedgerCard` sections
-- **Home screen**: `AppScaffold` + vertical `ListView` with balance card → wallet horizontal scroll → chart → recent transactions + FAB
+- **R10** — User flow redesign: Debt V2, Goal V2, Transfer V2, 4-tab navigation, Quick Actions FAB
+- **R9** — Firebase read optimization: Batch reads, cache strategy, read counter
+- **R8** — Debt tracking, wallet goals, transfer transactions, funding source
+- **R7** — UI/UX overhaul: Soft charts, loading states, transaction list redesign, reactions
+- **R5** — Home V2, lightweight insights, smart coaching, recurring transactions
+- **R4** — Activity feed noise reduction, empty state improvements, CSV export
+- **R3** — Family onboarding, FCM reliability, notification UX, quick add improvements
+- **R2** — Firestore migration, security rules, indexes, query optimization
+- **R1** — Initial release with SQLite
 
-### Localization
+## Contributing
 
-- Default locale: `vi` (Vietnamese)
-- All user-facing strings use `S.of(context, 'key')` — never hardcode text
-- Keys defined in `lib/core/l10n/app_vi.dart` and `app_en.dart`
-- Screen titles are UPPERCASE in l10n values (e.g. `'SỔ THU CHI'`)
+Before contributing, please read:
+1. [Design Style Guide](docs/style_guides/design.md)
+2. [Coding Style Guide](docs/style_guides/coding.md)
+3. Latest feature specs in `docs/features/r10/`
 
-### Data Layer
+## License
 
-- **Architecture**: Repository → Service → Screen (feature-first)
-- **Database**: Single `AppDatabase` singleton, SQLite via sqflite
-- **Queries**: Always filter at DB level (date range, limit) — never load all then filter client-side
-- **Lazy loading**: `transaction_list_screen` loads one month at a time, loads more on scroll
+MIT

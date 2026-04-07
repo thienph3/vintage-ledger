@@ -163,13 +163,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Future<void> _loadGoals() async {
-    final wallet = _wallets.where((w) => w.id == _walletId).firstOrNull;
-    if (wallet != null && wallet.isSavings) {
-      final goals = await sl.goalService.getGoals(wallet.id!);
-      if (mounted) setState(() => _goals = goals);
-    } else {
-      setState(() { _goals = []; _goalId = null; });
-    }
+    // Goals are now managed separately in Goal V2, remove wallet-specific goal loading
+    setState(() { _goals = []; _goalId = null; });
   }
 
   Future<void> _loadMembers() async {
