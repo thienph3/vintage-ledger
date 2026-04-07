@@ -1,3 +1,5 @@
+import 'package:vintage_ledger/features/goal/models/goal_v2.dart';
+
 class GoalContribution {
   final String id;
   final String goalId;

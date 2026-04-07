@@ -227,7 +227,7 @@ class AccountService {
     await deleteAccount(accountId);
   }
 
-  Future<List<Map<String, String>>> getMemberProfiles(List<String> memberIds) async {
+  Future<List<Map<String, dynamic>>> getMemberProfiles(List<String> memberIds) async {
     if (memberIds.isEmpty) return [];
     
     // Check cache first

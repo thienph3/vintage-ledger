@@ -1,3 +1,5 @@
+import 'package:vintage_ledger/features/debt/models/debt_v2.dart';
+
 class DebtPaymentV2 {
   final String id;
   final String debtId;
