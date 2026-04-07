@@ -1,12 +1,6 @@
 flutter analyze
 Analyzing vintage-ledger...                                             
 
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
-          lib\common\widgets\quick_actions_fab.dart:70:35 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
-          lib\common\widgets\quick_actions_fab.dart:178:39 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
-          lib\common\widgets\quick_actions_fab.dart:195:39 - deprecated_member_use
   error - Expected a method, getter, setter or operator declaration - lib\core\cache\cache_service.dart:1:21 -       
          expected_executable
    info - An uninitialized variable should have an explicit type annotation - lib\core\cache\cache_service.dart:1:22 
@@ -459,40 +453,12 @@ warning - The declaration 'size' isn't referenced - lib\core\cache\cache_service
          lib\features\account\services\account_service.dart:257:42 - undefined_method
   error - Undefined class 'DebtV2' - lib\features\debt\models\debt_payment_v2.dart:92:9 - undefined_class
   error - Undefined class 'DebtV2' - lib\features\debt\models\debt_payment_v2.dart:114:5 - undefined_class
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
-          lib\features\debt\screens\debt_detail_screen_v2.dart:128:46 - deprecated_member_use
-warning - Unused import: 'package:vintage_ledger/utils/amount_formatter.dart' -
-       lib\features\debt\screens\debt_form_screen_v2.dart:8:8 - unused_import
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
-          lib\features\debt\screens\debt_form_screen_v2.dart:157:37 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
-          lib\features\debt\screens\debt_list_screen_v2.dart:170:50 - deprecated_member_use
   error - The named parameter 'debt' is required, but there's no corresponding argument -
          lib\features\debt\screens\debt_list_screen_v2.dart:286:41 - missing_required_argument
   error - The named parameter 'debtId' isn't defined - lib\features\debt\screens\debt_list_screen_v2.dart:286:58 -   
          undefined_named_parameter
-  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
-         lib\features\debt\services\debt_service_v2.dart:76:18 - argument_type_not_assignable
-  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
-         lib\features\debt\services\debt_service_v2.dart:105:18 - argument_type_not_assignable
   error - Undefined class 'GoalV2' - lib\features\goal\models\goal_contribution.dart:100:9 - undefined_class
   error - Undefined class 'GoalV2' - lib\features\goal\models\goal_contribution.dart:131:5 - undefined_class
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
-          lib\features\goal\screens\goal_detail_screen.dart:96:40 - deprecated_member_use
-   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for 
-          the form field. This feature was deprecated after v3.33.0-1.0.pre -
-          lib\features\goal\screens\goal_detail_screen.dart:430:17 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
-          lib\features\goal\screens\goal_form_screen.dart:131:49 - deprecated_member_use
-   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for 
-          the form field. This feature was deprecated after v3.33.0-1.0.pre -
-          lib\features\goal\screens\goal_form_screen.dart:197:7 - deprecated_member_use
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
-          lib\features\goal\screens\goal_list_screen.dart:159:51 - deprecated_member_use
-  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
-         lib\features\goal\services\goal_service_v2.dart:47:18 - argument_type_not_assignable
-  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
-         lib\features\goal\services\goal_service_v2.dart:76:18 - argument_type_not_assignable
    info - Use the null-aware marker '?' rather than a null check via an 'if' -
           lib\features\transaction\services\transaction_service.dart:243:9 - use_null_aware_elements
    info - Use the null-aware marker '?' rather than a null check via an 'if' -
@@ -501,22 +467,6 @@ warning - Unused import: 'package:vintage_ledger/utils/amount_formatter.dart' -
           lib\features\transaction\services\transaction_service.dart:251:9 - use_null_aware_elements
    info - Use the null-aware marker '?' rather than a null check via an 'if' -
           lib\features\transaction\services\transaction_service.dart:253:9 - use_null_aware_elements
-   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
-          lib\features\transfer\screens\transfer_screen.dart:141:49 - deprecated_member_use
-   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for 
-          the form field. This feature was deprecated after v3.33.0-1.0.pre -
-          lib\features\transfer\screens\transfer_screen.dart:177:13 - deprecated_member_use
-   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for 
-          the form field. This feature was deprecated after v3.33.0-1.0.pre -
-          lib\features\transfer\screens\transfer_screen.dart:195:13 - deprecated_member_use
-  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
-         lib\features\transfer\services\transfer_service_v2.dart:27:18 - argument_type_not_assignable
-  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
-         lib\features\transfer\services\transfer_service_v2.dart:53:18 - argument_type_not_assignable
-  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
-         lib\features\transfer\services\transfer_service_v2.dart:78:18 - argument_type_not_assignable
-  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
-         lib\features\transfer\services\transfer_service_v2.dart:106:18 - argument_type_not_assignable
   error - The method 'userProfileKey' isn't defined for the type 'Function' -
          test\performance\firebase_optimization_test.dart:76:27 - undefined_method
   error - The method 'accountKey' isn't defined for the type 'Function' -
@@ -524,4 +474,4 @@ warning - Unused import: 'package:vintage_ledger/utils/amount_formatter.dart' -
   error - The method 'memberProfilesKey' isn't defined for the type 'Function' -
          test\performance\firebase_optimization_test.dart:78:27 - undefined_method
 
-399 issues found. (ran in 8.4s)
+376 issues found. (ran in 7.2s)
