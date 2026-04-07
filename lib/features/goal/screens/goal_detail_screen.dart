@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
+import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
@@ -41,7 +43,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
         if (!snapshot.hasData) {
           return const AppScaffold(
             title: '',
-            body: Center(child: CircularProgressIndicator()),
+            body: const ShimmerPlaceholder(),
           );
         }
 
@@ -305,7 +307,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           stream: _service.watchContributions(goal.id),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
+              return const ShimmerPlaceholder();
             }
 
             final contributions = snapshot.data!;
