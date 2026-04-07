@@ -52,34 +52,10 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
     });
   }
 
-  Future<void> _renameWallet() async {
-    final ctrl = TextEditingController(text: _walletName);
-    final newName = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(S.of(ctx, 'walletName')),
-        content: TextField(
-          controller: ctrl,
-          autofocus: true,
-          style: AppTextStyles.body,
-          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(S.of(ctx, 'cancel'))),
-          TextButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: Text(S.of(ctx, 'save'))),
-        ],
-      ),
-    );
-    if (newName == null || newName.isEmpty || newName == _walletName) return;
-    await sl.walletService.renameWallet(widget.wallet.id!, newName);
-    if (mounted) setState(() => _walletName = newName);
-  }
-
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
       title: _walletName,
-      onTitleTap: _renameWallet,
       actions: [
         IconButton(
           icon: const Icon(Icons.edit_outlined, size: 20),
