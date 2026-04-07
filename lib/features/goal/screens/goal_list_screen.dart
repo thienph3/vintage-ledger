@@ -37,11 +37,12 @@ class _GoalListScreenState extends State<GoalListScreen> {
   }
 
   Widget _buildCategoryFilter() {
-    return SizedBox(
-      height: 80,
+    return Container(
+      height: 70,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         children: [
           _buildCategoryChip(null, 'Tất cả', '🎯'),
           ...GoalCategory.values.map((cat) => _buildCategoryChip(
@@ -92,11 +93,17 @@ class _GoalListScreenState extends State<GoalListScreen> {
     return StreamBuilder<List<GoalV2>>(
       stream: _service.watchGoalsProgress(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        var goals = snapshot.data!;
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Lỗi: ${snapshot.error}', style: AppTextStyles.error),
+          );
+        }
+
+        var goals = snapshot.data ?? [];
         if (_selectedCategory != null) {
           goals = goals.where((g) => g.category == _selectedCategory).toList();
         }

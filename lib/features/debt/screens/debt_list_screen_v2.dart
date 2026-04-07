@@ -88,11 +88,17 @@ class _DebtListScreenState extends State<DebtListScreen> {
     return StreamBuilder<List<DebtV2>>(
       stream: _service.watchActiveDebts(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        var debts = snapshot.data!;
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Lỗi: ${snapshot.error}', style: AppTextStyles.error),
+          );
+        }
+
+        var debts = snapshot.data ?? [];
         debts = _filterDebts(debts);
 
         if (debts.isEmpty) {
