@@ -44,7 +44,7 @@ class GoalServiceV2 {
       amount: amount,
       date: now,
       note: note,
-      createdBy: sl.appState.currentUserId,
+      createdBy: sl.appState.currentUserId ?? '',
       createdAt: now,
     );
 
@@ -73,7 +73,7 @@ class GoalServiceV2 {
       amount: -amount,
       date: now,
       note: note,
-      createdBy: sl.appState.currentUserId,
+      createdBy: sl.appState.currentUserId ?? '',
       createdAt: now,
     );
 

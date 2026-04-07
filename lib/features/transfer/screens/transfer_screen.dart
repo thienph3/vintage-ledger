@@ -138,7 +138,7 @@ class _TransferScreenState extends State<TransferScreen> {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.surface,
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.divider,
@@ -174,7 +174,7 @@ class _TransferScreenState extends State<TransferScreen> {
       child: Column(
         children: [
           DropdownButtonFormField<String>(
-            value: _sourceWalletId,
+            initialValue: _sourceWalletId,
             decoration: const InputDecoration(
               labelText: 'Từ ví',
               prefixIcon: Icon(Icons.account_balance_wallet),
@@ -192,7 +192,7 @@ class _TransferScreenState extends State<TransferScreen> {
           const Icon(Icons.arrow_downward, color: AppColors.primary),
           const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<String>(
-            value: _destWalletId,
+            initialValue: _destWalletId,
             decoration: InputDecoration(
               labelText: _type == TransferType.funding ? 'Đến ví gia đình' : 'Đến ví',
               prefixIcon: const Icon(Icons.account_balance_wallet),

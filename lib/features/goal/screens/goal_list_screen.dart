@@ -156,7 +156,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.income.withOpacity(0.1),
+                          color: AppColors.income.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(

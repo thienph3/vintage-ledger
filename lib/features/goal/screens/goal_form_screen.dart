@@ -128,7 +128,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
           vertical: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.1) : AppColors.surface,
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
           borderRadius: BorderRadius.circular(24),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.divider,
@@ -194,7 +194,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
     }
 
     return DropdownButtonFormField<String>(
-      value: _selectedWalletId,
+      initialValue: _selectedWalletId,
       decoration: const InputDecoration(
         labelText: 'Ví nguồn',
         prefixIcon: Icon(Icons.account_balance_wallet),

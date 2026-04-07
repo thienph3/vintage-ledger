@@ -93,7 +93,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               vertical: 4,
             ),
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
+              color: AppColors.primary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
@@ -427,7 +427,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               ),
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<RecurrenceType>(
-                value: frequency,
+                initialValue: frequency,
                 decoration: const InputDecoration(labelText: 'Tần suất'),
                 items: RecurrenceType.values.map((f) {
                   return DropdownMenuItem(
