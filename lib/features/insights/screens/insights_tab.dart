@@ -51,21 +51,12 @@ class _InsightsTabState extends State<InsightsTab> {
   }
 
   Future<void> _load() async {
-    print('[InsightsTab] _load() started');
-    print('[InsightsTab] currentAccountId: ${sl.appState.currentAccountId}');
-    print('[InsightsTab] currentUserId: ${sl.appState.currentUserId}');
     try {
       final locale = Localizations.localeOf(context).languageCode;
-      print('[InsightsTab] Locale: $locale');
-      print('[InsightsTab] Getting dashboard...');
       final dashboard = await sl.transactionService.getDashboard();
-      print('[InsightsTab] Dashboard: ${dashboard.monthly.length} months');
       final streak = await sl.settingService.recordDailyUsage();
-      print('[InsightsTab] Loading last week transactions...');
       final lastWeekTxns = await _loadLastWeek();
-      print('[InsightsTab] Last week txns: ${lastWeekTxns.length}');
       final insights = InsightService.generate(dashboard, lastWeekTxns, locale);
-      print('[InsightsTab] Insights generated: ${insights.length}');
       if (!mounted) return;
       setState(() {
         _dashboard = dashboard;
@@ -73,9 +64,7 @@ class _InsightsTabState extends State<InsightsTab> {
         _insights = insights;
         _loading = false;
       });
-      print('[InsightsTab] State updated, loading budgets...');
       final budgets = await sl.budgetService.getBudgets();
-      print('[InsightsTab] Budgets: ${budgets.length}');
       if (!mounted) return;
       final tip = await CoachingService.getTip(
         context: context,
@@ -84,10 +73,7 @@ class _InsightsTabState extends State<InsightsTab> {
         budgetCount: budgets.length,
       );
       if (mounted) setState(() => _coachingTip = tip);
-      print('[InsightsTab] _load() completed');
-    } catch (e, stackTrace) {
-      print('[InsightsTab] Error: $e');
-      print('[InsightsTab] StackTrace: $stackTrace');
+    } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
   }
