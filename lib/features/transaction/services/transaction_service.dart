@@ -39,7 +39,7 @@ class TransactionService {
     // print('[getDashboard] Found ${recent.length} recent, ${monthly.length} monthly transactions');
     
     final categories = await sl.categoryService.getCategories();
-    final categoryMap = {for (var c in categories) c.id!: c};
+    final categoryMap = {for (var c in categories) if (c.id != null) c.id!: c};
 
     int balance;
     if (walletId != null) {
