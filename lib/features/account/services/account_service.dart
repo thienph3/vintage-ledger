@@ -232,7 +232,7 @@ class AccountService {
     
     // Check cache first
     final cacheKey = CacheService.memberProfilesKey(memberIds.join(','));
-    final cached = sl.cacheService.get<List<Map<String, String>>>(cacheKey);
+    final cached = sl.cacheService.get<List<Map<String, dynamic>>>(cacheKey);
     if (cached != null) return cached;
     
     // Batch read optimization: 1 read instead of N reads
