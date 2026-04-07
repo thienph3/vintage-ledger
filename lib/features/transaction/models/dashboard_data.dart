@@ -31,8 +31,10 @@ class DashboardData {
       final dt = DateTime.fromMillisecondsSinceEpoch(t.transaction.date);
       final day = DateTime(dt.year, dt.month, dt.day);
       map.putIfAbsent(day, () => {'income': 0, 'expense': 0});
-      map[day]![t.transaction.type.value] =
-          map[day]![t.transaction.type.value]! + t.transaction.amount;
+      final typeValue = t.transaction.type.value;
+      if (map[day]!.containsKey(typeValue)) {
+        map[day]![typeValue] = (map[day]![typeValue] ?? 0) + t.transaction.amount;
+      }
     }
     return map;
   }
