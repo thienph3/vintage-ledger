@@ -1,5 +1,4 @@
 const Map<String, String> insightsVi = {
-  'tabInsights': 'Thống kê',
   'chartTrend': 'Xu hướng',
   'chartDaily': 'Theo ngày',
   'chartBreakdown': 'Tỷ lệ chi',

@@ -3,14 +3,13 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
-import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/debt/models/debt.dart';
 import 'package:vintage_ledger/features/debt/models/debt_payment.dart';
 import 'package:vintage_ledger/features/debt/services/debt_service.dart';
-import 'package:vintage_ledger/features/debt/screens/debt_form_screen_v2.dart';
+import 'package:vintage_ledger/features/debt/screens/debt_form_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class DebtDetailScreen extends StatefulWidget {
@@ -40,9 +39,9 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
       future: _service.getDebt(widget.debtId),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const AppScaffold(
+          return AppScaffold(
             title: '',
-            body: const ShimmerPlaceholder(),
+            body: ShimmerPlaceholder(),
           );
         }
 
@@ -257,7 +256,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _amountController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: S.of(context, 'paymentAmount'),
               hintText: S.of(context, 'enterAmount'),
               prefixIcon: Icon(Icons.attach_money),
@@ -267,7 +266,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _noteController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: '${S.of(context, 'note')} (tùy chọn)',
               hintText: S.of(context, 'noteHint'),
               prefixIcon: Icon(Icons.note),

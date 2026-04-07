@@ -1,6 +1,5 @@
 const Map<String, String> settingsEn = {
   'settings': 'Settings',
-  'tabSettings': 'Settings',
   'language': 'Language',
   'vietnamese': 'Tiếng Việt',
   'english': 'English',

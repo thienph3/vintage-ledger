@@ -5,7 +5,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/debt/models/debt.dart';
 import 'package:vintage_ledger/features/debt/services/debt_service.dart';
-import 'package:vintage_ledger/features/debt/screens/debt_list_screen_v2.dart';
+import 'package:vintage_ledger/features/debt/screens/debt_list_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class DebtSummaryWidget extends StatelessWidget {

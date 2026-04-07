@@ -3,7 +3,6 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
-import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
@@ -41,9 +40,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
       future: _service.getGoal(widget.goalId),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const AppScaffold(
+          return AppScaffold(
             title: '',
-            body: const ShimmerPlaceholder(),
+            body: ShimmerPlaceholder(),
           );
         }
 
@@ -268,7 +267,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _amountController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: S.of(context, 'contributionAmount'),
               hintText: S.of(context, 'enterAmount'),
               prefixIcon: Icon(Icons.attach_money),
@@ -278,7 +277,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           const SizedBox(height: AppSpacing.md),
           TextField(
             controller: _noteController,
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: '${S.of(context, 'note')} (tùy chọn)',
               hintText: S.of(context, 'noteHint'),
               prefixIcon: Icon(Icons.note),
@@ -422,7 +421,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             children: [
               TextField(
                 controller: amountController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: S.of(context, 'autoSavingAmount'),
                   hintText: S.of(context, 'enterAmount'),
                 ),

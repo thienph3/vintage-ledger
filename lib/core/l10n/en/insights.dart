@@ -1,5 +1,4 @@
 const Map<String, String> insightsEn = {
-  'tabInsights': 'Insights',
   'chartTrend': 'Trend',
   'chartDaily': 'Daily',
   'chartBreakdown': 'Breakdown',

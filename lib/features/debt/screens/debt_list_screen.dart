@@ -3,14 +3,13 @@ import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
-import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/debt/models/debt.dart';
 import 'package:vintage_ledger/features/debt/services/debt_service.dart';
-import 'package:vintage_ledger/features/debt/screens/debt_form_screen_v2.dart';
-import 'package:vintage_ledger/features/debt/screens/debt_detail_screen_v2.dart';
+import 'package:vintage_ledger/features/debt/screens/debt_form_screen.dart';
+import 'package:vintage_ledger/features/debt/screens/debt_detail_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 enum DebtFilter { all, lend, borrow, overdue }
@@ -57,7 +56,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
     );
   }
 
-  Widget _buildFilterChip(String label, DebtFilter filter, IconData icon) {
+  Widget _buildFilterChip(DebtFilter filter, IconData icon) {
     final isSelected = _filter == filter;
     final labels = {
       DebtFilter.all: S.of(context, 'allDebts'),

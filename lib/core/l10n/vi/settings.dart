@@ -1,6 +1,5 @@
 const Map<String, String> settingsVi = {
   'settings': 'Cài đặt',
-  'tabSettings': 'Cài đặt',
   'language': 'Ngôn ngữ',
   'vietnamese': 'Tiếng Việt',
   'english': 'English',
