@@ -3,8 +3,8 @@ import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/features/goal/models/goal_v2.dart';
-import 'package:vintage_ledger/features/goal/services/goal_service_v2.dart';
+import 'package:vintage_ledger/features/goal/models/goal.dart';
+import 'package:vintage_ledger/features/goal/services/goal_service.dart';
 import 'package:vintage_ledger/features/goal/screens/goal_list_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
@@ -13,9 +13,9 @@ class GoalSummaryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final service = GoalServiceV2();
+    final service = GoalService();
 
-    return StreamBuilder<List<GoalV2>>(
+    return StreamBuilder<List<Goal>>(
       stream: service.watchGoalsProgress(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {

@@ -4,8 +4,8 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/features/goal/models/goal_v2.dart';
-import 'package:vintage_ledger/features/goal/services/goal_service_v2.dart';
+import 'package:vintage_ledger/features/goal/models/goal.dart';
+import 'package:vintage_ledger/features/goal/services/goal_service.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class GoalContributionScreen extends StatefulWidget {
@@ -16,10 +16,10 @@ class GoalContributionScreen extends StatefulWidget {
 }
 
 class _GoalContributionScreenState extends State<GoalContributionScreen> {
-  final _service = GoalServiceV2();
+  final _service = GoalService();
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
-  GoalV2? _selectedGoal;
+  Goal? _selectedGoal;
   bool _isLoading = false;
 
   @override
@@ -33,7 +33,7 @@ class _GoalContributionScreenState extends State<GoalContributionScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: S.of(context, 'contributeToGoal'),
-      body: StreamBuilder<List<GoalV2>>(
+      body: StreamBuilder<List<Goal>>(
         stream: _service.watchGoalsProgress(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -75,7 +75,7 @@ class _GoalContributionScreenState extends State<GoalContributionScreen> {
     );
   }
 
-  Widget _buildGoalOption(GoalV2 goal) {
+  Widget _buildGoalOption(Goal goal) {
     final isSelected = _selectedGoal?.id == goal.id;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),

@@ -5,8 +5,8 @@ import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/features/goal/models/goal_v2.dart';
-import 'package:vintage_ledger/features/goal/services/goal_service_v2.dart';
+import 'package:vintage_ledger/features/goal/models/goal.dart';
+import 'package:vintage_ledger/features/goal/services/goal_service.dart';
 import 'package:vintage_ledger/features/goal/screens/goal_form_screen.dart';
 import 'package:vintage_ledger/features/goal/screens/goal_detail_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
@@ -19,7 +19,7 @@ class GoalListScreen extends StatefulWidget {
 }
 
 class _GoalListScreenState extends State<GoalListScreen> {
-  final _service = GoalServiceV2();
+  final _service = GoalService();
   GoalCategory? _selectedCategory;
 
   @override
@@ -89,7 +89,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
   }
 
   Widget _buildGoalList() {
-    return StreamBuilder<List<GoalV2>>(
+    return StreamBuilder<List<Goal>>(
       stream: _service.watchGoalsProgress(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -125,7 +125,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
     );
   }
 
-  Widget _buildGoalItem(GoalV2 goal) {
+  Widget _buildGoalItem(Goal goal) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Dismissible(
@@ -251,7 +251,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  Future<bool?> _confirmDelete(GoalV2 goal) {
+  Future<bool?> _confirmDelete(Goal goal) {
     return showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -278,7 +278,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
     );
   }
 
-  void _navigateToDetail(GoalV2 goal) {
+  void _navigateToDetail(Goal goal) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => GoalDetailScreen(goalId: goal.id)),

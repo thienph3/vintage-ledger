@@ -1,4 +1,4 @@
-import 'package:vintage_ledger/features/goal/models/goal_v2.dart';
+import 'package:vintage_ledger/features/goal/models/goal.dart';
 
 class GoalContribution {
   final String id;
@@ -99,7 +99,7 @@ class GoalContribution {
 
 /// Combined model for goal with its contributions
 class GoalWithContributions {
-  final GoalV2 goal;
+  final Goal goal;
   final List<GoalContribution> contributions;
 
   const GoalWithContributions({
@@ -130,7 +130,7 @@ class GoalWithContributions {
       sortedContributions.take(5).toList();
 
   GoalWithContributions copyWith({
-    GoalV2? goal,
+    Goal? goal,
     List<GoalContribution>? contributions,
   }) {
     return GoalWithContributions(

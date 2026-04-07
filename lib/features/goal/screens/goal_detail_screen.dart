@@ -5,10 +5,10 @@ import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/features/goal/models/goal_v2.dart';
+import 'package:vintage_ledger/features/goal/models/goal.dart';
 import 'package:vintage_ledger/features/goal/models/goal_contribution.dart';
 import 'package:vintage_ledger/features/goal/models/auto_saving_rule.dart';
-import 'package:vintage_ledger/features/goal/services/goal_service_v2.dart';
+import 'package:vintage_ledger/features/goal/services/goal_service.dart';
 import 'package:vintage_ledger/features/goal/screens/goal_form_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
@@ -22,7 +22,7 @@ class GoalDetailScreen extends StatefulWidget {
 }
 
 class _GoalDetailScreenState extends State<GoalDetailScreen> {
-  final _service = GoalServiceV2();
+  final _service = GoalService();
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
 
@@ -35,7 +35,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<GoalV2?>(
+    return FutureBuilder<Goal?>(
       future: _service.getGoal(widget.goalId),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -73,7 +73,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildGoalInfo(GoalV2 goal) {
+  Widget _buildGoalInfo(Goal goal) {
     return LedgerCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +126,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildProgressCard(GoalV2 goal) {
+  Widget _buildProgressCard(Goal goal) {
     return LedgerCard(
       child: Column(
         children: [
@@ -203,7 +203,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildAutoSavingCard(GoalV2 goal) {
+  Widget _buildAutoSavingCard(Goal goal) {
     return StreamBuilder<AutoSavingRule?>(
       stream: _service.watchAutoSavingRule(goal.id),
       builder: (context, snapshot) {
@@ -257,7 +257,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildContributionSection(GoalV2 goal) {
+  Widget _buildContributionSection(Goal goal) {
     return LedgerCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -295,7 +295,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildContributionHistory(GoalV2 goal) {
+  Widget _buildContributionHistory(Goal goal) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -364,7 +364,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  Future<void> _contribute(GoalV2 goal) async {
+  Future<void> _contribute(Goal goal) async {
     final amountText = _amountController.text;
     if (amountText.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -406,7 +406,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     }
   }
 
-  Future<void> _showAutoSavingDialog(GoalV2 goal) async {
+  Future<void> _showAutoSavingDialog(Goal goal) async {
     final amountController = TextEditingController();
     RecurrenceType frequency = RecurrenceType.monthly;
 
@@ -465,7 +465,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  void _navigateToEdit(GoalV2 goal) {
+  void _navigateToEdit(Goal goal) {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => GoalFormScreen(goal: goal)),

@@ -76,7 +76,7 @@ enum GoalStatus {
   }
 }
 
-class GoalV2 {
+class Goal {
   final String id;
   final String accountId;
   final String name;
@@ -89,7 +89,7 @@ class GoalV2 {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  const GoalV2({
+  const Goal({
     required this.id,
     required this.accountId,
     required this.name,
@@ -129,8 +129,8 @@ class GoalV2 {
   String get progressText => '${(progressPercentage * 100).toInt()}%';
 
   // Factory constructors
-  factory GoalV2.fromMap(String id, Map<String, dynamic> data) {
-    return GoalV2(
+  factory Goal.fromMap(String id, Map<String, dynamic> data) {
+    return Goal(
       id: id,
       accountId: data['account_id'] ?? '',
       name: data['name'] ?? '',
@@ -168,7 +168,7 @@ class GoalV2 {
     };
   }
 
-  GoalV2 copyWith({
+  Goal copyWith({
     String? id,
     String? accountId,
     String? name,
@@ -181,7 +181,7 @@ class GoalV2 {
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
-    return GoalV2(
+    return Goal(
       id: id ?? this.id,
       accountId: accountId ?? this.accountId,
       name: name ?? this.name,
@@ -199,7 +199,7 @@ class GoalV2 {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is GoalV2 && other.id == id;
+    return other is Goal && other.id == id;
   }
 
   @override
@@ -207,6 +207,6 @@ class GoalV2 {
 
   @override
   String toString() {
-    return 'GoalV2(id: $id, name: $name, category: $category, progress: ${progressPercentage.toStringAsFixed(2)})';
+    return 'Goal(id: $id, name: $name, category: $category, progress: ${progressPercentage.toStringAsFixed(2)})';
   }
 }

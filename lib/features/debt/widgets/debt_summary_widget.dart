@@ -3,8 +3,8 @@ import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/features/debt/models/debt_v2.dart';
-import 'package:vintage_ledger/features/debt/services/debt_service_v2.dart';
+import 'package:vintage_ledger/features/debt/models/debt.dart';
+import 'package:vintage_ledger/features/debt/services/debt_service.dart';
 import 'package:vintage_ledger/features/debt/screens/debt_list_screen_v2.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
@@ -13,9 +13,9 @@ class DebtSummaryWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final service = DebtServiceV2();
+    final service = DebtService();
 
-    return StreamBuilder<List<DebtV2>>(
+    return StreamBuilder<List<Debt>>(
       stream: service.watchActiveDebts(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {

@@ -1,21 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-
 import 'package:vintage_ledger/core/l10n/s.dart';
-import 'package:vintage_ledger/core/service_locator.dart';
+import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
-import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
-import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
-import 'package:vintage_ledger/common/widgets/form_save_button.dart';
 import 'package:vintage_ledger/features/debt/models/debt.dart';
+import 'package:vintage_ledger/features/debt/services/debt_service.dart';
 
 class DebtFormScreen extends StatefulWidget {
-  final Debt? existing;
+  final Debt? debt;
 
-  const DebtFormScreen({super.key, this.existing});
+  const DebtFormScreen({super.key, this.debt});
 
   @override
   State<DebtFormScreen> createState() => _DebtFormScreenState();
@@ -23,160 +18,287 @@ class DebtFormScreen extends StatefulWidget {
 
 class _DebtFormScreenState extends State<DebtFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameCtrl = TextEditingController();
-  final _amountCtrl = TextEditingController();
-  final _noteCtrl = TextEditingController();
-  final _dateCtrl = TextEditingController();
-  DebtType _type = DebtType.lend;
+  final _service = DebtService();
+  
+  late DebtType _type;
+  final _partyNameController = TextEditingController();
+  final _contactController = TextEditingController();
+  final _amountController = TextEditingController();
+  final _interestRateController = TextEditingController();
+  final _descriptionController = TextEditingController();
   DateTime? _dueDate;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    if (widget.existing != null) {
-      final d = widget.existing!;
-      _nameCtrl.text = d.partyName;
-      _amountCtrl.text = d.totalAmount.toString();
-      _noteCtrl.text = d.note ?? '';
-      _type = d.type;
-      if (d.dueDate != null) _dueDate = DateTime.fromMillisecondsSinceEpoch(d.dueDate!);
-    } else {
-      _amountCtrl.text = '0';
+    _type = widget.debt?.type ?? DebtType.lend;
+    if (widget.debt != null) {
+      _partyNameController.text = widget.debt!.partyName;
+      _contactController.text = widget.debt!.partyContact ?? '';
+      _amountController.text = widget.debt!.totalAmount.toString();
+      _interestRateController.text = widget.debt!.interestRate?.toString() ?? '';
+      _descriptionController.text = widget.debt!.description ?? '';
+      _dueDate = widget.debt!.dueDate;
     }
-  }
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_dueDate != null) _dateCtrl.text = DateFormat('dd/MM/yyyy').format(_dueDate!);
   }
 
   @override
   void dispose() {
-    _nameCtrl.dispose();
-    _amountCtrl.dispose();
-    _noteCtrl.dispose();
-    _dateCtrl.dispose();
+    _partyNameController.dispose();
+    _contactController.dispose();
+    _amountController.dispose();
+    _interestRateController.dispose();
+    _descriptionController.dispose();
     super.dispose();
-  }
-
-  Future<void> _save() async {
-    if (!_formKey.currentState!.validate()) return;
-    final amount = int.tryParse(_amountCtrl.text) ?? 0;
-    if (amount <= 0) {
-      showAppSnackBar(context, S.of(context, 'amountMustBePositive'));
-      return;
-    }
-
-    try {
-      await sl.debtService.createDebt(Debt(
-        type: _type,
-        partyName: _nameCtrl.text.trim(),
-        totalAmount: amount,
-        note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
-        dueDate: _dueDate?.millisecondsSinceEpoch,
-      ));
-      if (mounted) Navigator.pop(context, true);
-    } catch (e) {
-      if (mounted) showAppSnackBar(context, e.toString(), backgroundColor: AppColors.error);
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: S.of(context, 'addDebt'),
+      title: widget.debt == null ? S.of(context, 'addDebt') : S.of(context, 'editDebt'),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: [
-            _buildTypeToggle(),
+            _buildTypeSelector(),
             const SizedBox(height: AppSpacing.lg),
-            TextFormField(
-              controller: _nameCtrl,
-              decoration: InputDecoration(
-                labelText: S.of(context, 'partyName'),
-                prefixIcon: const Icon(Icons.person_outline),
-              ),
-              style: AppTextStyles.body,
-              validator: (v) => v == null || v.trim().isEmpty ? S.of(context, 'partyNameRequired') : null,
+            _buildTextField(
+              controller: _partyNameController,
+              label: '${S.of(context, 'debtPerson')} ${_type == DebtType.lend ? S.of(context, 'borrow').toLowerCase() : S.of(context, 'lend').toLowerCase()}',
+              hint: S.of(context, 'partyNameRequired'),
+              icon: Icons.person,
+              validator: (v) => v?.isEmpty ?? true ? S.of(context, 'partyNameRequired') : null,
             ),
             const SizedBox(height: AppSpacing.md),
-            AmountInputField(controller: _amountCtrl),
+            _buildTextField(
+              controller: _contactController,
+              label: 'Số điện thoại (tùy chọn)',
+              hint: 'Nhập số điện thoại',
+              icon: Icons.phone,
+              keyboardType: TextInputType.phone,
+            ),
             const SizedBox(height: AppSpacing.md),
-            TextFormField(
-              readOnly: true,
-              controller: _dateCtrl,
-              decoration: InputDecoration(
-                labelText: S.of(context, 'dueDate'),
-                suffixIcon: const Icon(Icons.calendar_today, size: 20),
-              ),
-              onTap: () async {
-                final picked = await showDatePicker(
-                  context: context,
-                  initialDate: _dueDate ?? DateTime.now().add(const Duration(days: 30)),
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime(2100),
-                );
-                if (picked == null) return;
-                setState(() { _dueDate = picked; _dateCtrl.text = DateFormat('dd/MM/yyyy').format(picked); });
+            _buildTextField(
+              controller: _amountController,
+              label: S.of(context, 'debtAmount'),
+              hint: S.of(context, 'enterAmount'),
+              icon: Icons.attach_money,
+              keyboardType: TextInputType.number,
+              validator: (v) {
+                if (v?.isEmpty ?? true) return S.of(context, 'enterAmount');
+                if (int.tryParse(v!) == null) return S.of(context, 'amountMustBePositive');
+                return null;
               },
-              style: AppTextStyles.body,
             ),
             const SizedBox(height: AppSpacing.md),
-            TextFormField(
-              controller: _noteCtrl,
-              maxLines: 2,
-              decoration: InputDecoration(
-                labelText: S.of(context, 'note'),
-                hintText: S.of(context, 'noteHint'),
-              ),
-              style: AppTextStyles.body,
+            _buildDateField(),
+            const SizedBox(height: AppSpacing.md),
+            _buildTextField(
+              controller: _interestRateController,
+              label: 'Lãi suất % (tùy chọn)',
+              hint: 'Nhập lãi suất',
+              icon: Icons.percent,
+              keyboardType: TextInputType.number,
             ),
-            const SizedBox(height: AppSpacing.lg),
-            FormSaveButton(isEdit: false, onPressed: _save),
+            const SizedBox(height: AppSpacing.md),
+            _buildTextField(
+              controller: _descriptionController,
+              label: '${S.of(context, 'debtNote')} (tùy chọn)',
+              hint: S.of(context, 'noteHint'),
+              icon: Icons.note,
+              maxLines: 3,
+            ),
+            const SizedBox(height: AppSpacing.xl),
+            _buildSaveButton(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildTypeToggle() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: AppColors.divider.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          _pill(DebtType.lend, S.of(context, 'lend')),
-          const SizedBox(width: 4),
-          _pill(DebtType.borrow, S.of(context, 'borrow')),
-        ],
+  Widget _buildTypeSelector() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildTypeOption(
+            type: DebtType.lend,
+            label: S.of(context, 'lendDebts'),
+            icon: Icons.trending_up,
+            color: AppColors.income,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: _buildTypeOption(
+            type: DebtType.borrow,
+            label: S.of(context, 'borrowDebts'),
+            icon: Icons.trending_down,
+            color: AppColors.expense,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTypeOption({
+    required DebtType type,
+    required String label,
+    required IconData icon,
+    required Color color,
+  }) {
+    final isSelected = _type == type;
+    return GestureDetector(
+      onTap: () => setState(() => _type = type),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.1) : AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? color : AppColors.divider,
+            width: 2,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: isSelected ? color : AppColors.textSecondary, size: 32),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              label,
+              style: AppTextStyles.bodyBold.copyWith(
+                color: isSelected ? color : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _pill(DebtType type, String label) {
-    final selected = _type == type;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _type = type),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: selected ? AppColors.primary.withValues(alpha: 0.12) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          alignment: Alignment.center,
-          child: Text(label, style: AppTextStyles.buttonLabel.copyWith(
-            color: selected ? AppColors.primary : AppColors.textPrimary, fontSize: 16,
-          )),
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        prefixIcon: Icon(icon),
+      ),
+      keyboardType: keyboardType,
+      maxLines: maxLines,
+      validator: validator,
+    );
+  }
+
+  Widget _buildDateField() {
+    return InkWell(
+      onTap: _selectDate,
+      child: InputDecorator(
+        decoration: const InputDecoration(
+          labelText: '${S.of(context, 'debtDueDate')} (tùy chọn)',
+          prefixIcon: Icon(Icons.calendar_today),
+        ),
+        child: Text(
+          _dueDate == null ? 'Chọn ngày' : _formatDate(_dueDate!),
+          style: _dueDate == null ? AppTextStyles.hint : AppTextStyles.body,
         ),
       ),
     );
+  }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _save,
+        child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Text(widget.debt == null ? S.of(context, 'createDebt') : S.of(context, 'updateDebt')),
+      ),
+    );
+  }
+
+  Future<void> _selectDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _dueDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 3650)),
+    );
+    if (date != null) {
+      setState(() => _dueDate = date);
+    }
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final amount = int.parse(_amountController.text);
+      final interestRate = _interestRateController.text.isEmpty
+          ? null
+          : double.tryParse(_interestRateController.text);
+
+      if (widget.debt == null) {
+        if (_type == DebtType.lend) {
+          await _service.choVay(
+            partyName: _partyNameController.text,
+            amount: amount,
+            contact: _contactController.text.isEmpty ? null : _contactController.text,
+            dueDate: _dueDate,
+            interestRate: interestRate,
+            description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+          );
+        } else {
+          await _service.vayMuon(
+            partyName: _partyNameController.text,
+            amount: amount,
+            contact: _contactController.text.isEmpty ? null : _contactController.text,
+            dueDate: _dueDate,
+            interestRate: interestRate,
+            description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+          );
+        }
+      } else {
+        await _service.updateDebt(
+          widget.debt!.id,
+          partyName: _partyNameController.text,
+          partyContact: _contactController.text.isEmpty ? null : _contactController.text,
+          totalAmount: amount,
+          dueDate: _dueDate,
+          interestRate: interestRate,
+          description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+        );
+      }
+
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${S.of(context, 'error')}: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 }

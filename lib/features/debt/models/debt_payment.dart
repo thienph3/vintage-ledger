@@ -1,6 +1,6 @@
-import 'package:vintage_ledger/features/debt/models/debt_v2.dart';
+import 'package:vintage_ledger/features/debt/models/debt.dart';
 
-class DebtPaymentV2 {
+class DebtPayment {
   final String id;
   final String debtId;
   final int amount;
@@ -10,7 +10,7 @@ class DebtPaymentV2 {
   final String createdBy;
   final DateTime createdAt;
 
-  const DebtPaymentV2({
+  const DebtPayment({
     required this.id,
     required this.debtId,
     required this.amount,
@@ -27,8 +27,8 @@ class DebtPaymentV2 {
   String get displayNote => note ?? 'Thanh toán nợ';
 
   // Factory constructors
-  factory DebtPaymentV2.fromMap(String id, Map<String, dynamic> data) {
-    return DebtPaymentV2(
+  factory DebtPayment.fromMap(String id, Map<String, dynamic> data) {
+    return DebtPayment(
       id: id,
       debtId: data['debt_id'] ?? '',
       amount: data['amount'] ?? 0,
@@ -52,7 +52,7 @@ class DebtPaymentV2 {
     };
   }
 
-  DebtPaymentV2 copyWith({
+  DebtPayment copyWith({
     String? id,
     String? debtId,
     int? amount,
@@ -62,7 +62,7 @@ class DebtPaymentV2 {
     String? createdBy,
     DateTime? createdAt,
   }) {
-    return DebtPaymentV2(
+    return DebtPayment(
       id: id ?? this.id,
       debtId: debtId ?? this.debtId,
       amount: amount ?? this.amount,
@@ -77,7 +77,7 @@ class DebtPaymentV2 {
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-    return other is DebtPaymentV2 && other.id == id;
+    return other is DebtPayment && other.id == id;
   }
 
   @override
@@ -85,14 +85,14 @@ class DebtPaymentV2 {
 
   @override
   String toString() {
-    return 'DebtPaymentV2(id: $id, debtId: $debtId, amount: $amount, date: $date)';
+    return 'DebtPayment(id: $id, debtId: $debtId, amount: $amount, date: $date)';
   }
 }
 
 /// Combined model for debt with its payments
 class DebtWithPayments {
-  final DebtV2 debt;
-  final List<DebtPaymentV2> payments;
+  final Debt debt;
+  final List<DebtPayment> payments;
 
   const DebtWithPayments({
     required this.debt,
@@ -102,10 +102,10 @@ class DebtWithPayments {
   // Computed properties
   int get totalPaid => payments.fold(0, (sum, payment) => sum + payment.amount);
   
-  List<DebtPaymentV2> get sortedPayments => 
+  List<DebtPayment> get sortedPayments => 
       List.from(payments)..sort((a, b) => b.date.compareTo(a.date));
   
-  DebtPaymentV2? get lastPayment => 
+  DebtPayment? get lastPayment => 
       payments.isEmpty ? null : sortedPayments.first;
   
   bool get hasPayments => payments.isNotEmpty;
@@ -113,8 +113,8 @@ class DebtWithPayments {
   int get paymentCount => payments.length;
 
   DebtWithPayments copyWith({
-    DebtV2? debt,
-    List<DebtPaymentV2>? payments,
+    Debt? debt,
+    List<DebtPayment>? payments,
   }) {
     return DebtWithPayments(
       debt: debt ?? this.debt,

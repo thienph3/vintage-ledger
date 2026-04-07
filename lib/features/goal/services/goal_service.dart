@@ -1,11 +1,11 @@
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/features/goal/models/goal_v2.dart';
+import 'package:vintage_ledger/features/goal/models/goal.dart';
 import 'package:vintage_ledger/features/goal/models/goal_contribution.dart';
 import 'package:vintage_ledger/features/goal/models/auto_saving_rule.dart';
-import 'package:vintage_ledger/features/goal/repositories/goal_repository_v2.dart';
+import 'package:vintage_ledger/features/goal/repositories/goal_repository.dart';
 
-class GoalServiceV2 {
-  final _repo = GoalRepositoryV2();
+class GoalService {
+  final _repo = GoalRepository();
 
   // ── Core Operations ──
 
@@ -17,7 +17,7 @@ class GoalServiceV2 {
     DateTime? targetDate,
   }) async {
     final now = DateTime.now();
-    final goal = GoalV2(
+    final goal = Goal(
       id: '',
       accountId: sl.appState.currentAccountId,
       name: name,
@@ -141,23 +141,23 @@ class GoalServiceV2 {
 
   // ── Queries ──
 
-  Future<List<GoalV2>> getActiveGoals() async {
+  Future<List<Goal>> getActiveGoals() async {
     return await _repo.getActiveGoals();
   }
 
-  Future<List<GoalV2>> getGoalsByCategory(GoalCategory category) async {
+  Future<List<Goal>> getGoalsByCategory(GoalCategory category) async {
     return await _repo.getGoalsByCategory(category);
   }
 
-  Future<List<GoalV2>> getCompletedGoals() async {
+  Future<List<Goal>> getCompletedGoals() async {
     return await _repo.getCompletedGoals();
   }
 
-  Stream<List<GoalV2>> watchGoalsProgress() {
+  Stream<List<Goal>> watchGoalsProgress() {
     return _repo.watchActiveGoals();
   }
 
-  Future<GoalV2?> getGoal(String id) async {
+  Future<Goal?> getGoal(String id) async {
     return await _repo.getGoal(id);
   }
 

@@ -1,10 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/features/goal/models/goal_v2.dart';
+import 'package:vintage_ledger/features/goal/models/goal.dart';
 import 'package:vintage_ledger/features/goal/models/goal_contribution.dart';
 import 'package:vintage_ledger/features/goal/models/auto_saving_rule.dart';
 
-class GoalRepositoryV2 {
+class GoalRepository {
   final _firestore = FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> get _goals =>
@@ -18,65 +18,65 @@ class GoalRepositoryV2 {
 
   // ── Goals ──
 
-  Future<List<GoalV2>> getGoals() async {
+  Future<List<Goal>> getGoals() async {
     final snap = await _goals
         .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .orderBy('created_at', descending: true)
         .get();
-    return snap.docs.map((d) => GoalV2.fromMap(d.id, d.data())).toList();
+    return snap.docs.map((d) => Goal.fromMap(d.id, d.data())).toList();
   }
 
-  Future<List<GoalV2>> getActiveGoals() async {
+  Future<List<Goal>> getActiveGoals() async {
     final snap = await _goals
         .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('status', isEqualTo: GoalStatus.active.name)
         .orderBy('created_at', descending: true)
         .get();
-    return snap.docs.map((d) => GoalV2.fromMap(d.id, d.data())).toList();
+    return snap.docs.map((d) => Goal.fromMap(d.id, d.data())).toList();
   }
 
-  Future<List<GoalV2>> getGoalsByCategory(GoalCategory category) async {
+  Future<List<Goal>> getGoalsByCategory(GoalCategory category) async {
     final snap = await _goals
         .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('category', isEqualTo: category.name)
         .orderBy('created_at', descending: true)
         .get();
-    return snap.docs.map((d) => GoalV2.fromMap(d.id, d.data())).toList();
+    return snap.docs.map((d) => Goal.fromMap(d.id, d.data())).toList();
   }
 
-  Future<List<GoalV2>> getCompletedGoals() async {
+  Future<List<Goal>> getCompletedGoals() async {
     final snap = await _goals
         .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('status', isEqualTo: GoalStatus.completed.name)
         .orderBy('created_at', descending: true)
         .get();
-    return snap.docs.map((d) => GoalV2.fromMap(d.id, d.data())).toList();
+    return snap.docs.map((d) => Goal.fromMap(d.id, d.data())).toList();
   }
 
-  Stream<List<GoalV2>> watchGoals() {
+  Stream<List<Goal>> watchGoals() {
     return _goals
         .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .orderBy('created_at', descending: true)
         .snapshots()
-        .map((snap) => snap.docs.map((d) => GoalV2.fromMap(d.id, d.data())).toList());
+        .map((snap) => snap.docs.map((d) => Goal.fromMap(d.id, d.data())).toList());
   }
 
-  Stream<List<GoalV2>> watchActiveGoals() {
+  Stream<List<Goal>> watchActiveGoals() {
     return _goals
         .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('status', isEqualTo: GoalStatus.active.name)
         .orderBy('created_at', descending: true)
         .snapshots()
-        .map((snap) => snap.docs.map((d) => GoalV2.fromMap(d.id, d.data())).toList());
+        .map((snap) => snap.docs.map((d) => Goal.fromMap(d.id, d.data())).toList());
   }
 
-  Future<GoalV2?> getGoal(String id) async {
+  Future<Goal?> getGoal(String id) async {
     final doc = await _goals.doc(id).get();
     if (!doc.exists) return null;
-    return GoalV2.fromMap(doc.id, doc.data()!);
+    return Goal.fromMap(doc.id, doc.data()!);
   }
 
-  Future<String> addGoal(GoalV2 goal) async {
+  Future<String> addGoal(Goal goal) async {
     final map = goal.toMap();
     map['created_by'] = sl.appState.currentUserId ?? '';
     final doc = await _goals.add(map);

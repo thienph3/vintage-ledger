@@ -4,13 +4,13 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/features/goal/models/goal_v2.dart';
-import 'package:vintage_ledger/features/goal/services/goal_service_v2.dart';
+import 'package:vintage_ledger/features/goal/models/goal.dart';
+import 'package:vintage_ledger/features/goal/services/goal_service.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
 
 class GoalFormScreen extends StatefulWidget {
-  final GoalV2? goal;
+  final Goal? goal;
 
   const GoalFormScreen({super.key, this.goal});
 
@@ -20,7 +20,7 @@ class GoalFormScreen extends StatefulWidget {
 
 class _GoalFormScreenState extends State<GoalFormScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _service = GoalServiceV2();
+  final _service = GoalService();
   final _walletService = WalletService();
   
   late GoalCategory _category;

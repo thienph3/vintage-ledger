@@ -4,8 +4,8 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/features/debt/models/debt_v2.dart';
-import 'package:vintage_ledger/features/debt/services/debt_service_v2.dart';
+import 'package:vintage_ledger/features/debt/models/debt.dart';
+import 'package:vintage_ledger/features/debt/services/debt_service.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class DebtPaymentScreen extends StatefulWidget {
@@ -16,10 +16,10 @@ class DebtPaymentScreen extends StatefulWidget {
 }
 
 class _DebtPaymentScreenState extends State<DebtPaymentScreen> {
-  final _service = DebtServiceV2();
+  final _service = DebtService();
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
-  DebtV2? _selectedDebt;
+  Debt? _selectedDebt;
   bool _isLoading = false;
 
   @override
@@ -33,7 +33,7 @@ class _DebtPaymentScreenState extends State<DebtPaymentScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: S.of(context, 'recordPaymentTitle'),
-      body: StreamBuilder<List<DebtV2>>(
+      body: StreamBuilder<List<Debt>>(
         stream: _service.watchActiveDebts(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -75,7 +75,7 @@ class _DebtPaymentScreenState extends State<DebtPaymentScreen> {
     );
   }
 
-  Widget _buildDebtOption(DebtV2 debt) {
+  Widget _buildDebtOption(Debt debt) {
     final isSelected = _selectedDebt?.id == debt.id;
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
