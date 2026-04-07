@@ -14,6 +14,7 @@ import 'package:vintage_ledger/features/account/models/account.dart';
 import 'package:vintage_ledger/features/splash/splash_bootstrap_screen.dart';
 import 'package:vintage_ledger/features/account/screens/family_form_screen.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
+import 'package:vintage_ledger/features/main_shell.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
 class AccountPickerScreen extends StatefulWidget {
@@ -60,9 +61,9 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
     sl.appState.currentAccountId = account.id;
     sl.settingService.setLastAccountId(account.id);
     sl.cache.clear();
-    Navigator.pushReplacement(
+    Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => const SplashBootstrapScreen()),
+      MaterialPageRoute(builder: (_) => const MainShell()),
     );
   }
 
