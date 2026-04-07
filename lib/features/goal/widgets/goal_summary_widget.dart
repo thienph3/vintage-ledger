@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/common/widgets/ledger_card.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
@@ -45,10 +46,10 @@ class GoalSummaryWidget extends StatelessWidget {
                     const Icon(Icons.flag, color: AppColors.primary, size: 20),
                     const SizedBox(width: AppSpacing.xs),
                     Expanded(
-                      child: Text('Mục tiêu', style: AppTextStyles.titleSmall),
+                      child: Text(S.of(context, 'goalTitle'), style: AppTextStyles.titleSmall),
                     ),
                     Text(
-                      'Xem tất cả',
+                      S.of(context, 'viewAll'),
                       style: AppTextStyles.link,
                     ),
                   ],
@@ -60,7 +61,7 @@ class GoalSummaryWidget extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Đang thực hiện', style: AppTextStyles.caption),
+                          Text(S.of(context, 'inProgress'), style: AppTextStyles.caption),
                           const SizedBox(height: AppSpacing.xs),
                           Text(
                             '${goals.length} mục tiêu',
@@ -73,7 +74,7 @@ class GoalSummaryWidget extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Tiến độ', style: AppTextStyles.caption),
+                          Text(S.of(context, 'progress'), style: AppTextStyles.caption),
                           const SizedBox(height: AppSpacing.xs),
                           Text(
                             '${(overallProgress * 100).toInt()}%',

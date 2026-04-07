@@ -102,7 +102,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
 
         if (snapshot.hasError) {
           return Center(
-            child: Text('Lỗi: ${snapshot.error}', style: AppTextStyles.error),
+            child: Text('${S.of(context, 'error')}: ${snapshot.error}', style: AppTextStyles.error),
           );
         }
 

@@ -37,4 +37,8 @@ const Map<String, String> goalVi = {
   'setupAutoSavingButton': 'Thiết lập',
   'autoSavingSetup': 'Đã thiết lập',
   'unallocated': 'Chưa phân bổ',
+  'remaining': 'Còn lại',
+  'noAutoSaving': 'Chưa thiết lập',
+  'inProgress': 'Đang thực hiện',
+  'progress': 'Tiến độ',
 };

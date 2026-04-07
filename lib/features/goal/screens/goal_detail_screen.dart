@@ -138,7 +138,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Hiện tại', style: AppTextStyles.caption),
+                    Text(S.of(context, 'currentAmount'), style: AppTextStyles.caption),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       AmountFormatter.formatCurrency(goal.currentAmount, 'vi'),
@@ -151,7 +151,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Mục tiêu', style: AppTextStyles.caption),
+                    Text(S.of(context, 'targetGoal'), style: AppTextStyles.caption),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       AmountFormatter.formatCurrency(goal.targetAmount, 'vi'),
@@ -166,7 +166,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Còn lại', style: AppTextStyles.caption),
+              Text(S.of(context, 'remaining'), style: AppTextStyles.caption),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 AmountFormatter.formatCurrency(goal.remainingAmount, 'vi'),
@@ -244,7 +244,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 ),
               ] else ...[
                 const SizedBox(height: AppSpacing.sm),
-                Text('Chưa thiết lập', style: AppTextStyles.hint),
+                Text(S.of(context, 'noAutoSaving'), style: AppTextStyles.hint),
                 const SizedBox(height: AppSpacing.md),
                 ElevatedButton.icon(
                   onPressed: () => _showAutoSavingDialog(goal),

@@ -37,4 +37,8 @@ const Map<String, String> goalEn = {
   'setupAutoSavingButton': 'Setup',
   'autoSavingSetup': 'Setup complete',
   'unallocated': 'Unallocated',
+  'remaining': 'Remaining',
+  'noAutoSaving': 'Not set up',
+  'inProgress': 'In progress',
+  'progress': 'Progress',
 };
