@@ -590,10 +590,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                 Frequency.weekly: S.of(context, 'weekly'),
                 Frequency.monthly: S.of(context, 'monthly'),
               }[_frequency],
-              items: [
-                SelectionItem(value: Frequency.daily, label: S.of(context, 'daily')),
-                SelectionItem(value: Frequency.weekly, label: S.of(context, 'weekly')),
-                SelectionItem(value: Frequency.monthly, label: S.of(context, 'monthly')),
+              items: <SelectionItem<Frequency>>[
+                SelectionItem<Frequency>(value: Frequency.daily, label: S.of(context, 'daily')),
+                SelectionItem<Frequency>(value: Frequency.weekly, label: S.of(context, 'weekly')),
+                SelectionItem<Frequency>(value: Frequency.monthly, label: S.of(context, 'monthly')),
               ],
               selected: _frequency,
               onChanged: (v) { if (v != null) setState(() => _frequency = v); },

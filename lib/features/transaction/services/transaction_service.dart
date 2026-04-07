@@ -237,17 +237,17 @@ class TransactionService {
       txn.update(txnOutRef, {
         'wallet_id': sourceWalletId, 'to_wallet_id': destWalletId,
         'to_wallet_name': dstWalletName,
-        if (dstAccountName != null) 'to_account_name': dstAccountName,
+        ...?dstAccountName != null ? {'to_account_name': dstAccountName} : null,
         'amount': newAmount, 'note': note, 'date': date,
-        if (createdBy != null) 'created_by': createdBy,
+        ...?createdBy != null ? {'created_by': createdBy} : null,
         'updated_at': now,
       });
       txn.update(txnInRef, {
         'wallet_id': destWalletId, 'to_wallet_id': sourceWalletId,
         'to_wallet_name': srcWalletName,
-        if (srcAccountName != null) 'to_account_name': srcAccountName,
+        ...?srcAccountName != null ? {'to_account_name': srcAccountName} : null,
         'amount': newAmount, 'note': note, 'date': date,
-        if (createdBy != null) 'created_by': createdBy,
+        ...?createdBy != null ? {'created_by': createdBy} : null,
         'updated_at': now,
       });
     });
