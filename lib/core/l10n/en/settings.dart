@@ -1,0 +1,15 @@
+const Map<String, String> settingsEn = {
+  'settings': 'Settings',
+  'tabSettings': 'Settings',
+  'language': 'Language',
+  'vietnamese': 'Tiếng Việt',
+  'english': 'English',
+  'privacy': 'Privacy',
+  'dataSecure': 'Data stored securely on Firebase (Google)',
+  'onlyYouCanAccess': 'Only you and family can access',
+  'privacyDetail': 'Data is stored on Firebase (Google Cloud) with encryption. We do not sell or share data. Only you and family members (if any) can access.',
+  'exportCsv': 'Export data (CSV)',
+  'exportSuccess': 'Export successful',
+  'clearLearnedKeywords': 'Clear learned keywords',
+  'keywords': 'keywords',
+};

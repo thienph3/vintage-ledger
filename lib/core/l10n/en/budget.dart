@@ -1,0 +1,17 @@
+const Map<String, String> budgetEn = {
+  'budget': 'Budget',
+  'budgets': 'Budgets',
+  'setBudget': 'Set budget',
+  'editBudget': 'Edit budget',
+  'budgetLimit': 'Limit',
+  'budgetExceeded': 'Budget exceeded 😅',
+  'budgetNearLimit': 'Near budget limit',
+  'remaining': 'Remaining',
+  'spent': 'Spent',
+  'noBudgets': 'No budgets set',
+  'monthlyInsight': 'Monthly overview',
+  'vsLastMonth': 'vs last month',
+  'topSpending': 'Top spending',
+  'budgetWarning': 'Budget warning',
+  'emptyBudgetHint': 'Set a budget to control spending →',
+};

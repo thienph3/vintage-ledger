@@ -1,0 +1,15 @@
+const Map<String, String> categoryEn = {
+  'categories': 'Categories',
+  'categoryName': 'Category name',
+  'categoryNameRequired': 'Please enter category name',
+  'noCategories': 'No categories yet',
+  'editCategory': 'Edit category',
+  'addNewCategory': 'Add category',
+  'selectIcon': 'Select icon',
+  'deleteCategory': 'Delete category',
+  'deleteCategoryConfirm': 'Delete this category?',
+  'categoryNameColumn': 'Category name',
+  'noCategoriesFound': 'No categories found',
+  'manageCategories': 'Categories',
+  'uncategorized': 'Uncategorized',
+};
