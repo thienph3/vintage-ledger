@@ -1,41 +1,527 @@
 flutter analyze
 Analyzing vintage-ledger...                                             
 
-   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check -     
-          lib\features\category\screens\category_list_screen.dart:136:29 -
-          use_build_context_synchronously
-   info - Don't use 'BuildContext's across async gaps -
-          lib\features\coaching\coaching_service.dart:43:23 - use_build_context_synchronously        
-   info - Don't use 'BuildContext's across async gaps -
-          lib\features\coaching\coaching_service.dart:54:25 - use_build_context_synchronously        
-   info - Don't use 'BuildContext's across async gaps -
-          lib\features\coaching\coaching_service.dart:56:29 - use_build_context_synchronously        
-   info - Don't use 'BuildContext's across async gaps -
-          lib\features\coaching\coaching_service.dart:68:25 - use_build_context_synchronously        
-   info - Don't use 'BuildContext's across async gaps -
-          lib\features\coaching\coaching_service.dart:93:27 - use_build_context_synchronously        
-   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check -     
-          lib\features\debt\screens\debt_detail_screen.dart:136:50 - use_build_context_synchronously 
-   info - Don't use 'BuildContext's across async gaps -
-          lib\features\insights\screens\insights_tab.dart:46:45 - use_build_context_synchronously    
-   info - Don't use 'BuildContext's across async gaps -
-          lib\features\reminder\reminder_service.dart:54:23 - use_build_context_synchronously        
-   info - Don't use 'BuildContext's across async gaps -
-          lib\features\settings\screens\setting_screen.dart:75:23 - use_build_context_synchronously  
-   info - Don't use 'BuildContext's across async gaps -
-          lib\features\settings\screens\setting_screen.dart:75:37 - use_build_context_synchronously  
-   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check -     
-          lib\features\settings\screens\setting_screen.dart:293:31 - use_build_context_synchronously 
-   info - Don't use 'BuildContext's across async gaps -
-          lib\features\settings\screens\setting_screen.dart:501:49 - use_build_context_synchronously 
-   info - Don't use 'BuildContext's across async gaps -
-          lib\features\settings\screens\setting_screen.dart:516:51 - use_build_context_synchronously 
-   info - Don't use 'BuildContext's across async gaps -
-          lib\features\transaction\screens\transaction_form_screen.dart:312:21 -
-          use_build_context_synchronously
-warning - Unused import: 'package:vintage_ledger/utils/navigator_x.dart' -
-       lib\features\transaction\screens\transaction_list_screen.dart:11:8 - unused_import
-warning - The value of the local variable 'dstWalletRef' isn't used -
-       lib\features\transaction\services\transaction_service.dart:298:11 - unused_local_variable     
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
+          lib\common\widgets\quick_actions_fab.dart:70:35 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
+          lib\common\widgets\quick_actions_fab.dart:178:39 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
+          lib\common\widgets\quick_actions_fab.dart:195:39 - deprecated_member_use
+  error - Expected a method, getter, setter or operator declaration - lib\core\cache\cache_service.dart:1:21 -       
+         expected_executable
+   info - An uninitialized variable should have an explicit type annotation - lib\core\cache\cache_service.dart:1:22 
+          - prefer_typing_uninitialized_variables
+   info - Missing type annotation - lib\core\cache\cache_service.dart:1:22 - strict_top_level_inference
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:22 - expected_token
+  error - Variables must be declared using the keywords 'const', 'final', 'var' or a type name -
+         lib\core\cache\cache_service.dart:1:22 - missing_const_final_var_or_type
+  error - Expected a method, getter, setter or operator declaration - lib\core\cache\cache_service.dart:1:23 -       
+         expected_executable
+  error - Undefined class 'nclass' - lib\core\cache\cache_service.dart:1:24 - undefined_class
+   info - The variable name 'CacheEntry' isn't a lowerCamelCase identifier - lib\core\cache\cache_service.dart:1:31 -
+          non_constant_identifier_names
+  error - Functions must have an explicit list of parameters - lib\core\cache\cache_service.dart:1:31 -
+         missing_function_parameters
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:46 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:46 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:47 - expected_token
+warning - The value of the local variable 'value' isn't used - lib\core\cache\cache_service.dart:1:58 -
+       unused_local_variable
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:64 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:64 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:65 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:93 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:93 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:94 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:117 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:117 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:118 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:119 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:119 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:120 - not_a_type
+   info - The variable name 'CacheEntry' isn't a lowerCamelCase identifier - lib\core\cache\cache_service.dart:1:123 
+          - non_constant_identifier_names
+warning - The value of the local variable 'CacheEntry' isn't used - lib\core\cache\cache_service.dart:1:123 -        
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:123 - expected_token
+  error - Invalid reference to 'this' expression - lib\core\cache\cache_service.dart:1:134 -
+         invalid_reference_to_this
+  error - Invalid reference to 'this' expression - lib\core\cache\cache_service.dart:1:146 -
+         invalid_reference_to_this
+  error - Invalid reference to 'this' expression - lib\core\cache\cache_service.dart:1:162 -
+         invalid_reference_to_this
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:172 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:172 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:173 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:174 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:174 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:175 - not_a_type
+warning - The value of the local variable 'bool' isn't used - lib\core\cache\cache_service.dart:1:178 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:178 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:183 - expected_token
+  error - Undefined name 'get' - lib\core\cache\cache_service.dart:1:183 - undefined_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:187 - expected_token
+  error - Undefined name 'isExpired' - lib\core\cache\cache_service.dart:1:187 - undefined_identifier
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:198 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:198 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:199 - expected_token
+warning - The operand must be 'null', so the condition is always 'true' - lib\core\cache\cache_service.dart:1:208 -  
+       unnecessary_null_comparison
+  error - The final variable 'ttl' can't be read because it's potentially unassigned at this point -
+         lib\core\cache\cache_service.dart:1:208 - read_potentially_unassigned_final
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:234 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:234 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:235 - expected_token
+  error - The final variable 'createdAt' can't be read because it's potentially unassigned at this point -
+         lib\core\cache\cache_service.dart:1:273 - read_potentially_unassigned_final
+  error - The final variable 'ttl' can't be read because it's potentially unassigned at this point -
+         lib\core\cache\cache_service.dart:1:286 - read_potentially_unassigned_final
+warning - The '!' will have no effect because the receiver can't be null - lib\core\cache\cache_service.dart:1:289 - 
+       unnecessary_non_null_assertion
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:291 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:291 - expected_token
+warning - Dead code - lib\core\cache\cache_service.dart:1:292 - dead_code
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:292 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:296 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:296 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:297 - expected_token
+  error - Expected a method, getter, setter or operator declaration - lib\core\cache\cache_service.dart:1:299 -      
+         expected_executable
+   info - An uninitialized variable should have an explicit type annotation - lib\core\cache\cache_service.dart:1:300
+          - prefer_typing_uninitialized_variables
+   info - Missing type annotation - lib\core\cache\cache_service.dart:1:300 - strict_top_level_inference
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:300 - expected_token
+  error - The name 'n' is already defined - lib\core\cache\cache_service.dart:1:300 - duplicate_definition
+  error - Variables must be declared using the keywords 'const', 'final', 'var' or a type name -
+         lib\core\cache\cache_service.dart:1:300 - missing_const_final_var_or_type
+  error - Expected a method, getter, setter or operator declaration - lib\core\cache\cache_service.dart:1:301 -      
+         expected_executable
+  error - Undefined class 'nclass' - lib\core\cache\cache_service.dart:1:302 - undefined_class
+   info - The variable name 'CacheService' isn't a lowerCamelCase identifier -
+          lib\core\cache\cache_service.dart:1:309 - non_constant_identifier_names
+  error - Functions must have an explicit list of parameters - lib\core\cache\cache_service.dart:1:309 -
+         missing_function_parameters
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:323 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:323 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:324 - not_a_type
+warning - The value of the local variable 'static' isn't used - lib\core\cache\cache_service.dart:1:327 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:327 - expected_token
+  error - Local variable 'CacheService' can't be referenced before it is declared -
+         lib\core\cache\cache_service.dart:1:340 - referenced_before_declaration
+   info - The local variable '_instance' starts with an underscore - lib\core\cache\cache_service.dart:1:353 -       
+          no_leading_underscores_for_local_identifiers
+  error - Local variable 'CacheService' can't be referenced before it is declared -
+         lib\core\cache\cache_service.dart:1:365 - referenced_before_declaration
+  error - The method '_internal' isn't defined for the type 'Function' - lib\core\cache\cache_service.dart:1:378 -   
+         undefined_method
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:390 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:390 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:391 - not_a_type
+warning - The value of the local variable 'factory' isn't used - lib\core\cache\cache_service.dart:1:394 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:394 - expected_token
+   info - The variable name 'CacheService' isn't a lowerCamelCase identifier -
+          lib\core\cache\cache_service.dart:1:402 - non_constant_identifier_names
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:430 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:430 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:431 - not_a_type
+   info - The variable name 'CacheService' isn't a lowerCamelCase identifier -
+          lib\core\cache\cache_service.dart:1:434 - non_constant_identifier_names
+warning - The value of the local variable 'CacheService' isn't used - lib\core\cache\cache_service.dart:1:434 -      
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:434 - expected_token
+  error - The name 'CacheService' is already defined - lib\core\cache\cache_service.dart:1:434 - duplicate_definition
+  error - The static method or constructor '_internal' isn't defined for the context type '_' -
+         lib\core\cache\cache_service.dart:1:447 - dot_shorthand_undefined_member
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:459 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:459 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:460 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:461 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:461 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:462 - expected_token
+  error - The name 'CacheEntry' isn't a type, so it can't be used as a type argument -
+         lib\core\cache\cache_service.dart:1:483 - non_type_as_type_argument
+   info - The local variable '_cache' starts with an underscore - lib\core\cache\cache_service.dart:1:495 -
+          no_leading_underscores_for_local_identifiers
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:507 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:507 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:508 - not_a_type
+   info - The variable name 'Timer' isn't a lowerCamelCase identifier - lib\core\cache\cache_service.dart:1:511 -    
+          non_constant_identifier_names
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:511 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:516 - missing_identifier
+  error - Undefined name '_cleanupTimer' - lib\core\cache\cache_service.dart:1:518 - undefined_identifier
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:531 - missing_identifier
+  error - Expected to find ':' - lib\core\cache\cache_service.dart:1:531 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:532 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:532 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:533 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:534 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:534 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:535 - not_a_type
+warning - The value of the local variable 'static' isn't used - lib\core\cache\cache_service.dart:1:538 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:538 - expected_token
+  error - The name 'static' is already defined - lib\core\cache\cache_service.dart:1:538 - duplicate_definition      
+   info - The local variable '_defaultTtl' starts with an underscore - lib\core\cache\cache_service.dart:1:560 -     
+          no_leading_underscores_for_local_identifiers
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:595 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:595 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:596 - not_a_type
+warning - The value of the local variable 'static' isn't used - lib\core\cache\cache_service.dart:1:599 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:599 - expected_token
+  error - The name 'static' is already defined - lib\core\cache\cache_service.dart:1:599 - duplicate_definition      
+   info - The local variable '_cleanupInterval' starts with an underscore - lib\core\cache\cache_service.dart:1:621 -
+          no_leading_underscores_for_local_identifiers
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:661 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:661 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:662 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:663 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:663 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:664 - expected_token
+   info - The local variable '_startCleanupTimer' starts with an underscore - lib\core\cache\cache_service.dart:1:672
+          - no_leading_underscores_for_local_identifiers
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:694 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:694 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:695 - not_a_type
+   info - The local variable '_cleanupTimer' starts with an underscore - lib\core\cache\cache_service.dart:1:700 -   
+          no_leading_underscores_for_local_identifiers
+warning - The value of the local variable '_cleanupTimer' isn't used - lib\core\cache\cache_service.dart:1:700 -     
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:700 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:713 - missing_identifier
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:724 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:724 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:725 - not_a_type
+   info - The local variable '_cleanupTimer' starts with an underscore - lib\core\cache\cache_service.dart:1:730 -   
+          no_leading_underscores_for_local_identifiers
+warning - The value of the local variable '_cleanupTimer' isn't used - lib\core\cache\cache_service.dart:1:730 -     
+       unused_local_variable
+  error - The name '_cleanupTimer' is already defined - lib\core\cache\cache_service.dart:1:730 -
+         duplicate_definition
+  error - Local variable '_cleanup' can't be referenced before it is declared -
+         lib\core\cache\cache_service.dart:1:786 - referenced_before_declaration
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:798 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:798 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:799 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:803 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:803 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:804 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:805 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:805 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:806 - expected_token
+   info - The local variable '_cleanup' starts with an underscore - lib\core\cache\cache_service.dart:1:814 -        
+          no_leading_underscores_for_local_identifiers
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:826 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:826 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:827 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:863 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:863 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:864 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:906 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:906 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:907 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:942 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:942 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:943 - not_a_type
+warning - The value of the local variable 'expiredKeys' isn't used - lib\core\cache\cache_service.dart:1:952 -       
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:952 - expected_token
+  error - The static method or constructor 'add' isn't defined for the context type '_' -
+         lib\core\cache\cache_service.dart:1:964 - dot_shorthand_undefined_member
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:979 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:979 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:980 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:988 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:988 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:989 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:995 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:995 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:996 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1033 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1033 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:1034 - not_a_type
+   info - The local variable '_cache' starts with an underscore - lib\core\cache\cache_service.dart:1:1041 -
+          no_leading_underscores_for_local_identifiers
+warning - The value of the local variable '_cache' isn't used - lib\core\cache\cache_service.dart:1:1041 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1041 - expected_token
+  error - The static method or constructor 'remove' isn't defined for the context type '_' -
+         lib\core\cache\cache_service.dart:1:1048 - dot_shorthand_undefined_member
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1060 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1060 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1061 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1067 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1067 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1068 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1072 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1072 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1073 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1074 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1074 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:1075 - not_a_type
+warning - The value of the local variable 'T' isn't used - lib\core\cache\cache_service.dart:1:1078 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1078 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1079 - missing_identifier
+  error - Function expressions can't be named - lib\core\cache\cache_service.dart:1:1081 - named_function_expression 
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1101 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1101 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1102 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1133 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1133 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1134 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1170 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1170 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1171 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1198 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1198 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:1199 - not_a_type
+   info - The local variable '_cache' starts with an underscore - lib\core\cache\cache_service.dart:1:1206 -
+          no_leading_underscores_for_local_identifiers
+warning - The value of the local variable '_cache' isn't used - lib\core\cache\cache_service.dart:1:1206 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1206 - expected_token
+  error - The static method or constructor 'remove' isn't defined for the context type '_' -
+         lib\core\cache\cache_service.dart:1:1213 - dot_shorthand_undefined_member
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1225 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1225 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1226 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1245 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1245 - expected_token
+warning - Dead code - lib\core\cache\cache_service.dart:1:1246 - dead_code
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1246 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1252 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1252 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1253 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1283 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1283 - expected_token
+warning - Dead code - lib\core\cache\cache_service.dart:1:1284 - dead_code
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1284 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1288 - missing_identifier
+  error - Expected to find ':' - lib\core\cache\cache_service.dart:1:1288 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1288 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1289 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1290 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1290 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1291 - expected_token
+warning - The declaration 'set' isn't referenced - lib\core\cache\cache_service.dart:1:1299 - unused_element
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1345 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1345 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1346 - expected_token
+  error - Undefined name '_cleanupTimer' - lib\core\cache\cache_service.dart:1:1355 - undefined_identifier
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1399 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1399 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:1400 - not_a_type
+   info - The local variable '_cache' starts with an underscore - lib\core\cache\cache_service.dart:1:1405 -
+          no_leading_underscores_for_local_identifiers
+warning - The value of the local variable '_cache' isn't used - lib\core\cache\cache_service.dart:1:1405 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1405 - expected_token
+  error - Too many positional arguments: 0 expected, but 3 found - lib\core\cache\cache_service.dart:1:1430 -        
+         extra_positional_arguments
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1473 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1473 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1474 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1478 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1478 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1479 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1480 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1480 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1481 - expected_token
+warning - The declaration 'invalidate' isn't referenced - lib\core\cache\cache_service.dart:1:1489 - unused_element  
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1513 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1513 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:1514 - not_a_type
+   info - The local variable '_cache' starts with an underscore - lib\core\cache\cache_service.dart:1:1519 -
+          no_leading_underscores_for_local_identifiers
+warning - The value of the local variable '_cache' isn't used - lib\core\cache\cache_service.dart:1:1519 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1519 - expected_token
+  error - The static method or constructor 'remove' isn't defined for the context type '_' -
+         lib\core\cache\cache_service.dart:1:1526 - dot_shorthand_undefined_member
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1538 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1538 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1539 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1543 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1543 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1544 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1545 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1545 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1546 - expected_token
+warning - The declaration 'invalidatePattern' isn't referenced - lib\core\cache\cache_service.dart:1:1554 -
+       unused_element
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1589 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1589 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1590 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1625 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1625 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1626 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1709 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1709 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1710 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1748 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1748 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:1749 - not_a_type
+   info - The local variable '_cache' starts with an underscore - lib\core\cache\cache_service.dart:1:1756 -
+          no_leading_underscores_for_local_identifiers
+warning - The value of the local variable '_cache' isn't used - lib\core\cache\cache_service.dart:1:1756 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1756 - expected_token
+  error - The static method or constructor 'remove' isn't defined for the context type '_' -
+         lib\core\cache\cache_service.dart:1:1763 - dot_shorthand_undefined_member
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1775 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1775 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1776 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1782 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1782 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1783 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1787 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1787 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1788 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1789 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1789 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1790 - expected_token
+warning - The declaration 'clear' isn't referenced - lib\core\cache\cache_service.dart:1:1798 - unused_element       
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1807 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1807 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:1808 - not_a_type
+   info - The local variable '_cache' starts with an underscore - lib\core\cache\cache_service.dart:1:1813 -
+          no_leading_underscores_for_local_identifiers
+warning - The value of the local variable '_cache' isn't used - lib\core\cache\cache_service.dart:1:1813 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1813 - expected_token
+  error - The static method or constructor 'clear' isn't defined for the context type '_' -
+         lib\core\cache\cache_service.dart:1:1820 - dot_shorthand_undefined_member
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1828 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1828 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:1829 - not_a_type
+   info - The local variable '_cleanupTimer' starts with an underscore - lib\core\cache\cache_service.dart:1:1834 -  
+          no_leading_underscores_for_local_identifiers
+warning - The value of the local variable '_cleanupTimer' isn't used - lib\core\cache\cache_service.dart:1:1834 -    
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1834 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1847 - missing_identifier
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1858 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1858 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:1859 - not_a_type
+   info - Redundant initialization to 'null' - lib\core\cache\cache_service.dart:1:1864 - avoid_init_to_null
+   info - The local variable '_cleanupTimer' starts with an underscore - lib\core\cache\cache_service.dart:1:1864 -  
+          no_leading_underscores_for_local_identifiers
+warning - The value of the local variable '_cleanupTimer' isn't used - lib\core\cache\cache_service.dart:1:1864 -    
+       unused_local_variable
+  error - The name '_cleanupTimer' is already defined - lib\core\cache\cache_service.dart:1:1864 -
+         duplicate_definition
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1885 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1885 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1886 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1890 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1890 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1891 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1892 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1892 - expected_token
+  error - n isn't a type - lib\core\cache\cache_service.dart:1:1893 - not_a_type
+warning - The value of the local variable 'int' isn't used - lib\core\cache\cache_service.dart:1:1896 -
+       unused_local_variable
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1896 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1900 - expected_token
+  error - Undefined name 'get' - lib\core\cache\cache_service.dart:1:1900 - undefined_identifier
+warning - The declaration 'size' isn't referenced - lib\core\cache\cache_service.dart:1:1904 - unused_element        
+  error - Functions must have an explicit list of parameters - lib\core\cache\cache_service.dart:1:1909 -
+         missing_function_parameters
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1926 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1926 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1927 - expected_token
+  error - Expected an identifier - lib\core\cache\cache_service.dart:1:1928 - missing_identifier
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1928 - expected_token
+  error - Expected to find ';' - lib\core\cache\cache_service.dart:1:1929 - expected_token
+  error - Expected to find '}' - lib\core\cache\cache_service.dart:1:2667 - expected_token
+   info - Function literals shouldn't be passed to 'forEach' - lib\core\debug\read_counter.dart:62:26 -
+          avoid_function_literals_in_foreach_calls
+   info - Function literals shouldn't be passed to 'forEach' - lib\core\debug\read_counter.dart:67:29 -
+          avoid_function_literals_in_foreach_calls
+   info - Function literals shouldn't be passed to 'forEach' - lib\core\debug\read_counter.dart:72:30 -
+          avoid_function_literals_in_foreach_calls
+  error - The method 'getAll' isn't defined for the type 'FirebaseFirestore' -
+         lib\features\account\services\account_service.dart:98:35 - undefined_method
+  error - The method 'accountKey' isn't defined for the type 'Function' -
+         lib\features\account\services\account_service.dart:114:35 - undefined_method
+  error - The method 'memberProfilesKey' isn't defined for the type 'Function' -
+         lib\features\account\services\account_service.dart:234:35 - undefined_method
+  error - The method 'getAll' isn't defined for the type 'FirebaseFirestore' -
+         lib\features\account\services\account_service.dart:240:35 - undefined_method
+  error - The argument type 'Map<String, dynamic>' can't be assigned to the parameter type 'Map<String, String>'.  - 
+         lib\features\account\services\account_service.dart:254:21 - argument_type_not_assignable
+  error - The method 'userProfileKey' isn't defined for the type 'Function' -
+         lib\features\account\services\account_service.dart:257:42 - undefined_method
+  error - Undefined class 'DebtV2' - lib\features\debt\models\debt_payment_v2.dart:92:9 - undefined_class
+  error - Undefined class 'DebtV2' - lib\features\debt\models\debt_payment_v2.dart:114:5 - undefined_class
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
+          lib\features\debt\screens\debt_detail_screen_v2.dart:128:46 - deprecated_member_use
+warning - Unused import: 'package:vintage_ledger/utils/amount_formatter.dart' -
+       lib\features\debt\screens\debt_form_screen_v2.dart:8:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
+          lib\features\debt\screens\debt_form_screen_v2.dart:157:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
+          lib\features\debt\screens\debt_list_screen_v2.dart:170:50 - deprecated_member_use
+  error - The named parameter 'debt' is required, but there's no corresponding argument -
+         lib\features\debt\screens\debt_list_screen_v2.dart:286:41 - missing_required_argument
+  error - The named parameter 'debtId' isn't defined - lib\features\debt\screens\debt_list_screen_v2.dart:286:58 -   
+         undefined_named_parameter
+  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
+         lib\features\debt\services\debt_service_v2.dart:76:18 - argument_type_not_assignable
+  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
+         lib\features\debt\services\debt_service_v2.dart:105:18 - argument_type_not_assignable
+  error - Undefined class 'GoalV2' - lib\features\goal\models\goal_contribution.dart:100:9 - undefined_class
+  error - Undefined class 'GoalV2' - lib\features\goal\models\goal_contribution.dart:131:5 - undefined_class
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
+          lib\features\goal\screens\goal_detail_screen.dart:96:40 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for 
+          the form field. This feature was deprecated after v3.33.0-1.0.pre -
+          lib\features\goal\screens\goal_detail_screen.dart:430:17 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
+          lib\features\goal\screens\goal_form_screen.dart:131:49 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for 
+          the form field. This feature was deprecated after v3.33.0-1.0.pre -
+          lib\features\goal\screens\goal_form_screen.dart:197:7 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
+          lib\features\goal\screens\goal_list_screen.dart:159:51 - deprecated_member_use
+  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
+         lib\features\goal\services\goal_service_v2.dart:47:18 - argument_type_not_assignable
+  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
+         lib\features\goal\services\goal_service_v2.dart:76:18 - argument_type_not_assignable
+   info - Use the null-aware marker '?' rather than a null check via an 'if' -
+          lib\features\transaction\services\transaction_service.dart:243:9 - use_null_aware_elements
+   info - Use the null-aware marker '?' rather than a null check via an 'if' -
+          lib\features\transaction\services\transaction_service.dart:245:9 - use_null_aware_elements
+   info - Use the null-aware marker '?' rather than a null check via an 'if' -
+          lib\features\transaction\services\transaction_service.dart:251:9 - use_null_aware_elements
+   info - Use the null-aware marker '?' rather than a null check via an 'if' -
+          lib\features\transaction\services\transaction_service.dart:253:9 - use_null_aware_elements
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss -
+          lib\features\transfer\screens\transfer_screen.dart:141:49 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for 
+          the form field. This feature was deprecated after v3.33.0-1.0.pre -
+          lib\features\transfer\screens\transfer_screen.dart:177:13 - deprecated_member_use
+   info - 'value' is deprecated and shouldn't be used. Use initialValue instead. This will set the initial value for 
+          the form field. This feature was deprecated after v3.33.0-1.0.pre -
+          lib\features\transfer\screens\transfer_screen.dart:195:13 - deprecated_member_use
+  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
+         lib\features\transfer\services\transfer_service_v2.dart:27:18 - argument_type_not_assignable
+  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
+         lib\features\transfer\services\transfer_service_v2.dart:53:18 - argument_type_not_assignable
+  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
+         lib\features\transfer\services\transfer_service_v2.dart:78:18 - argument_type_not_assignable
+  error - The argument type 'String?' can't be assigned to the parameter type 'String'.  -
+         lib\features\transfer\services\transfer_service_v2.dart:106:18 - argument_type_not_assignable
+  error - The method 'userProfileKey' isn't defined for the type 'Function' -
+         test\performance\firebase_optimization_test.dart:76:27 - undefined_method
+  error - The method 'accountKey' isn't defined for the type 'Function' -
+         test\performance\firebase_optimization_test.dart:77:27 - undefined_method
+  error - The method 'memberProfilesKey' isn't defined for the type 'Function' -
+         test\performance\firebase_optimization_test.dart:78:27 - undefined_method
 
-17 issues found. (ran in 8.0s)
+399 issues found. (ran in 8.4s)
