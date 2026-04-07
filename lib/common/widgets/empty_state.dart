@@ -5,8 +5,9 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 class EmptyState extends StatelessWidget {
   final String message;
   final String? emoji;
+  final Widget? action;
 
-  const EmptyState({super.key, required this.message, this.emoji});
+  const EmptyState({super.key, required this.message, this.emoji, this.action});
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +27,11 @@ class EmptyState extends StatelessWidget {
               style: AppTextStyles.hint,
               textAlign: TextAlign.center,
             ),
+            if (action != null)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                child: action!,
+              ),
           ],
         ),
       ),

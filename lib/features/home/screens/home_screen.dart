@@ -116,20 +116,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 )
               else
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  child: Column(
-                    children: [
-                      Text(S.of(context, 'firstRunHint'), style: AppTextStyles.hint, textAlign: TextAlign.center),
-                      const SizedBox(height: AppSpacing.md),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          final result = await context.pushScreen(const WalletFormScreen());
-                          if (result == true) _refresh();
-                        },
-                        icon: const Icon(Icons.add, size: 18),
-                        label: Text(S.of(context, 'addWallet')),
-                      ),
-                    ],
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: EmptyState(
+                    emoji: '👛',
+                    message: S.of(context, 'firstRunHint'),
+                    action: ElevatedButton.icon(
+                      onPressed: () async {
+                        final result = await context.pushScreen(const WalletFormScreen());
+                        if (result == true) _refresh();
+                      },
+                      icon: const Icon(Icons.add, size: 18),
+                      label: Text(S.of(context, 'addWallet')),
+                    ),
                   ),
                 ),
             ],
@@ -149,10 +147,8 @@ class _HomeScreenState extends State<HomeScreen> {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2)),
-        ],
+        borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
+        boxShadow: [AppColors.cardShadow],
       ),
       child: Column(
         children: [
@@ -162,9 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
             hasExpense
                 ? S.of(context, 'todaySpent').replaceAll('{amount}', AmountFormatter.formatCompactCurrency(expense, locale))
                 : S.of(context, 'noTransactions'),
-            style: hasExpense
-                ? AppTextStyles.title.copyWith(fontSize: 20)
-                : AppTextStyles.hint,
+            style: hasExpense ? AppTextStyles.headline : AppTextStyles.hint,
             textAlign: TextAlign.center,
           ),
           if (todayTxns.isNotEmpty)

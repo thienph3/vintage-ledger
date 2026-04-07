@@ -21,6 +21,13 @@ class AppColors {
   static const divider = Color(0xFFE8E5DE);
   static const error = Color(0xFFD4845A);
 
+  // Shadows
+  static final cardShadow = BoxShadow(
+    color: Colors.black.withValues(alpha: 0.04),
+    blurRadius: 12,
+    offset: const Offset(0, 2),
+  );
+
   // Chart palette (muted tones)
   static const chartColors = [
     primary,
