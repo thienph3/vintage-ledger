@@ -45,7 +45,16 @@ class _MainShellState extends State<MainShell> {
         } else if (_index != 0) {
           setState(() => _index = 0);
         } else {
-          Navigator.of(context).pop();
+          // Clear all nested navigators before popping MainShell
+          for (var key in _navigatorKeys) {
+            final nav = key.currentState;
+            while (nav != null && nav.canPop()) {
+              nav.pop();
+            }
+          }
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
         }
       },
       child: Scaffold(
