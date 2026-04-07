@@ -563,7 +563,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         label: S.of(context, 'member'),
         value: currentName,
         prefixIcon: Icons.person_outline,
-        items: _members.map((m) => SelectionItem(value: m['id']!, label: m['name'] ?? '?', icon: Icons.person_outline)).toList(),
+        items: _members.map((m) => SelectionItem<String>(value: m['id']!, label: m['name'] ?? '?', icon: Icons.person_outline)).toList(),
         selected: _createdBy,
         onChanged: (v) => setState(() => _createdBy = v),
       ),
