@@ -368,7 +368,7 @@ class _SettingScreenState extends State<SettingScreen> {
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
         ),
         child: Column(
@@ -404,7 +404,7 @@ class _SettingScreenState extends State<SettingScreen> {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2))],
       ),
       child: Column(
@@ -473,7 +473,7 @@ class _SettingScreenState extends State<SettingScreen> {
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: c.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -497,7 +497,7 @@ class _SettingScreenState extends State<SettingScreen> {
           title: Text(S.of(context, 'dailyReminder'), style: AppTextStyles.body),
           value: _reminderEnabled,
           contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg)),
           onChanged: (v) async {
             setState(() => _reminderEnabled = v);
             await sl.settingService.setSetting('reminder_enabled', v.toString());
@@ -553,7 +553,7 @@ class _SettingScreenState extends State<SettingScreen> {
         subtitle: subtitle != null ? Text(subtitle, style: AppTextStyles.caption) : null,
         trailing: trailing ?? const Icon(Icons.arrow_forward_ios, size: 14, color: AppColors.textSecondary),
         onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg)),
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: 2),
         dense: true,
       ),

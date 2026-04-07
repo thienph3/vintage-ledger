@@ -155,7 +155,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: isSelected ? color.withValues(alpha: 0.1) : AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
           border: Border.all(
             color: isSelected ? color : AppColors.divider,
             width: 2,

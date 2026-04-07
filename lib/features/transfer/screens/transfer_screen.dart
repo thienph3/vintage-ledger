@@ -141,7 +141,7 @@ class _TransferScreenState extends State<TransferScreen> {
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.divider,
             width: 2,

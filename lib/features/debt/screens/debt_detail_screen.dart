@@ -128,7 +128,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.error.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
                     ),
                     child: Text(
                       'Quá hạn',
@@ -207,7 +207,7 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
           ),
           const SizedBox(height: AppSpacing.md),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppSpacing.borderRadiusSm),
             child: LinearProgressIndicator(
               value: debt.progressPercentage,
               backgroundColor: AppColors.divider,

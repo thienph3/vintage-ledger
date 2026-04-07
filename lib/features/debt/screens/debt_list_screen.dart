@@ -150,7 +150,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
           padding: const EdgeInsets.only(right: AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.error,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
           ),
           child: const Icon(Icons.delete, color: Colors.white),
         ),
@@ -181,7 +181,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.error.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
                         ),
                         child: Text(
                           S.of(context, 'overdue'),
@@ -223,7 +223,7 @@ class _DebtListScreenState extends State<DebtListScreen> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppSpacing.xs),
                   child: LinearProgressIndicator(
                     value: debt.progressPercentage,
                     backgroundColor: AppColors.divider,

@@ -27,7 +27,7 @@ class BudgetProgressTile extends StatelessWidget {
 
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         child: Column(
@@ -43,7 +43,7 @@ class BudgetProgressTile extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.xs),
             ClipRRect(
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(AppSpacing.xs),
               child: LinearProgressIndicator(
                 value: status.percentage.clamp(0, 1),
                 backgroundColor: AppColors.divider.withValues(alpha: 0.2),

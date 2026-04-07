@@ -259,7 +259,7 @@ class _MonthlyInsightScreenState extends State<MonthlyInsightScreen> {
             alignment: Alignment.centerLeft,
             widthFactor: ratio,
             child: Container(height: 8, decoration: BoxDecoration(
-              color: color, borderRadius: BorderRadius.circular(4),
+              color: color, borderRadius: BorderRadius.circular(AppSpacing.xs),
             )),
           ),
         ),
