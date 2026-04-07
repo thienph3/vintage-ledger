@@ -96,11 +96,15 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             ),
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
             ),
             child: Text(
               goal.category.displayName,
-              style: AppTextStyles.caption.copyWith(color: AppColors.primary),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w400,
+                color: AppColors.primary,
+              ),
             ),
           ),
           if (goal.targetDate != null) ...[
@@ -115,7 +119,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 const SizedBox(width: AppSpacing.xs),
                 Text(
                   'Hạn: ${_formatDate(goal.targetDate!)}',
-                  style: AppTextStyles.bodySmall.copyWith(
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w400,
                     color: goal.isOverdue ? AppColors.error : AppColors.textSecondary,
                   ),
                 ),
@@ -141,7 +147,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       AmountFormatter.formatCurrency(goal.currentAmount, 'vi'),
-                      style: AppTextStyles.headline.copyWith(color: AppColors.income),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.income,
+                      ),
                     ),
                   ],
                 ),
@@ -169,13 +179,17 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               const SizedBox(height: AppSpacing.xs),
               Text(
                 AmountFormatter.formatCurrency(goal.remainingAmount, 'vi'),
-                style: AppTextStyles.headline.copyWith(color: AppColors.expense),
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.expense,
+                ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
           ClipRRect(
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppSpacing.borderRadiusSm),
             child: LinearProgressIndicator(
               value: goal.progressPercentage,
               backgroundColor: AppColors.divider,
@@ -194,7 +208,11 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 const SizedBox(width: AppSpacing.sm),
                 Text(
                   S.of(context, 'goalCompleted'),
-                  style: AppTextStyles.bodyBold.copyWith(color: AppColors.income),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.income,
+                  ),
                 ),
               ],
             ),
@@ -345,7 +363,9 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 children: [
                   Text(
                     AmountFormatter.formatCurrency(contribution.absoluteAmount, 'vi'),
-                    style: AppTextStyles.bodyBold.copyWith(
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
                       color: contribution.isContribution ? AppColors.income : AppColors.expense,
                     ),
                   ),

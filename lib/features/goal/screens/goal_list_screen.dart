@@ -68,7 +68,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
           ),
           decoration: BoxDecoration(
             color: isSelected ? AppColors.primary : AppColors.surface,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg + 8),
             border: Border.all(color: AppColors.divider),
           ),
           child: Column(
@@ -78,7 +78,9 @@ class _GoalListScreenState extends State<GoalListScreen> {
               const SizedBox(height: AppSpacing.xs),
               Text(
                 label,
-                style: AppTextStyles.caption.copyWith(
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w400,
                   color: isSelected ? Colors.white : AppColors.textSecondary,
                 ),
               ),
@@ -137,7 +139,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
           padding: const EdgeInsets.only(right: AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.error,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
           ),
           child: const Icon(Icons.delete, color: Colors.white),
         ),
@@ -164,11 +166,15 @@ class _GoalListScreenState extends State<GoalListScreen> {
                         ),
                         decoration: BoxDecoration(
                           color: AppColors.income.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
                         ),
                         child: Text(
                           S.of(context, 'goalCompleted'),
-                          style: AppTextStyles.caption.copyWith(color: AppColors.income),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.income,
+                          ),
                         ),
                       ),
                   ],
@@ -183,7 +189,11 @@ class _GoalListScreenState extends State<GoalListScreen> {
                           Text(S.of(context, 'currentAmount'), style: AppTextStyles.caption),
                           Text(
                             AmountFormatter.formatCurrency(goal.currentAmount, 'vi'),
-                            style: AppTextStyles.amount.copyWith(color: AppColors.income),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.income,
+                            ),
                           ),
                         ],
                       ),
@@ -204,7 +214,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppSpacing.xs),
                   child: LinearProgressIndicator(
                     value: goal.progressPercentage,
                     backgroundColor: AppColors.divider,
@@ -220,7 +230,9 @@ class _GoalListScreenState extends State<GoalListScreen> {
                     if (goal.targetDate != null)
                       Text(
                         '${S.of(context, 'goalDeadline')}: ${_formatDate(goal.targetDate!)}',
-                        style: AppTextStyles.caption.copyWith(
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
                           color: goal.isOverdue ? AppColors.error : AppColors.textSecondary,
                         ),
                       ),
@@ -265,7 +277,14 @@ class _GoalListScreenState extends State<GoalListScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(S.of(context, 'delete'), style: AppTextStyles.buttonLabel.copyWith(color: AppColors.error)),
+            child: Text(
+              S.of(context, 'delete'),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: AppColors.error,
+              ),
+            ),
           ),
         ],
       ),

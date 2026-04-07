@@ -131,7 +131,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
         ),
         decoration: BoxDecoration(
           color: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
-          borderRadius: BorderRadius.circular(24),
+          borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg + 8),
           border: Border.all(
             color: isSelected ? AppColors.primary : AppColors.divider,
             width: isSelected ? 2 : 1,
@@ -144,7 +144,9 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
             const SizedBox(width: AppSpacing.xs),
             Text(
               category.displayName,
-              style: AppTextStyles.body.copyWith(
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w400,
                 color: isSelected ? AppColors.primary : AppColors.textPrimary,
               ),
             ),
