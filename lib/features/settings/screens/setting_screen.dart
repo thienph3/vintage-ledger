@@ -218,11 +218,8 @@ class _SettingScreenState extends State<SettingScreen> {
       await sl.accountService.leaveFamily(accountId: account.id, userId: sl.appState.currentUserId!);
     }
     if (!mounted) return;
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (_) => const AccountPickerScreen()),
-      (_) => false,
-    );
+    // Pop MainShell to go back to AccountPickerScreen
+    Navigator.of(context, rootNavigator: true).pop();
   }
 
   Future<void> _exportCsv() async {
@@ -451,7 +448,8 @@ class _SettingScreenState extends State<SettingScreen> {
             children: [
               Expanded(
                 child: _smallAction(Icons.swap_horiz, S.of(context, 'switchAccount'), () {
-                  Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => const AccountPickerScreen()), (_) => false);
+                  // Pop MainShell to go back to AccountPickerScreen
+                  Navigator.of(context, rootNavigator: true).pop();
                 }),
               ),
               const SizedBox(width: AppSpacing.sm),
