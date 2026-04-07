@@ -329,18 +329,17 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     return GestureDetector(
       onTap: () => _setTimeRange(mode),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md2, vertical: AppSpacing.xs + 2),
         decoration: BoxDecoration(
-          color: active ? AppColors.primary.withAlpha(25) : null,
+          color: active ? AppColors.primary.withValues(alpha: 0.1) : null,
           border: Border.all(color: active ? AppColors.primary : AppColors.divider),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
         ),
         child: Text(
           label,
-          style: AppTextStyles.caption.copyWith(
-            fontWeight: active ? FontWeight.w600 : null,
-            color: active ? AppColors.primary : AppColors.textSecondary,
-          ),
+          style: active
+              ? AppTextStyles.caption.copyWith(fontWeight: FontWeight.w600, color: AppColors.primary)
+              : AppTextStyles.caption,
         ),
       ),
     );
@@ -364,7 +363,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
       child: Icon(
         icon,
         size: 20,
-        color: active ? AppColors.primary : AppColors.textSecondary.withAlpha(120),
+        color: active ? AppColors.primary : AppColors.textSecondary.withValues(alpha: 0.47),
       ),
     );
   }
@@ -440,7 +439,11 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
         const SizedBox(height: AppSpacing.xs),
         Text(
           AmountFormatter.formatCompactCurrency(amount, locale),
-          style: AppTextStyles.bodyBold.copyWith(color: color),
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
         ),
       ],
     );
@@ -592,7 +595,9 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
                 ),
                 Text(
                   '${net >= 0 ? '+' : '-'}${AmountFormatter.formatCompactCurrency(net.abs(), locale)}',
-                  style: AppTextStyles.caption.copyWith(
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w400,
                     color: net >= 0 ? AppColors.income : AppColors.expense,
                   ),
                 ),
