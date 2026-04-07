@@ -1,0 +1,17 @@
+const Map<String, String> budgetVi = {
+  'budget': 'Ngân sách',
+  'budgets': 'Ngân sách',
+  'setBudget': 'Đặt ngân sách',
+  'editBudget': 'Sửa ngân sách',
+  'budgetLimit': 'Hạn mức',
+  'budgetExceeded': 'Vượt ngân sách rồi 😅',
+  'budgetNearLimit': 'Sắp hết ngân sách',
+  'remaining': 'Còn lại',
+  'spent': 'Đã chi',
+  'noBudgets': 'Chưa đặt ngân sách',
+  'monthlyInsight': 'Tổng quan tháng',
+  'vsLastMonth': 'so với tháng trước',
+  'topSpending': 'Chi nhiều nhất',
+  'budgetWarning': 'Cảnh báo ngân sách',
+  'emptyBudgetHint': 'Đặt ngân sách để kiểm soát chi tiêu →',
+};

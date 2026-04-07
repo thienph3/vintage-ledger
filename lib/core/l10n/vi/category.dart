@@ -1,0 +1,15 @@
+const Map<String, String> categoryVi = {
+  'categories': 'Danh mục',
+  'categoryName': 'Tên danh mục',
+  'categoryNameRequired': 'Nhập tên danh mục nhé',
+  'noCategories': 'Chưa có danh mục nào',
+  'editCategory': 'Sửa danh mục',
+  'addNewCategory': 'Thêm danh mục',
+  'selectIcon': 'Chọn biểu tượng',
+  'deleteCategory': 'Xóa danh mục',
+  'deleteCategoryConfirm': 'Xóa danh mục này luôn hả?',
+  'categoryNameColumn': 'Tên danh mục',
+  'noCategoriesFound': 'Chưa có danh mục nào',
+  'manageCategories': 'Danh mục',
+  'uncategorized': 'Chưa phân loại',
+};
