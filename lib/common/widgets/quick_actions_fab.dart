@@ -9,7 +9,9 @@ import 'package:vintage_ledger/features/debt/screens/debt_payment_screen.dart';
 import 'package:vintage_ledger/features/goal/screens/goal_contribution_screen.dart';
 
 class QuickActionsFab extends StatefulWidget {
-  const QuickActionsFab({super.key});
+  final double bottomOffset;
+
+  const QuickActionsFab({super.key, this.bottomOffset = 16});
 
   @override
   State<QuickActionsFab> createState() => _QuickActionsFabState();
@@ -74,7 +76,7 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
           ),
         Positioned(
           right: 16,
-          bottom: 16,
+          bottom: widget.bottomOffset,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,

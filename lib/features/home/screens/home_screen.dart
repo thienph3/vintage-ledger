@@ -81,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return AppScaffold(
           title: _accountName ?? S.of(context, 'homeTitle'),
           showBackButton: false,
-          fab: const QuickActionsFab(),
+          fab: const QuickActionsFab(bottomOffset: 80),
           body: Column(
             children: [
               const NetworkStatusBanner(),
