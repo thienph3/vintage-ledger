@@ -63,24 +63,45 @@ class _SplashBootstrapScreenState extends State<SplashBootstrapScreen> {
     MyApp.setLocale(context, Locale(result.locale));
     sl.reminderService.init(context);
 
-    final Widget destination;
     if (result.needsLogin) {
-      destination = const LoginScreen();
+      Navigator.pushAndRemoveUntil(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) => const LoginScreen(),
+          transitionDuration: const Duration(milliseconds: 200),
+          transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
+        ),
+        (_) => false,
+      );
     } else if (result.needsAccountPick) {
-      destination = const AccountPickerScreen();
+      Navigator.pushAndRemoveUntil(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) => const AccountPickerScreen(),
+          transitionDuration: const Duration(milliseconds: 200),
+          transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
+        ),
+        (_) => false,
+      );
     } else {
-      destination = MainShell(initialTab: result.returnToTab ?? 0);
+      Navigator.pushAndRemoveUntil(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) => const AccountPickerScreen(),
+          transitionDuration: const Duration(milliseconds: 200),
+          transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
+        ),
+        (_) => false,
+      );
+      Navigator.push(
+        context,
+        PageRouteBuilder(
+          pageBuilder: (_, _, _) => MainShell(initialTab: result.returnToTab ?? 0),
+          transitionDuration: const Duration(milliseconds: 200),
+          transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
+        ),
+      );
     }
-
-    Navigator.pushAndRemoveUntil(
-      context,
-      PageRouteBuilder(
-        pageBuilder: (_, _, _) => destination,
-        transitionDuration: const Duration(milliseconds: 200),
-        transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
-      ),
-      (_) => false,
-    );
   }
 
   @override
