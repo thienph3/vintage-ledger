@@ -52,8 +52,11 @@ class _InsightsTabState extends State<InsightsTab> {
 
   Future<void> _load() async {
     print('[InsightsTab] _load() started');
+    print('[InsightsTab] currentAccountId: ${sl.appState.currentAccountId}');
+    print('[InsightsTab] currentUserId: ${sl.appState.currentUserId}');
     try {
       final locale = Localizations.localeOf(context).languageCode;
+      print('[InsightsTab] Locale: $locale');
       print('[InsightsTab] Getting dashboard...');
       final dashboard = await sl.transactionService.getDashboard();
       print('[InsightsTab] Dashboard: ${dashboard.monthly.length} months');
@@ -82,8 +85,9 @@ class _InsightsTabState extends State<InsightsTab> {
       );
       if (mounted) setState(() => _coachingTip = tip);
       print('[InsightsTab] _load() completed');
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('[InsightsTab] Error: $e');
+      print('[InsightsTab] StackTrace: $stackTrace');
       if (mounted) setState(() => _loading = false);
     }
   }
