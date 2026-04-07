@@ -17,6 +17,7 @@ import 'package:vintage_ledger/common/widgets/quick_actions_fab.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_feed_item.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
+import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -80,7 +81,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
         return AppScaffold(
           title: _accountName ?? S.of(context, 'homeTitle'),
-          showBackButton: false,
+          showBackButton: true,
+          onBackPressed: () => context.pushScreen(const AccountPickerScreen()),
           fab: const QuickActionsFab(bottomOffset: 130),
           body: Column(
             children: [
