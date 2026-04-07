@@ -6,7 +6,6 @@ const Map<String, String> budgetEn = {
   'budgetLimit': 'Limit',
   'budgetExceeded': 'Budget exceeded 😅',
   'budgetNearLimit': 'Near budget limit',
-  'remaining': 'Remaining',
   'spent': 'Spent',
   'noBudgets': 'No budgets set',
   'monthlyInsight': 'Monthly overview',

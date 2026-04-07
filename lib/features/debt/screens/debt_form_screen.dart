@@ -203,7 +203,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
     return InkWell(
       onTap: _selectDate,
       child: InputDecorator(
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           labelText: '${S.of(context, 'debtDueDate')} (tùy chọn)',
           prefixIcon: Icon(Icons.calendar_today),
         ),

@@ -21,7 +21,7 @@ import 'package:vintage_ledger/core/bootstrap/bootstrap_models.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
 import 'package:vintage_ledger/features/category/screens/category_list_screen.dart';
 import 'package:vintage_ledger/features/recurring/screens/recurring_list_screen.dart';
-import 'package:vintage_ledger/features/debt/screens/debt_list_screen_v2.dart' as debt_v2;
+import 'package:vintage_ledger/features/debt/screens/debt_list_screen.dart' as debt_v2;
 import 'package:vintage_ledger/features/goal/screens/goal_list_screen.dart';
 import 'package:vintage_ledger/features/account/screens/family_detail_screen.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';

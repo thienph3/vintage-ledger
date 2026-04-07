@@ -178,7 +178,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
     return InkWell(
       onTap: _selectDate,
       child: InputDecorator(
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           labelText: '${S.of(context, 'goalTargetDate')} (tùy chọn)',
           prefixIcon: Icon(Icons.calendar_today),
         ),
@@ -197,7 +197,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
 
     return DropdownButtonFormField<String>(
       initialValue: _selectedWalletId,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
         labelText: S.of(context, 'goalWallet'),
         prefixIcon: Icon(Icons.account_balance_wallet),
       ),

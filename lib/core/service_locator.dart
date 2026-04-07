@@ -13,7 +13,6 @@ import 'package:vintage_ledger/features/notification/services/notification_servi
 import 'package:vintage_ledger/features/recurring/services/recurring_service.dart';
 import 'package:vintage_ledger/features/reminder/reminder_service.dart';
 import 'package:vintage_ledger/features/transaction/services/reaction_service.dart';
-import 'package:vintage_ledger/features/wallet/services/goal_service.dart';
 import 'package:vintage_ledger/features/debt/services/debt_service.dart';
 
 class ServiceLocator {
@@ -35,7 +34,6 @@ class ServiceLocator {
   final recurringService = RecurringService();
   final reminderService = ReminderService();
   final reactionService = ReactionService();
-  final goalService = GoalService();
   final debtService = DebtService();
 }
 

@@ -29,7 +29,6 @@ import 'package:vintage_ledger/features/category/models/category.dart';
 import 'package:vintage_ledger/features/category/screens/category_form_screen.dart';
 import 'package:vintage_ledger/features/budget/models/budget_status.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
-import 'package:vintage_ledger/features/wallet/models/wallet_goal.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 
@@ -70,8 +69,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   bool _recurring = false;
   Frequency _frequency = Frequency.monthly;
   List<Map<String, dynamic>> _members = [];
-  List<WalletGoal> _goals = [];
-  String? _goalId;
 
   @override
   void initState() {
@@ -92,7 +89,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       _date = DateTime.fromMillisecondsSinceEpoch(t.date);
       _noteCtrl.text = t.note ?? '';
       _createdBy = t.createdBy;
-      _goalId = t.goalId;
       _items = source.items.map((i) => TransactionItemEntry(
         item: i,
         amountController: TextEditingController(text: i.amount.toString()),
@@ -144,7 +140,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       }
       _walletId ??= _wallets.isNotEmpty ? _wallets.first.id : null;
     });
-    _loadGoals();
     _loadAllAccountWallets();
   }
 
@@ -160,11 +155,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       result.add(_AccountWallets(accountId: a.id, accountName: a.name, wallets: wallets));
     }
     if (mounted) setState(() => _allAccountWallets = result);
-  }
-
-  Future<void> _loadGoals() async {
-    // Goals are now managed separately in Goal V2, remove wallet-specific goal loading
-    setState(() { _goals = []; _goalId = null; });
   }
 
   Future<void> _loadMembers() async {
@@ -316,7 +306,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
     try {
       if (widget.isEdit) {
-        final oldGoalId = widget.existing!.transaction.goalId;
         await sl.transactionService.updateTransaction(TransactionWithItems(
           transaction: TransactionModel(
             id: widget.existing!.transaction.id,
@@ -327,25 +316,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             date: _date.millisecondsSinceEpoch,
             note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
             createdBy: _createdBy ?? widget.existing!.transaction.createdBy,
-            goalId: _goalId,
           ),
           items: items,
         ));
-        // Handle goal assignment changes
-        if (_goalId != oldGoalId && _walletId != null) {
-          if (oldGoalId != null) {
-            await sl.goalService.unassignGoal(
-              walletId: _walletId!, transactionId: widget.existing!.transaction.id!,
-              goalId: oldGoalId, amount: widget.existing!.transaction.amount,
-            );
-          }
-          if (_goalId != null) {
-            await sl.goalService.assignGoal(
-              walletId: _walletId!, transactionId: widget.existing!.transaction.id!,
-              goalId: _goalId!, amount: amount,
-            );
-          }
-        }
       } else {
         await sl.transactionService.createTransaction(
           walletId: _walletId!,
@@ -397,10 +370,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
             const SizedBox(height: AppSpacing.md),
             _buildWalletDropdown(),
             const SizedBox(height: AppSpacing.md),
-            if (_goals.isNotEmpty && !_type.isTransfer) ...[
-              _buildGoalDropdown(),
-              const SizedBox(height: AppSpacing.md),
-            ],
             if (_type.isTransfer) ...[
               _buildToWalletDropdown(),
               const SizedBox(height: AppSpacing.md),
@@ -483,10 +452,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
       prefixIcon: Icons.account_balance_wallet_outlined,
       items: _wallets.map((w) => SelectionItem(value: w.id!, label: w.name, icon: Icons.account_balance_wallet_outlined)).toList(),
       selected: _walletId,
-      onChanged: (v) {
-        setState(() => _walletId = v);
-        _loadGoals();
-      },
+      onChanged: (v) => setState(() => _walletId = v),
       validator: (v) => v == null && _walletId == null ? S.of(context, 'selectWalletRequired') : null,
     );
   }
@@ -527,26 +493,6 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
         });
       },
       validator: (v) => v == null && _toWalletId == null ? S.of(context, 'selectDestWallet') : null,
-    );
-  }
-
-  Widget _buildGoalDropdown() {
-    final goal = _goals.where((g) => g.id == _goalId).firstOrNull;
-    final display = goal != null ? '${goal.emoji ?? "\uD83C\uDFAF"} ${goal.name}' : null;
-    return DropdownField<String>(
-      label: S.of(context, 'goals'),
-      value: display,
-      prefixIcon: Icons.flag_outlined,
-      items: [
-        SelectionItem(value: '_none', label: S.of(context, 'unallocated'), icon: Icons.remove_circle_outline),
-        ..._goals.map((g) => SelectionItem(
-          value: g.id!,
-          label: '${g.emoji ?? "\uD83C\uDFAF"} ${g.name}',
-          icon: Icons.flag_outlined,
-        )),
-      ],
-      selected: _goalId ?? '_none',
-      onChanged: (v) => setState(() => _goalId = v == '_none' ? null : v),
     );
   }
 

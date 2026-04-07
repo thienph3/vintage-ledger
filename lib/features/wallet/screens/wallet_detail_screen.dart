@@ -14,17 +14,12 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
-import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
-import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_feed_item.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_list_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
-import 'package:vintage_ledger/features/wallet/models/wallet_goal.dart';
-import 'package:vintage_ledger/features/wallet/screens/goal_form_screen.dart';
-import 'package:vintage_ledger/features/wallet/widgets/goal_progress_bar.dart';
 
 class WalletDetailScreen extends StatefulWidget {
   final Wallet wallet;
@@ -159,80 +154,6 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildGoalsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(S.of(context, 'goals'), style: AppTextStyles.titleSmall),
-            GestureDetector(
-              onTap: () async {
-                final result = await context.pushScreen(GoalFormScreen(walletId: widget.wallet.id!));
-                if (result == true) setState(() {});
-              },
-              child: Text(S.of(context, 'addGoal'), style: AppTextStyles.link),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        StreamBuilder<List<WalletGoal>>(
-          stream: sl.goalService.watchGoals(widget.wallet.id!),
-          builder: (context, snap) {
-            final goals = snap.data ?? [];
-            if (goals.isEmpty) {
-              return Text(S.of(context, 'noData'), style: AppTextStyles.hint);
-            }
-
-            final allocated = goals.fold<int>(0, (s, g) => s + g.savedAmount);
-            final balance = widget.wallet.balance;
-            final unallocated = (balance - allocated).clamp(0, balance);
-            final locale = Localizations.localeOf(context).languageCode;
-
-            return Column(
-              children: [
-                ...goals.map((g) => SwipeListItem(
-                  itemKey: ValueKey(g.id),
-                  onTap: () async {
-                    final result = await context.pushScreen(GoalFormScreen(walletId: widget.wallet.id!, existing: g));
-                    if (result == true) setState(() {});
-                  },
-                  confirmDelete: () => showDeleteConfirmation(context, titleKey: 'deleteGoal', contentKey: 'deleteGoalConfirm'),
-                  onDelete: () => sl.goalService.deleteGoal(widget.wallet.id!, g.id!),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                    child: GoalProgressBar(
-                      name: g.name,
-                      emoji: g.emoji,
-                      savedAmount: g.savedAmount,
-                      targetAmount: g.targetAmount,
-                      daysLeft: g.daysLeft,
-                    ),
-                  ),
-                )),
-                if (unallocated > 0)
-                  Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.sm),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.account_balance_wallet_outlined, size: 14, color: AppColors.textSecondary),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          '${S.of(context, 'unallocated')}: ${AmountFormatter.formatCompactCurrency(unallocated, locale)}',
-                          style: AppTextStyles.caption,
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
-            );
-          },
-        ),
-      ],
     );
   }
 

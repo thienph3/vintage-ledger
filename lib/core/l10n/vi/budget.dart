@@ -6,7 +6,6 @@ const Map<String, String> budgetVi = {
   'budgetLimit': 'Hạn mức',
   'budgetExceeded': 'Vượt ngân sách rồi 😅',
   'budgetNearLimit': 'Sắp hết ngân sách',
-  'remaining': 'Còn lại',
   'spent': 'Đã chi',
   'noBudgets': 'Chưa đặt ngân sách',
   'monthlyInsight': 'Tổng quan tháng',
