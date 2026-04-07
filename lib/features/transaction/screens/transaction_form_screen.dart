@@ -401,7 +401,9 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
                         _budgetStatus!.isExceeded
                             ? S.of(context, 'budgetExceeded')
                             : '${S.of(context, 'budgetNearLimit')}: ${S.of(context, 'remaining')} ${_budgetStatus!.remaining}',
-                        style: AppTextStyles.caption.copyWith(
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
                           color: _budgetStatus!.isExceeded ? AppColors.expense : AppColors.accent,
                         ),
                       ),
@@ -553,7 +555,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
           const Icon(Icons.info_outline, size: 14, color: AppColors.accent),
           const SizedBox(width: AppSpacing.xs),
           Expanded(
-            child: Text(S.of(context, 'typeChangeWarning'), style: AppTextStyles.caption.copyWith(color: AppColors.accent)),
+            child: Text(
+              S.of(context, 'typeChangeWarning'),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: AppColors.accent),
+            ),
           ),
         ],
       ),
@@ -572,7 +577,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
           Expanded(
             child: Text(
               S.of(context, 'walletChangeInfo').replaceAll('{name}', walletName),
-              style: AppTextStyles.caption.copyWith(color: AppColors.primary),
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400, color: AppColors.primary),
             ),
           ),
         ],
