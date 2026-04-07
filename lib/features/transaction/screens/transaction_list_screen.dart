@@ -58,7 +58,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   String? _filterCategoryId;
   String? _filterUserId;
   String? _defaultWalletId;
-  List<Map<String, String>> _members = [];
+  List<Map<String, dynamic>> _members = [];
 
   @override
   void initState() {
@@ -76,7 +76,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     _categories = sl.cache.categories;
     _categoryNameMap = sl.cache.categoryNameMap;
     _defaultWalletId = sl.cache.lastWalletId;
-    _members = sl.cache.memberProfiles;
+    _members = sl.cache.memberProfiles.cast<Map<String, dynamic>>();
     _loadWalletsAndRange();
   }
 

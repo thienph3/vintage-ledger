@@ -313,7 +313,7 @@ class TransactionService {
       // Revert linked wallet + delete linked txn
       if (linkedTxnSnap?.exists == true && linkedTxnRef != null) {
         if (linkedWalletSnap?.exists == true && linkedWalletRef != null) {
-          final linkedBalance = linkedWalletSnap.data()?['balance'] as int? ?? 0;
+          final linkedBalance = linkedWalletSnap!.data()?['balance'] as int? ?? 0;
           // Linked txn is the opposite: if we're transfer_out, linked is transfer_in
           final linkedDelta = type.isTransferOut ? -amount : amount;
           txn.update(linkedWalletRef, {'balance': linkedBalance + linkedDelta});

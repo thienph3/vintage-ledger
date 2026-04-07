@@ -25,7 +25,7 @@ class AccountPickerScreen extends StatefulWidget {
 
 class _AccountPickerScreenState extends State<AccountPickerScreen> {
   List<Account> _accounts = [];
-  Map<String, List<Map<String, String>>> _memberProfiles = {};
+  Map<String, List<Map<String, dynamic>>> _memberProfiles = {};
   bool _loading = true;
   String? _error;
 
@@ -45,7 +45,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
       final profiles = <String, List<Map<String, dynamic>>>{};
       for (final a in accounts) {
         if (a.isFamily) {
-          profiles[a.id] = await sl.accountService.getMemberProfiles(a.memberIds);
+          profiles[a.id] = (await sl.accountService.getMemberProfiles(a.memberIds)).cast<Map<String, dynamic>>();
         }
       }
 

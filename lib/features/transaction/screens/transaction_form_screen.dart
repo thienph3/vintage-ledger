@@ -69,7 +69,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   BudgetStatus? _budgetStatus;
   bool _recurring = false;
   Frequency _frequency = Frequency.monthly;
-  List<Map<String, String>> _members = [];
+  List<Map<String, dynamic>> _members = [];
   List<WalletGoal> _goals = [];
   String? _goalId;
 
@@ -175,7 +175,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   Future<void> _loadMembers() async {
     final account = sl.cache.currentAccount;
     if (account != null && account.memberIds.length > 1) {
-      setState(() => _members = sl.cache.memberProfiles);
+      setState(() => _members = sl.cache.memberProfiles.cast<Map<String, dynamic>>());
     }
   }
 
