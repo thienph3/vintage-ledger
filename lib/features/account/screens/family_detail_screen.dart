@@ -25,7 +25,7 @@ class FamilyDetailScreen extends StatefulWidget {
 }
 
 class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
-  List<Map<String, String>> _members = [];
+  List<Map<String, dynamic>> _members = [];
   bool _loading = true;
   String? _error;
 

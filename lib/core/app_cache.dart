@@ -8,7 +8,7 @@ class AppCache {
   List<Wallet> wallets = [];
   Map<String, String> walletNameMap = {};
   Account? currentAccount;
-  List<Map<String, String>> memberProfiles = [];
+  List<Map<String, dynamic>> memberProfiles = [];
   String? lastWalletId;
 
   void clear() {

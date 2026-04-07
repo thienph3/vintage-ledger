@@ -59,17 +59,23 @@ class ReadCounter {
     
     if (_perScreen.isNotEmpty) {
       buffer.writeln('\nBy Screen:');
-      _perScreen.entries.forEach((e) => buffer.writeln('  ${e.key}: ${e.value}'));
+      for (final e in _perScreen.entries) {
+        buffer.writeln('  ${e.key}: ${e.value}');
+      }
     }
     
     if (_perOperation.isNotEmpty) {
       buffer.writeln('\nBy Operation:');
-      _perOperation.entries.forEach((e) => buffer.writeln('  ${e.key}: ${e.value}'));
+      for (final e in _perOperation.entries) {
+        buffer.writeln('  ${e.key}: ${e.value}');
+      }
     }
     
     if (_perCollection.isNotEmpty) {
       buffer.writeln('\nBy Collection:');
-      _perCollection.entries.forEach((e) => buffer.writeln('  ${e.key}: ${e.value}'));
+      for (final e in _perCollection.entries) {
+        buffer.writeln('  ${e.key}: ${e.value}');
+      }
     }
     
     return buffer.toString();

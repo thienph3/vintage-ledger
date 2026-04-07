@@ -142,8 +142,8 @@ class TransactionService {
         txn.update(walletRef, {'balance': balance});
       } else {
         // Revert old wallet
-        if (oldWalletSnap != null && oldWalletSnap.exists && oldWalletRef != null) {
-          final oldBalance = oldWalletSnap.data()?['balance'] as int? ?? 0;
+        if (oldWalletSnap?.exists == true && oldWalletRef != null) {
+          final oldBalance = oldWalletSnap!.data()?['balance'] as int? ?? 0;
           final revert = oldType.isIncome ? -oldAmount : oldAmount;
           txn.update(oldWalletRef, {'balance': oldBalance + revert});
         }
@@ -200,14 +200,11 @@ class TransactionService {
       DocumentReference<Map<String, dynamic>>? newSrcRef;
       DocumentReference<Map<String, dynamic>>? newDstRef;
       if (walletsChanged) {
-        if (sourceWalletId != oldSourceWalletId) {
-          newSrcRef = sl.walletService.repo.collection.doc(sourceWalletId);
-          newSrcSnap = await txn.get(newSrcRef);
-        }
-        if (destWalletId != oldDestWalletId) {
-          newDstRef = sl.walletService.repo.collection.doc(destWalletId);
-          newDstSnap = await txn.get(newDstRef);
-        }
+        newSrcRef = sourceWalletId != oldSourceWalletId ? sl.walletService.repo.collection.doc(sourceWalletId) : null;
+        if (newSrcRef != null) newSrcSnap = await txn.get(newSrcRef);
+        
+        newDstRef = destWalletId != oldDestWalletId ? sl.walletService.repo.collection.doc(destWalletId) : null;
+        if (newDstRef != null) newDstSnap = await txn.get(newDstRef);
       }
 
       // Write ALL
@@ -285,7 +282,7 @@ class TransactionService {
         walletSnap = await txn.get(walletRef);
       }
 
-      if (linkedId != null && linkedId.isNotEmpty) {
+      if (linkedId?.isNotEmpty == true) {
         // Linked txn in same account (same-account transfer) or cross-account
         final linkedAccountId = data['to_account_id'] as String?;
         if (linkedAccountId != null && linkedAccountId.isNotEmpty) {
@@ -307,15 +304,15 @@ class TransactionService {
 
       // Now write ALL
       // Revert this wallet
-      if (walletSnap != null && walletSnap.exists && walletRef != null) {
-        final balance = walletSnap.data()?['balance'] as int? ?? 0;
+      if (walletSnap?.exists == true && walletRef != null) {
+        final balance = walletSnap!.data()?['balance'] as int? ?? 0;
         final delta = type.isIncome || type.isTransferIn ? -amount : amount;
         txn.update(walletRef, {'balance': balance + delta});
       }
 
       // Revert linked wallet + delete linked txn
-      if (linkedTxnSnap != null && linkedTxnSnap.exists && linkedTxnRef != null) {
-        if (linkedWalletSnap != null && linkedWalletSnap.exists && linkedWalletRef != null) {
+      if (linkedTxnSnap?.exists == true && linkedTxnRef != null) {
+        if (linkedWalletSnap?.exists == true && linkedWalletRef != null) {
           final linkedBalance = linkedWalletSnap.data()?['balance'] as int? ?? 0;
           // Linked txn is the opposite: if we're transfer_out, linked is transfer_in
           final linkedDelta = type.isTransferOut ? -amount : amount;

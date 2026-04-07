@@ -42,7 +42,7 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
       final accounts = await sl.accountService.getAccountsForUser(userId);
 
       // Preload member profiles for family accounts
-      final profiles = <String, List<Map<String, String>>>{};
+      final profiles = <String, List<Map<String, dynamic>>>{};
       for (final a in accounts) {
         if (a.isFamily) {
           profiles[a.id] = await sl.accountService.getMemberProfiles(a.memberIds);
