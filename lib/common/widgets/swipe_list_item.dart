@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
+import 'package:vintage_ledger/core/theme/app_spacing.dart';
 
 class SwipeListItem extends StatelessWidget {
   final Key itemKey;
