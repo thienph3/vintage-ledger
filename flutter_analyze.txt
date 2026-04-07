@@ -1,23 +1,18 @@
 flutter analyze
 Analyzing vintage-ledger...                                             
 
+  error - A value of type 'List<Map<String, dynamic>>' can't be assigned to a variable of type 'List<Map<String,     
+         String>>' - lib\core\bootstrap\bootstrap_service.dart:216:35 - invalid_assignment
    info - Function literals shouldn't be passed to 'forEach' - lib\core\debug\read_counter.dart:62:26 -
           avoid_function_literals_in_foreach_calls
    info - Function literals shouldn't be passed to 'forEach' - lib\core\debug\read_counter.dart:67:29 -
           avoid_function_literals_in_foreach_calls
    info - Function literals shouldn't be passed to 'forEach' - lib\core\debug\read_counter.dart:72:30 -
           avoid_function_literals_in_foreach_calls
-  error - A value of type 'List<Map<String, dynamic>>' can't be returned from the method 'getMemberProfiles' because 
-         it has a return type of 'Future<List<Map<String, String>>>' -
-         lib\features\account\services\account_service.dart:263:12 - return_of_invalid_type
-  error - Undefined class 'DebtV2' - lib\features\debt\models\debt_payment_v2.dart:92:9 - undefined_class
-  error - Undefined class 'DebtV2' - lib\features\debt\models\debt_payment_v2.dart:114:5 - undefined_class
-  error - The named parameter 'debt' is required, but there's no corresponding argument -
-         lib\features\debt\screens\debt_list_screen_v2.dart:286:41 - missing_required_argument
-  error - The named parameter 'debtId' isn't defined - lib\features\debt\screens\debt_list_screen_v2.dart:286:58 -   
-         undefined_named_parameter
-  error - Undefined class 'GoalV2' - lib\features\goal\models\goal_contribution.dart:100:9 - undefined_class
-  error - Undefined class 'GoalV2' - lib\features\goal\models\goal_contribution.dart:131:5 - undefined_class
+  error - A value of type 'List<Map<String, dynamic>>' can't be assigned to a variable of type 'List<Map<String,     
+         String>>' - lib\features\account\screens\account_picker_screen.dart:48:28 - invalid_assignment
+  error - A value of type 'List<Map<String, dynamic>>' can't be assigned to a variable of type 'List<Map<String,
+         String>>' - lib\features\account\screens\family_detail_screen.dart:43:32 - invalid_assignment
    info - Use the null-aware marker '?' rather than a null check via an 'if' -
           lib\features\transaction\services\transaction_service.dart:243:9 - use_null_aware_elements
    info - Use the null-aware marker '?' rather than a null check via an 'if' -
@@ -27,4 +22,4 @@ Analyzing vintage-ledger...
    info - Use the null-aware marker '?' rather than a null check via an 'if' -
           lib\features\transaction\services\transaction_service.dart:253:9 - use_null_aware_elements
 
-14 issues found. (ran in 6.8s)
+10 issues found. (ran in 7.7s)
