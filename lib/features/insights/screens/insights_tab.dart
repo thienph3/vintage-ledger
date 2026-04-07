@@ -42,7 +42,7 @@ class _InsightsTabState extends State<InsightsTab> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Reload when tab becomes visible
-    if (mounted && !_loading) {
+    if (mounted) {
       _load();
     }
   }
