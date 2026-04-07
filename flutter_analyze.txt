@@ -1,13 +1,9 @@
 flutter analyze
 Analyzing vintage-ledger...                                             
 
-  error - A value of type 'Map<String, List<Map<String, dynamic>>>' can't be assigned to a variable of type
-         'Map<String, List<Map<String, String>>>' - lib\features\account\screens\account_picker_screen.dart:52:61 -  
-         invalid_assignment
-  error - A value of type 'List<Map<String, dynamic>>' can't be assigned to a variable of type 'List<Map<String,     
-         String>>' - lib\features\transaction\screens\transaction_form_screen.dart:178:33 - invalid_assignment       
-  error - A value of type 'List<Map<String, dynamic>>' can't be assigned to a variable of type 'List<Map<String,     
-         String>>' - lib\features\transaction\screens\transaction_list_screen.dart:79:16 - invalid_assignment        
+  error - The argument type 'List<SelectionItem<dynamic>>' can't be assigned to the parameter type
+         'List<SelectionItem<String>>'.  - lib\features\transaction\screens\transaction_form_screen.dart:566:16 -    
+         argument_type_not_assignable
    info - Use the null-aware marker '?' rather than a null check via an 'if' -
           lib\features\transaction\services\transaction_service.dart:240:9 - use_null_aware_elements
    info - Use the null-aware marker '?' rather than a null check via an 'if' -
@@ -16,7 +12,5 @@ Analyzing vintage-ledger...
           lib\features\transaction\services\transaction_service.dart:248:9 - use_null_aware_elements
    info - Use the null-aware marker '?' rather than a null check via an 'if' -
           lib\features\transaction\services\transaction_service.dart:250:9 - use_null_aware_elements
-  error - The method 'data' can't be unconditionally invoked because the receiver can be 'null' -
-         lib\features\transaction\services\transaction_service.dart:316:50 - unchecked_use_of_nullable_value
 
-8 issues found. (ran in 7.5s)
+5 issues found. (ran in 7.2s)
