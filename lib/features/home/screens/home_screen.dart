@@ -13,6 +13,7 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/network_status_banner.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
+import 'package:vintage_ledger/common/widgets/quick_actions_fab.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_feed_item.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
@@ -80,6 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
         return AppScaffold(
           title: _accountName ?? S.of(context, 'homeTitle'),
           showBackButton: false,
+          fab: const QuickActionsFab(),
           body: Column(
             children: [
               const NetworkStatusBanner(),

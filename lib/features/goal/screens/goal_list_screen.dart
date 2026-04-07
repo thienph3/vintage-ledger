@@ -38,10 +38,10 @@ class _GoalListScreenState extends State<GoalListScreen> {
 
   Widget _buildCategoryFilter() {
     return SizedBox(
-      height: 64,
+      height: 81,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         children: [
           _buildCategoryChip(null, 'Tất cả', '🎯'),
           ...GoalCategory.values.map((cat) => _buildCategoryChip(

@@ -71,7 +71,7 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
             ),
           ),
         Padding(
-          padding: const EdgeInsets.only(bottom: 80),
+          padding: const EdgeInsets.only(bottom: 140),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,

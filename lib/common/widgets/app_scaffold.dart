@@ -6,7 +6,7 @@ class AppScaffold extends StatelessWidget {
   final String title;
   final Widget body;
   final List<Widget>? actions;
-  final FloatingActionButton? fab;
+  final Widget? fab;
   final bool showBackButton;
   final VoidCallback? onTitleTap;
 
@@ -28,6 +28,7 @@ class AppScaffold extends StatelessWidget {
           : null,
       body: SafeArea(child: body),
       floatingActionButton: fab,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

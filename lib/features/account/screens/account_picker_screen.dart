@@ -45,7 +45,8 @@ class _AccountPickerScreenState extends State<AccountPickerScreen> {
       final profiles = <String, List<Map<String, dynamic>>>{};
       for (final a in accounts) {
         if (a.isFamily) {
-          profiles[a.id] = (await sl.accountService.getMemberProfiles(a.memberIds)).cast<Map<String, dynamic>>();
+          final rawProfiles = await sl.accountService.getMemberProfiles(a.memberIds);
+          profiles[a.id] = rawProfiles.map((p) => Map<String, dynamic>.from(p)).toList();
         }
       }
 
