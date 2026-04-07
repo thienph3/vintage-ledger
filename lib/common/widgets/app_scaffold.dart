@@ -26,9 +26,12 @@ class AppScaffold extends StatelessWidget {
       appBar: title.isNotEmpty
           ? LedgerHeader(title: title, showBackButton: showBackButton, actions: actions, onTitleTap: onTitleTap)
           : null,
-      body: SafeArea(child: body),
-      floatingActionButton: fab,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      body: Stack(
+        children: [
+          SafeArea(child: body),
+          ...?fab != null ? [fab!] : null,
+        ],
+      ),
     );
   }
 }

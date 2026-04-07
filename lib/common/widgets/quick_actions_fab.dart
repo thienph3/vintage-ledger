@@ -62,93 +62,98 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     return Stack(
-      alignment: Alignment.bottomRight,
       children: [
         if (_isExpanded)
-          GestureDetector(
-            onTap: _close,
-            child: Container(
-              color: Colors.black.withValues(alpha: 0.3),
+          Positioned.fill(
+            child: GestureDetector(
+              onTap: _close,
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.3),
+              ),
             ),
           ),
-        Padding(
-          padding: const EdgeInsets.only(bottom: 190),
+        Positioned(
+          right: 16,
+          bottom: 16,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              ScaleTransition(
-                scale: _expandAnimation,
-                child: _buildActionButton(
-                  label: S.of(context, 'fabAddTransaction'),
-                  icon: Icons.receipt_long,
-                  color: AppColors.primary,
-                  onTap: () {
-                    _close();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const TransactionFormScreen()),
-                    );
-                  },
+              if (_isExpanded) ...[
+                ScaleTransition(
+                  scale: _expandAnimation,
+                  child: _buildActionButton(
+                    label: S.of(context, 'fabAddTransaction'),
+                    icon: Icons.receipt_long,
+                    color: AppColors.primary,
+                    onTap: () {
+                      _close();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const TransactionFormScreen()),
+                      );
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              ScaleTransition(
-                scale: _expandAnimation,
-                child: _buildActionButton(
-                  label: S.of(context, 'fabFunding'),
-                  icon: Icons.account_balance,
-                  color: AppColors.accent,
-                  onTap: () {
-                    _close();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const TransferScreen()),
-                    );
-                  },
+                const SizedBox(height: AppSpacing.sm),
+                ScaleTransition(
+                  scale: _expandAnimation,
+                  child: _buildActionButton(
+                    label: S.of(context, 'fabFunding'),
+                    icon: Icons.account_balance,
+                    color: AppColors.accent,
+                    onTap: () {
+                      _close();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const TransferScreen()),
+                      );
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              ScaleTransition(
-                scale: _expandAnimation,
-                child: _buildActionButton(
-                  label: S.of(context, 'fabSavings'),
-                  icon: Icons.savings,
-                  color: AppColors.income,
-                  onTap: () {
-                    _close();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const GoalContributionScreen()),
-                    );
-                  },
+                const SizedBox(height: AppSpacing.sm),
+                ScaleTransition(
+                  scale: _expandAnimation,
+                  child: _buildActionButton(
+                    label: S.of(context, 'fabSavings'),
+                    icon: Icons.savings,
+                    color: AppColors.income,
+                    onTap: () {
+                      _close();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const GoalContributionScreen()),
+                      );
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              ScaleTransition(
-                scale: _expandAnimation,
-                child: _buildActionButton(
-                  label: S.of(context, 'fabPayDebt'),
-                  icon: Icons.payment,
-                  color: AppColors.expense,
-                  onTap: () {
-                    _close();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const DebtPaymentScreen()),
-                    );
-                  },
+                const SizedBox(height: AppSpacing.sm),
+                ScaleTransition(
+                  scale: _expandAnimation,
+                  child: _buildActionButton(
+                    label: S.of(context, 'fabPayDebt'),
+                    icon: Icons.payment,
+                    color: AppColors.expense,
+                    onTap: () {
+                      _close();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const DebtPaymentScreen()),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+              ],
+              FloatingActionButton(
+                onPressed: _toggle,
+                child: AnimatedRotation(
+                  turns: _isExpanded ? 0.125 : 0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Icon(_isExpanded ? Icons.close : Icons.add),
                 ),
               ),
             ],
-          ),
-        ),
-        FloatingActionButton(
-          onPressed: _toggle,
-          child: AnimatedRotation(
-            turns: _isExpanded ? 0.125 : 0,
-            duration: const Duration(milliseconds: 200),
-            child: Icon(_isExpanded ? Icons.close : Icons.add),
           ),
         ),
       ],
