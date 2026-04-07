@@ -36,7 +36,9 @@ class _InsightsTabState extends State<InsightsTab> {
   @override
   void initState() {
     super.initState();
-    _load();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _load();
+    });
   }
 
   @override
