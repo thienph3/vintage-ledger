@@ -133,16 +133,14 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
             padding: const EdgeInsets.all(AppSpacing.lg),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 12, offset: const Offset(0, 2)),
-              ],
+              borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
+              boxShadow: [AppColors.cardShadow],
             ),
             child: Column(
               children: [
                 Text(
                   _balanceVisible ? balanceStr : '••••••',
-                  style: AppTextStyles.title.copyWith(fontSize: 22),
+                  style: AppTextStyles.title,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
