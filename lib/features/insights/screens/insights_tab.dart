@@ -31,6 +31,7 @@ class _InsightsTabState extends State<InsightsTab> {
   CoachingTip? _coachingTip;
   int _streak = 0;
   bool _loading = true;
+  bool _initialized = false;
 
   @override
   void initState() {
@@ -41,9 +42,9 @@ class _InsightsTabState extends State<InsightsTab> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Reload when tab becomes visible
-    if (mounted) {
-      _load();
+    // Only load once after first build
+    if (!_initialized && mounted) {
+      _initialized = true;
     }
   }
 
