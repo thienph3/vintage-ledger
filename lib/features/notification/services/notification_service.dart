@@ -109,17 +109,26 @@ class NotificationService {
 
   Future<List<String>> _getTokensForUsers(List<String> userIds) async {
     final currentUserId = sl.appState.currentUserId;
+    final filteredUserIds = userIds.where((id) => id != currentUserId).toList();
+    
+    if (filteredUserIds.isEmpty) return [];
+    
+    // Batch read optimization: Use Future.wait for parallel reads
+    final futures = filteredUserIds.map((userId) => 
+      _firestore.collection('users').doc(userId)
+          .collection('fcm_tokens').get()
+    ).toList();
+    
+    final snapshots = await Future.wait(futures);
     final tokens = <String>[];
-
-    for (final userId in userIds) {
-      if (userId == currentUserId) continue;
-      final snap = await _firestore.collection('users').doc(userId)
-          .collection('fcm_tokens').get();
+    
+    for (final snap in snapshots) {
       for (final doc in snap.docs) {
         final token = doc.data()['token'] as String?;
         if (token != null) tokens.add(token);
       }
     }
+    
     return tokens;
   }
 

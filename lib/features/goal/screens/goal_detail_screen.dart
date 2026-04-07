@@ -1,0 +1,473 @@
+import 'package:flutter/material.dart';
+import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
+import 'package:vintage_ledger/common/widgets/ledger_card.dart';
+import 'package:vintage_ledger/core/theme/app_colors.dart';
+import 'package:vintage_ledger/core/theme/app_spacing.dart';
+import 'package:vintage_ledger/core/theme/app_text_styles.dart';
+import 'package:vintage_ledger/features/goal/models/goal_v2.dart';
+import 'package:vintage_ledger/features/goal/models/goal_contribution.dart';
+import 'package:vintage_ledger/features/goal/models/auto_saving_rule.dart';
+import 'package:vintage_ledger/features/goal/services/goal_service_v2.dart';
+import 'package:vintage_ledger/features/goal/screens/goal_form_screen.dart';
+import 'package:vintage_ledger/utils/amount_formatter.dart';
+
+class GoalDetailScreen extends StatefulWidget {
+  final String goalId;
+
+  const GoalDetailScreen({super.key, required this.goalId});
+
+  @override
+  State<GoalDetailScreen> createState() => _GoalDetailScreenState();
+}
+
+class _GoalDetailScreenState extends State<GoalDetailScreen> {
+  final _service = GoalServiceV2();
+  final _amountController = TextEditingController();
+  final _noteController = TextEditingController();
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<GoalV2?>(
+      future: _service.getGoal(widget.goalId),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const AppScaffold(
+            title: 'CHI TIẾT MỤC TIÊU',
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final goal = snapshot.data!;
+        return AppScaffold(
+          title: 'CHI TIẾT MỤC TIÊU',
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () => _navigateToEdit(goal),
+            ),
+          ],
+          body: ListView(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            children: [
+              _buildGoalInfo(goal),
+              const SizedBox(height: AppSpacing.lg),
+              _buildProgressCard(goal),
+              const SizedBox(height: AppSpacing.lg),
+              _buildAutoSavingCard(goal),
+              const SizedBox(height: AppSpacing.lg),
+              if (!goal.isCompleted) _buildContributionSection(goal),
+              if (!goal.isCompleted) const SizedBox(height: AppSpacing.lg),
+              _buildContributionHistory(goal),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildGoalInfo(GoalV2 goal) {
+    return LedgerCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(goal.category.emoji, style: AppTextStyles.emojiLarge),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Text(goal.name, style: AppTextStyles.headline),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              goal.category.displayName,
+              style: AppTextStyles.caption.copyWith(color: AppColors.primary),
+            ),
+          ),
+          if (goal.targetDate != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Icon(
+                  Icons.calendar_today,
+                  size: 16,
+                  color: goal.isOverdue ? AppColors.error : AppColors.textSecondary,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  'Hạn: ${_formatDate(goal.targetDate!)}',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: goal.isOverdue ? AppColors.error : AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressCard(GoalV2 goal) {
+    return LedgerCard(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Hiện tại', style: AppTextStyles.caption),
+                    const SizedBox(height: 4),
+                    Text(
+                      AmountFormatter.formatCurrency(goal.currentAmount, 'vi'),
+                      style: AppTextStyles.headline.copyWith(color: AppColors.income),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Mục tiêu', style: AppTextStyles.caption),
+                    const SizedBox(height: 4),
+                    Text(
+                      AmountFormatter.formatCurrency(goal.targetAmount, 'vi'),
+                      style: AppTextStyles.headline,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Còn lại', style: AppTextStyles.caption),
+              const SizedBox(height: 4),
+              Text(
+                AmountFormatter.formatCurrency(goal.remainingAmount, 'vi'),
+                style: AppTextStyles.headline.copyWith(color: AppColors.expense),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: LinearProgressIndicator(
+              value: goal.progressPercentage,
+              backgroundColor: AppColors.divider,
+              valueColor: const AlwaysStoppedAnimation(AppColors.income),
+              minHeight: 12,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(goal.progressText, style: AppTextStyles.caption),
+          if (goal.isCompleted) ...[
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.check_circle, color: AppColors.income, size: 24),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  'Đã hoàn thành mục tiêu!',
+                  style: AppTextStyles.bodyBold.copyWith(color: AppColors.income),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAutoSavingCard(GoalV2 goal) {
+    return StreamBuilder<AutoSavingRule?>(
+      stream: _service.watchAutoSavingRule(goal.id),
+      builder: (context, snapshot) {
+        final rule = snapshot.data;
+        
+        return LedgerCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.autorenew, color: AppColors.primary),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text('Tiết kiệm tự động', style: AppTextStyles.titleSmall),
+                  ),
+                  if (rule != null)
+                    Switch(
+                      value: rule.isActive,
+                      onChanged: (value) => value
+                          ? _service.resumeAutoSaving(goal.id)
+                          : _service.pauseAutoSaving(goal.id),
+                    ),
+                ],
+              ),
+              if (rule != null) ...[
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  '${AmountFormatter.formatCurrency(rule.amount, 'vi')} / ${rule.frequency.displayName}',
+                  style: AppTextStyles.body,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Lần tiếp theo: ${_formatDate(rule.nextRunDate)}',
+                  style: AppTextStyles.caption,
+                ),
+              ] else ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text('Chưa thiết lập', style: AppTextStyles.hint),
+                const SizedBox(height: AppSpacing.md),
+                ElevatedButton.icon(
+                  onPressed: () => _showAutoSavingDialog(goal),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Thiết lập'),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildContributionSection(GoalV2 goal) {
+    return LedgerCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Nạp tiền vào mục tiêu', style: AppTextStyles.titleSmall),
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            controller: _amountController,
+            decoration: const InputDecoration(
+              labelText: 'Số tiền',
+              hintText: 'Nhập số tiền',
+              prefixIcon: Icon(Icons.attach_money),
+            ),
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            controller: _noteController,
+            decoration: const InputDecoration(
+              labelText: 'Ghi chú (tùy chọn)',
+              hintText: 'Nhập ghi chú',
+              prefixIcon: Icon(Icons.note),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => _contribute(goal),
+              child: const Text('Nạp tiền'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContributionHistory(GoalV2 goal) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Lịch sử đóng góp', style: AppTextStyles.titleSmall),
+        const SizedBox(height: AppSpacing.md),
+        StreamBuilder<List<GoalContribution>>(
+          stream: _service.watchContributions(goal.id),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final contributions = snapshot.data!;
+            if (contributions.isEmpty) {
+              return LedgerCard(
+                child: Center(
+                  child: Text('Chưa có đóng góp nào', style: AppTextStyles.hint),
+                ),
+              );
+            }
+
+            return Column(
+              children: contributions.map((c) => _buildContributionItem(c)).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContributionItem(GoalContribution contribution) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: LedgerCard(
+        child: Row(
+          children: [
+            Icon(
+              contribution.isContribution ? Icons.add_circle : Icons.remove_circle,
+              color: contribution.isContribution ? AppColors.income : AppColors.expense,
+              size: 20,
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AmountFormatter.formatCurrency(contribution.absoluteAmount, 'vi'),
+                    style: AppTextStyles.bodyBold.copyWith(
+                      color: contribution.isContribution ? AppColors.income : AppColors.expense,
+                    ),
+                  ),
+                  if (contribution.note != null)
+                    Text(contribution.note!, style: AppTextStyles.caption),
+                ],
+              ),
+            ),
+            Text(_formatDate(contribution.date), style: AppTextStyles.caption),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+
+  Future<void> _contribute(GoalV2 goal) async {
+    final amountText = _amountController.text;
+    if (amountText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng nhập số tiền')),
+      );
+      return;
+    }
+
+    final amount = int.tryParse(amountText);
+    if (amount == null || amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Số tiền không hợp lệ')),
+      );
+      return;
+    }
+
+    try {
+      await _service.napVaoMucTieu(
+        goal.id,
+        amount,
+        note: _noteController.text.isEmpty ? null : _noteController.text,
+      );
+
+      _amountController.clear();
+      _noteController.clear();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Đã nạp tiền vào mục tiêu')),
+        );
+        setState(() {});
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Lỗi: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _showAutoSavingDialog(GoalV2 goal) async {
+    final amountController = TextEditingController();
+    RecurrenceType frequency = RecurrenceType.monthly;
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Thiết lập tiết kiệm tự động'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: amountController,
+                decoration: const InputDecoration(
+                  labelText: 'Số tiền',
+                  hintText: 'Nhập số tiền',
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              DropdownButtonFormField<RecurrenceType>(
+                value: frequency,
+                decoration: const InputDecoration(labelText: 'Tần suất'),
+                items: RecurrenceType.values.map((f) {
+                  return DropdownMenuItem(
+                    value: f,
+                    child: Text(f.displayName),
+                  );
+                }).toList(),
+                onChanged: (value) => setState(() => frequency = value!),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Hủy'),
+            ),
+            TextButton(
+              onPressed: () async {
+                final amount = int.tryParse(amountController.text);
+                if (amount != null && amount > 0) {
+                  await _service.thietLapTietKiemTuDong(
+                    goalId: goal.id,
+                    amount: amount,
+                    frequency: frequency,
+                  );
+                  if (context.mounted) Navigator.pop(context);
+                }
+              },
+              child: const Text('Lưu'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _navigateToEdit(GoalV2 goal) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => GoalFormScreen(goal: goal)),
+    );
+  }
+}

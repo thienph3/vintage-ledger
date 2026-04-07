@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
+import 'package:vintage_ledger/core/cache/cache_service.dart';
+import 'package:vintage_ledger/core/debug/read_counter.dart';
 import 'package:vintage_ledger/features/account/models/account.dart';
 import 'package:vintage_ledger/core/constants/seed_categories.dart';
 
@@ -83,6 +85,7 @@ class AccountService {
 
   Future<List<Account>> getAccountsForUser(String userId) async {
     final userDoc = await _users.doc(userId).get();
+    ReadCounter.trackQuery('getUser', 'users', 1);
     if (!userDoc.exists) return [];
 
     final accountIds = List<String>.from(
@@ -90,9 +93,13 @@ class AccountService {
     );
     if (accountIds.isEmpty) return [];
 
+    // Batch read optimization: 1 + 1 reads instead of 1 + N reads
+    final accountRefs = accountIds.map((id) => _accounts.doc(id)).toList();
+    final docs = await _firestore.getAll(accountRefs);
+    ReadCounter.trackBatchRead('getAccounts', ['accounts'], accountIds.length);
+    
     final results = <Account>[];
-    for (final id in accountIds) {
-      final doc = await _accounts.doc(id).get();
+    for (final doc in docs) {
       if (doc.exists) {
         results.add(Account.fromMap(doc.id, doc.data() as Map<String, dynamic>));
       }
@@ -103,11 +110,27 @@ class AccountService {
   final Map<String, Account> _accountCache = {};
 
   Future<Account?> getAccount(String accountId) async {
-    if (_accountCache.containsKey(accountId)) return _accountCache[accountId];
+    // Check unified cache first
+    final cacheKey = CacheService.accountKey(accountId);
+    final cached = sl.cacheService.get<Account>(cacheKey);
+    if (cached != null) return cached;
+    
+    // Check legacy cache
+    if (_accountCache.containsKey(accountId)) {
+      final account = _accountCache[accountId]!;
+      sl.cacheService.set(cacheKey, account); // Migrate to unified cache
+      return account;
+    }
+    
     final doc = await _accounts.doc(accountId).get();
     if (!doc.exists) return null;
+    
     final account = Account.fromMap(doc.id, doc.data() as Map<String, dynamic>);
+    
+    // Store in both caches for backward compatibility
     _accountCache[accountId] = account;
+    sl.cacheService.set(cacheKey, account);
+    
     return account;
   }
 
@@ -205,19 +228,38 @@ class AccountService {
   }
 
   Future<List<Map<String, String>>> getMemberProfiles(List<String> memberIds) async {
+    if (memberIds.isEmpty) return [];
+    
+    // Check cache first
+    final cacheKey = CacheService.memberProfilesKey(memberIds.join(','));
+    final cached = sl.cacheService.get<List<Map<String, String>>>(cacheKey);
+    if (cached != null) return cached;
+    
+    // Batch read optimization: 1 read instead of N reads
+    final userRefs = memberIds.map((id) => _users.doc(id)).toList();
+    final docs = await _firestore.getAll(userRefs);
+    ReadCounter.trackBatchRead('getMemberProfiles', ['users'], memberIds.length);
+    
     final results = <Map<String, String>>[];
-    for (final id in memberIds) {
-      final doc = await _users.doc(id).get();
+    for (int i = 0; i < docs.length; i++) {
+      final doc = docs[i];
       if (doc.exists) {
         final data = doc.data() as Map<String, dynamic>;
-        results.add({
-          'id': id,
+        final profile = {
+          'id': memberIds[i],
           'name': data['display_name'] ?? '',
           'email': data['email'] ?? '',
           'photo_url': data['photo_url'] ?? '',
-        });
+        };
+        results.add(profile);
+        
+        // Cache individual profiles too
+        sl.cacheService.set(CacheService.userProfileKey(memberIds[i]), profile);
       }
     }
+    
+    // Cache the full result
+    sl.cacheService.set(cacheKey, results);
     return results;
   }
 

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/features/home/screens/home_screen.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_list_screen.dart';
+import 'package:vintage_ledger/features/debt/screens/debt_list_screen_v2.dart';
+import 'package:vintage_ledger/features/goal/screens/goal_list_screen.dart';
 import 'package:vintage_ledger/features/insights/screens/insights_tab.dart';
 import 'package:vintage_ledger/features/settings/screens/setting_screen.dart';
 
@@ -27,6 +29,8 @@ class _MainShellState extends State<MainShell> {
   static const _tabs = [
     HomeScreen(),
     TransactionListScreen(isTab: true),
+    DebtListScreen(),
+    GoalListScreen(),
     InsightsTab(),
     SettingScreen(),
   ];
@@ -44,6 +48,7 @@ class _MainShellState extends State<MainShell> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _index,
         onTap: (i) => setState(() => _index = i),
+        type: BottomNavigationBarType.fixed,
         items: [
           BottomNavigationBarItem(
             icon: const Icon(Icons.home_outlined),
@@ -54,6 +59,16 @@ class _MainShellState extends State<MainShell> {
             icon: const Icon(Icons.receipt_long_outlined),
             activeIcon: const Icon(Icons.receipt_long),
             label: S.of(context, 'tabTransactions'),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.trending_up_outlined),
+            activeIcon: const Icon(Icons.trending_up),
+            label: 'Nợ',
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.flag_outlined),
+            activeIcon: const Icon(Icons.flag),
+            label: 'Mục tiêu',
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.insights_outlined),

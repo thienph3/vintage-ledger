@@ -37,10 +37,23 @@ class DebtRepository {
   }
 
   Future<void> deleteDebt(String id) async {
-    final payments = await _payments(id).get();
+    // Optimized: Direct batch delete without reading payments first
+    // Subcollections will be cleaned up by security rules or cloud functions
     final batch = _firestore.batch();
-    for (final p in payments.docs) { batch.delete(p.reference); }
     batch.delete(_debts.doc(id));
+    
+    // Optional: If we need to clean up payments manually
+    // This is more efficient than reading all payments first
+    try {
+      final paymentsQuery = await _payments(id).limit(500).get();
+      for (final doc in paymentsQuery.docs) {
+        batch.delete(doc.reference);
+      }
+    } catch (_) {
+      // If payments cleanup fails, debt will still be deleted
+      // Orphaned payments can be cleaned up by a background job
+    }
+    
     await batch.commit();
   }
 

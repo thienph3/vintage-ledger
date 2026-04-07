@@ -47,7 +47,7 @@ abstract class FirestoreRepository<T> {
     final doc = options != null
         ? await _collection(_accountId).doc(id).get(options)
         : await _collection(_accountId).doc(id).get();
-    ReadCounter.increment();
+    ReadCounter.trackQuery('getById', collectionName, 1);
     if (!doc.exists || doc.data() == null) return null;
     return fromFirestore(doc.id, doc.data()!);
   }
@@ -57,7 +57,7 @@ abstract class FirestoreRepository<T> {
     final query = queryBuilder != null ? queryBuilder(ref) : ref;
     final options = useCache ? const GetOptions(source: Source.cache) : null;
     final snapshot = options != null ? await query.get(options) : await query.get();
-    ReadCounter.increment(snapshot.docs.length);
+    ReadCounter.trackQuery('getAll', collectionName, snapshot.docs.length);
     return snapshot.docs.map((d) => fromFirestore(d.id, d.data())).toList();
   }
 
@@ -67,14 +67,14 @@ abstract class FirestoreRepository<T> {
     final ref = _collection(_accountId);
     final query = queryBuilder != null ? queryBuilder(ref) : ref;
     return query.snapshots().map((snap) {
-      ReadCounter.increment(snap.docs.length);
+      ReadCounter.trackQuery('watchAll', collectionName, snap.docs.length);
       return snap.docs.map((d) => fromFirestore(d.id, d.data())).toList();
     });
   }
 
   Stream<T?> watchById(String id) {
     return _collection(_accountId).doc(id).snapshots().map((doc) {
-      ReadCounter.increment();
+      ReadCounter.trackQuery('watchById', collectionName, 1);
       return doc.exists && doc.data() != null ? fromFirestore(doc.id, doc.data()!) : null;
     });
   }
