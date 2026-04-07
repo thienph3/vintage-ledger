@@ -53,7 +53,7 @@ Future<T?> showSelectionSheet<T>({
                       ? const Icon(Icons.check_circle, color: AppColors.primary, size: 20)
                       : null,
                   tileColor: isSelected ? AppColors.primary.withValues(alpha: 0.06) : null,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg)),
                   onTap: () => Navigator.pop(ctx, item.value),
                 );
               }).toList(),

@@ -37,7 +37,7 @@ class TypeSelector extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 12),
             decoration: BoxDecoration(
               color: selected ? AppColors.primary.withValues(alpha: 0.12) : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
             ),
             alignment: Alignment.center,
             child: Text(
@@ -56,7 +56,7 @@ class TypeSelector extends StatelessWidget {
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: AppColors.divider.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
       ),
       child: Row(children: children),
     );

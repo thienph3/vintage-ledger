@@ -56,7 +56,7 @@ class _ShimmerPlaceholderState extends State<ShimmerPlaceholder> with SingleTick
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: AppColors.textSecondary.withValues(alpha: opacity),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppSpacing.borderRadiusSm),
                       ),
                     ),
                     const SizedBox(height: 6),

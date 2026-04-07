@@ -14,7 +14,7 @@ class LedgerCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),

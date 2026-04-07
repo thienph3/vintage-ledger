@@ -27,7 +27,7 @@ class SwipeListItem extends StatelessWidget {
       background: Container(
         decoration: BoxDecoration(
           color: AppColors.expense.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -43,7 +43,7 @@ class SwipeListItem extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
