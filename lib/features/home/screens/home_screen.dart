@@ -5,6 +5,8 @@ import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
+import 'package:vintage_ledger/features/goal/models/goal.dart';
+import 'package:vintage_ledger/features/debt/models/debt.dart';
 
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
@@ -14,6 +16,7 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/network_status_banner.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/quick_actions_fab.dart';
+import 'package:vintage_ledger/common/widgets/quick_actions_visibility.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_feed_item.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
@@ -33,6 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, String> _categoryNames = {};
   Map<String, String> _walletNameMap = {};
   String? _accountName;
+  bool _isFamily = false;
 
   late final DateTime _todayStart;
   late final DateTime _todayEnd;
@@ -58,6 +62,7 @@ class _HomeScreenState extends State<HomeScreen> {
       _categoryNames = {for (var c in categories) if (c.id != null) c.id!: c.name};
       _walletNameMap = {for (var w in wallets) if (w.id != null) w.id!: w.name};
       _accountName = account?.name;
+      _isFamily = account?.isFamily ?? false;
     });
   }
 
@@ -98,60 +103,84 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context, walletSnap) {
         final wallets = walletSnap.data ?? [];
 
-        return AppScaffold(
-          title: _accountName ?? S.of(context, 'homeTitle'),
-          showBackButton: false,
-          fab: const QuickActionsFab(bottomOffset: 130),
-          body: Column(
-            children: [
-              const NetworkStatusBanner(),
-              Expanded(
-                child: StreamBuilder<List<TransactionWithItems>>(
-                        stream: _todayStream,
-                        builder: (context, txnSnap) {
-                          final todayTxns = txnSnap.data ?? [];
-                          return RefreshIndicator(
-                            onRefresh: _refresh,
-                            child: ListView(
-                              padding: const EdgeInsets.all(AppSpacing.md),
-                              children: [
-                                _buildTodayTotal(todayTxns),
-                                const SizedBox(height: AppSpacing.lg),
-                                _buildFeed(todayTxns),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-              ),
-              if (wallets.isNotEmpty)
-                QuickAddBar(
-                  walletId: _resolveDefaultWallet(wallets),
-                  wallets: wallets,
-                  onWalletChanged: (id) {
-                    sl.settingService.setLastWalletId(id);
-                    setState(() => _defaultWalletId = id);
-                  },
-                  onAdded: _refresh,
-                )
-              else
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: EmptyState(
-                    emoji: '👛',
-                    message: S.of(context, 'firstRunHint'),
-                    action: ElevatedButton.icon(
-                      onPressed: () async {
-                        final result = await context.pushScreen(const WalletFormScreen());
-                        if (result == true) _refresh();
-                      },
-                      icon: const Icon(Icons.add, size: 18),
-                      label: Text(S.of(context, 'addWallet')),
-                    ),
+        return StreamBuilder<List<Goal>>(
+          stream: sl.goalService.watchGoalsProgress(),
+          builder: (context, goalSnap) {
+            final goals = goalSnap.data ?? [];
+
+            return StreamBuilder<List<Debt>>(
+              stream: sl.debtService.watchActiveDebts(),
+              builder: (context, debtSnap) {
+                final debts = debtSnap.data ?? [];
+
+                final actionsInput = QuickActionsInput(
+                  isFamily: _isFamily,
+                  walletCount: wallets.length,
+                  hasActiveGoals: goals.isNotEmpty,
+                  hasActiveDebts: debts.isNotEmpty,
+                );
+
+                return AppScaffold(
+                  title: _accountName ?? S.of(context, 'homeTitle'),
+                  showBackButton: false,
+                  fab: QuickActionsFab(
+                    bottomOffset: 130,
+                    actionsInput: actionsInput,
                   ),
-                ),
-            ],
-          ),
+                  body: Column(
+                    children: [
+                      const NetworkStatusBanner(),
+                      Expanded(
+                        child: StreamBuilder<List<TransactionWithItems>>(
+                                stream: _todayStream,
+                                builder: (context, txnSnap) {
+                                  final todayTxns = txnSnap.data ?? [];
+                                  return RefreshIndicator(
+                                    onRefresh: _refresh,
+                                    child: ListView(
+                                      padding: const EdgeInsets.all(AppSpacing.md),
+                                      children: [
+                                        _buildTodayTotal(todayTxns),
+                                        const SizedBox(height: AppSpacing.lg),
+                                        _buildFeed(todayTxns),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                      ),
+                      if (wallets.isNotEmpty)
+                        QuickAddBar(
+                          walletId: _resolveDefaultWallet(wallets),
+                          wallets: wallets,
+                          onWalletChanged: (id) {
+                            sl.settingService.setLastWalletId(id);
+                            setState(() => _defaultWalletId = id);
+                          },
+                          onAdded: _refresh,
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          child: EmptyState(
+                            emoji: '👛',
+                            message: S.of(context, 'firstRunHint'),
+                            action: ElevatedButton.icon(
+                              onPressed: () async {
+                                final result = await context.pushScreen(const WalletFormScreen());
+                                if (result == true) _refresh();
+                              },
+                              icon: const Icon(Icons.add, size: 18),
+                              label: Text(S.of(context, 'addWallet')),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
         );
       },
     );

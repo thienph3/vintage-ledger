@@ -3,6 +3,7 @@ const Map<String, String> quickAddVi = {
   'quickAddSuccess': 'Đã ghi ✓',
   'fabAddTransaction': 'Thêm giao dịch',
   'fabFunding': 'Nạp tiền',
+  'fabTransfer': 'Chuyển tiền',
   'fabSavings': 'Tiết kiệm',
   'fabPayDebt': 'Trả nợ',
 };

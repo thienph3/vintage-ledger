@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:vintage_ledger/common/widgets/quick_actions_visibility.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
-import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
 import 'package:vintage_ledger/features/transfer/screens/transfer_screen.dart';
 import 'package:vintage_ledger/features/debt/screens/debt_payment_screen.dart';
 import 'package:vintage_ledger/features/goal/screens/goal_contribution_screen.dart';
 
 class QuickActionsFab extends StatefulWidget {
   final double bottomOffset;
+  final QuickActionsInput actionsInput;
 
-  const QuickActionsFab({super.key, this.bottomOffset = 16});
+  const QuickActionsFab({
+    super.key,
+    this.bottomOffset = 16,
+    required this.actionsInput,
+  });
 
   @override
   State<QuickActionsFab> createState() => _QuickActionsFabState();
@@ -61,8 +66,72 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
     }
   }
 
+  String _labelFor(BuildContext context, QuickActionType type) {
+    switch (type) {
+      case QuickActionType.funding:
+        return S.of(context, 'fabFunding');
+      case QuickActionType.transfer:
+        return S.of(context, 'fabTransfer');
+      case QuickActionType.goalContribution:
+        return S.of(context, 'fabSavings');
+      case QuickActionType.debtPayment:
+        return S.of(context, 'fabPayDebt');
+    }
+  }
+
+  IconData _iconFor(QuickActionType type) {
+    switch (type) {
+      case QuickActionType.funding:
+        return Icons.account_balance;
+      case QuickActionType.transfer:
+        return Icons.swap_horiz;
+      case QuickActionType.goalContribution:
+        return Icons.savings;
+      case QuickActionType.debtPayment:
+        return Icons.payment;
+    }
+  }
+
+  Color _colorFor(QuickActionType type) {
+    switch (type) {
+      case QuickActionType.funding:
+        return AppColors.accent;
+      case QuickActionType.transfer:
+        return AppColors.primary;
+      case QuickActionType.goalContribution:
+        return AppColors.income;
+      case QuickActionType.debtPayment:
+        return AppColors.expense;
+    }
+  }
+
+  void _onTap(QuickActionType type) {
+    _close();
+    switch (type) {
+      case QuickActionType.funding:
+      case QuickActionType.transfer:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const TransferScreen()),
+        );
+      case QuickActionType.goalContribution:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const GoalContributionScreen()),
+        );
+      case QuickActionType.debtPayment:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DebtPaymentScreen()),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final actions = QuickActionsVisibility.resolve(widget.actionsInput);
+    if (actions.isEmpty) return const SizedBox.shrink();
+
     return Stack(
       children: [
         if (_isExpanded)
@@ -82,70 +151,18 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (_isExpanded) ...[
-                ScaleTransition(
-                  scale: _expandAnimation,
-                  child: _buildActionButton(
-                    label: S.of(context, 'fabAddTransaction'),
-                    icon: Icons.receipt_long,
-                    color: AppColors.primary,
-                    onTap: () {
-                      _close();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const TransactionFormScreen()),
-                      );
-                    },
+                for (int i = 0; i < actions.length; i++) ...[
+                  ScaleTransition(
+                    scale: _expandAnimation,
+                    child: _buildActionButton(
+                      label: _labelFor(context, actions[i]),
+                      icon: _iconFor(actions[i]),
+                      color: _colorFor(actions[i]),
+                      onTap: () => _onTap(actions[i]),
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                ScaleTransition(
-                  scale: _expandAnimation,
-                  child: _buildActionButton(
-                    label: S.of(context, 'fabFunding'),
-                    icon: Icons.account_balance,
-                    color: AppColors.accent,
-                    onTap: () {
-                      _close();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const TransferScreen()),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                ScaleTransition(
-                  scale: _expandAnimation,
-                  child: _buildActionButton(
-                    label: S.of(context, 'fabSavings'),
-                    icon: Icons.savings,
-                    color: AppColors.income,
-                    onTap: () {
-                      _close();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const GoalContributionScreen()),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                ScaleTransition(
-                  scale: _expandAnimation,
-                  child: _buildActionButton(
-                    label: S.of(context, 'fabPayDebt'),
-                    icon: Icons.payment,
-                    color: AppColors.expense,
-                    onTap: () {
-                      _close();
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const DebtPaymentScreen()),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
               ],
               FloatingActionButton(
                 onPressed: _toggle,
