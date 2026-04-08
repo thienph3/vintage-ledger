@@ -408,7 +408,7 @@ class TransactionService {
     final txnARef = firestore.collection('accounts').doc(sourceAccountId).collection('transactions').doc();
     final txnBRef = firestore.collection('accounts').doc(destAccountId).collection('transactions').doc();
 
-    // Resolve names for display
+    // Resolve names for display (before the transaction)
     final srcWalletSnap = await srcWalletRef.get();
     final dstWalletSnap = await dstWalletRef.get();
     final srcWalletName = srcWalletSnap.data()?['name'] as String? ?? '';
@@ -418,31 +418,37 @@ class TransactionService {
     final srcAccountName = srcAccount?.name ?? '';
     final dstAccountName = dstAccount?.name ?? '';
 
-    final batch = firestore.batch();
-    batch.set(txnARef, {
-      'wallet_id': sourceWalletId, 'category_id': '', 'type': 'transfer_out',
-      'amount': amount, 'note': note, 'date': date,
-      'created_by': sl.appState.currentUserId,
-      'to_wallet_id': destWalletId, 'to_account_id': destAccountId,
-      'to_wallet_name': dstWalletName, 'to_account_name': dstAccountName,
-      'linked_transaction_id': txnBRef.id,
-      'created_at': now, 'updated_at': now,
-    });
-    batch.set(txnBRef, {
-      'wallet_id': destWalletId, 'category_id': '', 'type': 'transfer_in',
-      'amount': amount, 'note': note, 'date': date,
-      'created_by': sl.appState.currentUserId,
-      'to_wallet_id': sourceWalletId, 'to_account_id': sourceAccountId,
-      'to_wallet_name': srcWalletName, 'to_account_name': srcAccountName,
-      'linked_transaction_id': txnARef.id,
-      'created_at': now, 'updated_at': now,
-    });
+    await firestore.runTransaction((txn) async {
+      // Read wallet balances INSIDE the transaction
+      final srcSnap = await txn.get(srcWalletRef);
+      final dstSnap = await txn.get(dstWalletRef);
+      if (!srcSnap.exists || !dstSnap.exists) throw Exception('Wallet not found');
 
-    // Balance updates
-    batch.update(srcWalletRef, {'balance': (srcWalletSnap.data()?['balance'] as int? ?? 0) - amount});
-    batch.update(dstWalletRef, {'balance': (dstWalletSnap.data()?['balance'] as int? ?? 0) + amount});
+      final srcBalance = srcSnap.data()?['balance'] as int? ?? 0;
+      final dstBalance = dstSnap.data()?['balance'] as int? ?? 0;
 
-    await batch.commit();
+      txn.set(txnARef, {
+        'wallet_id': sourceWalletId, 'category_id': '', 'type': 'transfer_out',
+        'amount': amount, 'note': note, 'date': date,
+        'created_by': sl.appState.currentUserId,
+        'to_wallet_id': destWalletId, 'to_account_id': destAccountId,
+        'to_wallet_name': dstWalletName, 'to_account_name': dstAccountName,
+        'linked_transaction_id': txnBRef.id,
+        'created_at': now, 'updated_at': now,
+      });
+      txn.set(txnBRef, {
+        'wallet_id': destWalletId, 'category_id': '', 'type': 'transfer_in',
+        'amount': amount, 'note': note, 'date': date,
+        'created_by': sl.appState.currentUserId,
+        'to_wallet_id': sourceWalletId, 'to_account_id': sourceAccountId,
+        'to_wallet_name': srcWalletName, 'to_account_name': srcAccountName,
+        'linked_transaction_id': txnARef.id,
+        'created_at': now, 'updated_at': now,
+      });
+
+      txn.update(srcWalletRef, {'balance': srcBalance - amount});
+      txn.update(dstWalletRef, {'balance': dstBalance + amount});
+    });
     return txnARef.id;
   }
 
@@ -462,54 +468,54 @@ class TransactionService {
     final firestore = _repo.firestore;
     final now = FieldValue.serverTimestamp();
 
-    // Refs
+    // Pre-generate doc refs (before the transaction)
     final srcWalletRef = firestore.collection('accounts').doc(fundingAccountId).collection('wallets').doc(fundingWalletId);
     final transferOutRef = firestore.collection('accounts').doc(fundingAccountId).collection('transactions').doc();
     final transferInRef = firestore.collection('accounts').doc(familyAccountId).collection('transactions').doc();
     final expenseRef = firestore.collection('accounts').doc(familyAccountId).collection('transactions').doc();
 
-    // Read balances
-    final srcSnap = await srcWalletRef.get();
+    await firestore.runTransaction((txn) async {
+      // Read wallet balance INSIDE the transaction
+      final srcSnap = await txn.get(srcWalletRef);
+      if (!srcSnap.exists) throw Exception('Wallet not found');
+      final srcBalance = srcSnap.data()?['balance'] as int? ?? 0;
 
-    final batch = firestore.batch();
+      // Transfer out (personal)
+      txn.set(transferOutRef, {
+        'wallet_id': fundingWalletId, 'category_id': '', 'type': 'transfer_out',
+        'amount': amount, 'note': note, 'date': date,
+        'created_by': sl.appState.currentUserId,
+        'to_wallet_id': walletId, 'to_account_id': familyAccountId,
+        'linked_transaction_id': transferInRef.id,
+        'created_at': now, 'updated_at': now,
+      });
 
-    // Transfer out (personal)
-    batch.set(transferOutRef, {
-      'wallet_id': fundingWalletId, 'category_id': '', 'type': 'transfer_out',
-      'amount': amount, 'note': note, 'date': date,
-      'created_by': sl.appState.currentUserId,
-      'to_wallet_id': walletId, 'to_account_id': familyAccountId,
-      'linked_transaction_id': transferInRef.id,
-      'created_at': now, 'updated_at': now,
+      // Transfer in (family)
+      txn.set(transferInRef, {
+        'wallet_id': walletId, 'category_id': '', 'type': 'transfer_in',
+        'amount': amount, 'note': note, 'date': date,
+        'created_by': sl.appState.currentUserId,
+        'to_wallet_id': fundingWalletId, 'to_account_id': fundingAccountId,
+        'linked_transaction_id': transferOutRef.id,
+        'created_at': now, 'updated_at': now,
+      });
+
+      // Expense (family)
+      txn.set(expenseRef, {
+        'wallet_id': walletId, 'category_id': categoryId, 'type': 'expense',
+        'amount': amount, 'note': note, 'date': date,
+        'created_by': sl.appState.currentUserId,
+        'funding_wallet_id': fundingWalletId,
+        'funding_account_id': fundingAccountId,
+        'funding_transfer_id': transferOutRef.id,
+        'created_at': now, 'updated_at': now,
+      });
+
+      // Wallet balance: deduct from personal wallet
+      txn.update(srcWalletRef, {'balance': srcBalance - amount});
+      // Family wallet: +amount (transfer in) -amount (expense) = net 0
+      // No update needed for family wallet balance
     });
-
-    // Transfer in (family)
-    batch.set(transferInRef, {
-      'wallet_id': walletId, 'category_id': '', 'type': 'transfer_in',
-      'amount': amount, 'note': note, 'date': date,
-      'created_by': sl.appState.currentUserId,
-      'to_wallet_id': fundingWalletId, 'to_account_id': fundingAccountId,
-      'linked_transaction_id': transferOutRef.id,
-      'created_at': now, 'updated_at': now,
-    });
-
-    // Expense (family)
-    batch.set(expenseRef, {
-      'wallet_id': walletId, 'category_id': categoryId, 'type': 'expense',
-      'amount': amount, 'note': note, 'date': date,
-      'created_by': sl.appState.currentUserId,
-      'funding_wallet_id': fundingWalletId,
-      'funding_account_id': fundingAccountId,
-      'funding_transfer_id': transferOutRef.id,
-      'created_at': now, 'updated_at': now,
-    });
-
-    // Wallet balance updates (transfer in + expense out cancel for family wallet)
-    batch.update(srcWalletRef, {'balance': (srcSnap.data()?['balance'] as int? ?? 0) - amount});
-    // Family wallet: +amount (transfer in) -amount (expense) = net 0
-    // No update needed for family wallet balance
-
-    await batch.commit();
     return expenseRef.id;
   }
 

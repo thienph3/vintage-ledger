@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/features/goal/models/goal.dart';
 import 'package:vintage_ledger/features/goal/models/goal_contribution.dart';
@@ -34,53 +35,152 @@ class GoalService {
   }
 
   Future<void> napVaoMucTieu(String goalId, int amount, {String? note}) async {
-    final goal = await _repo.getGoal(goalId);
-    if (goal == null || !goal.isActive) return;
-
+    final firestore = FirebaseFirestore.instance;
+    final accountId = sl.appState.currentAccountId;
+    final userId = sl.appState.currentUserId ?? '';
     final now = DateTime.now();
-    final contribution = GoalContribution(
-      id: '',
-      goalId: goalId,
-      amount: amount,
-      date: now,
-      note: note,
-      createdBy: sl.appState.currentUserId ?? '',
-      createdAt: now,
-    );
 
-    await _repo.addContribution(goalId, contribution);
+    await firestore.runTransaction((txn) async {
+      // 1. Read goal document
+      final goalRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('goals_v2')
+          .doc(goalId);
+      final goalSnap = await txn.get(goalRef);
+      if (!goalSnap.exists) throw Exception('Goal not found');
+      final goalData = goalSnap.data()!;
+      if (goalData['status'] != 'active') throw Exception('Goal is not active');
+      final fundingWalletId = goalData['funding_wallet_id'] as String;
+      final currentAmount = goalData['current_amount'] as int? ?? 0;
+      final targetAmount = goalData['target_amount'] as int? ?? 0;
 
-    final newCurrentAmount = goal.currentAmount + amount;
-    final updates = <String, dynamic>{
-      'current_amount': newCurrentAmount,
-    };
+      // 2. Read wallet balance
+      final walletRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('wallets')
+          .doc(fundingWalletId);
+      final walletSnap = await txn.get(walletRef);
+      if (!walletSnap.exists) throw Exception('Wallet not found');
+      final walletBalance = walletSnap.data()!['balance'] as int? ?? 0;
 
-    if (newCurrentAmount >= goal.targetAmount) {
-      updates['status'] = GoalStatus.completed.name;
-    }
+      // 3. Create expense transaction
+      final txnRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('transactions')
+          .doc();
+      txn.set(txnRef, {
+        'wallet_id': fundingWalletId,
+        'category_id': '',
+        'type': 'expense',
+        'amount': amount,
+        'note': note ?? 'Nạp vào mục tiêu',
+        'date': now.millisecondsSinceEpoch,
+        'created_by': userId,
+        'goal_id': goalId,
+        'created_at': FieldValue.serverTimestamp(),
+        'updated_at': FieldValue.serverTimestamp(),
+      });
 
-    await _repo.updateGoal(goalId, updates);
+      // 4. Deduct wallet balance
+      txn.update(walletRef, {'balance': walletBalance - amount});
+
+      // 5. Create contribution in goal's subcollection
+      final contribRef = goalRef.collection('contributions').doc();
+      txn.set(contribRef, {
+        'goal_id': goalId,
+        'amount': amount,
+        'date': now.millisecondsSinceEpoch,
+        'note': note,
+        'created_by': userId,
+        'created_at': now.millisecondsSinceEpoch,
+      });
+
+      // 6. Update goal current_amount and status if completed
+      final newCurrentAmount = currentAmount + amount;
+      final updates = <String, dynamic>{
+        'current_amount': newCurrentAmount,
+        'updated_at': now.millisecondsSinceEpoch,
+      };
+      if (newCurrentAmount >= targetAmount) {
+        updates['status'] = 'completed';
+      }
+      txn.update(goalRef, updates);
+    });
   }
 
   Future<void> rutTuMucTieu(String goalId, int amount, {String? note}) async {
-    final goal = await _repo.getGoal(goalId);
-    if (goal == null) return;
-
+    final firestore = FirebaseFirestore.instance;
+    final accountId = sl.appState.currentAccountId;
+    final userId = sl.appState.currentUserId ?? '';
     final now = DateTime.now();
-    final contribution = GoalContribution(
-      id: '',
-      goalId: goalId,
-      amount: -amount,
-      date: now,
-      note: note,
-      createdBy: sl.appState.currentUserId ?? '',
-      createdAt: now,
-    );
 
-    await _repo.addContribution(goalId, contribution);
+    await firestore.runTransaction((txn) async {
+      // 1. Read goal document
+      final goalRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('goals_v2')
+          .doc(goalId);
+      final goalSnap = await txn.get(goalRef);
+      if (!goalSnap.exists) throw Exception('Goal not found');
+      final goalData = goalSnap.data()!;
+      final fundingWalletId = goalData['funding_wallet_id'] as String;
+      final currentAmount = goalData['current_amount'] as int? ?? 0;
+      final targetAmount = goalData['target_amount'] as int? ?? 0;
 
-    final newCurrentAmount = (goal.currentAmount - amount).clamp(0, goal.targetAmount);
-    await _repo.updateGoal(goalId, {'current_amount': newCurrentAmount});
+      // 2. Read wallet balance
+      final walletRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('wallets')
+          .doc(fundingWalletId);
+      final walletSnap = await txn.get(walletRef);
+      if (!walletSnap.exists) throw Exception('Wallet not found');
+      final walletBalance = walletSnap.data()!['balance'] as int? ?? 0;
+
+      // 3. Create income transaction
+      final txnRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('transactions')
+          .doc();
+      txn.set(txnRef, {
+        'wallet_id': fundingWalletId,
+        'category_id': '',
+        'type': 'income',
+        'amount': amount,
+        'note': note ?? 'Rút từ mục tiêu',
+        'date': now.millisecondsSinceEpoch,
+        'created_by': userId,
+        'goal_id': goalId,
+        'created_at': FieldValue.serverTimestamp(),
+        'updated_at': FieldValue.serverTimestamp(),
+      });
+
+      // 4. Add to wallet balance
+      txn.update(walletRef, {'balance': walletBalance + amount});
+
+      // 5. Create contribution with negative amount
+      final contribRef = goalRef.collection('contributions').doc();
+      txn.set(contribRef, {
+        'goal_id': goalId,
+        'amount': -amount,
+        'date': now.millisecondsSinceEpoch,
+        'note': note,
+        'created_by': userId,
+        'created_at': now.millisecondsSinceEpoch,
+      });
+
+      // 6. Update goal current_amount (clamp to 0)
+      final newCurrentAmount = (currentAmount - amount).clamp(0, targetAmount);
+      txn.update(goalRef, {
+        'current_amount': newCurrentAmount,
+        'updated_at': now.millisecondsSinceEpoch,
+      });
+    });
   }
 
   // ── Auto-Saving ──

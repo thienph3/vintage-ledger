@@ -8,6 +8,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/transfer/models/transfer.dart';
 import 'package:vintage_ledger/features/transfer/services/transfer_service.dart';
+import 'package:vintage_ledger/features/transaction/services/transaction_service.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
 
@@ -21,6 +22,7 @@ class TransferScreen extends StatefulWidget {
 class _TransferScreenState extends State<TransferScreen> {
   final _formKey = GlobalKey<FormState>();
   final _service = TransferService();
+  final _transactionService = TransactionService();
   final _walletService = WalletService();
   
   TransferType _type = TransferType.internal;
@@ -308,18 +310,20 @@ class _TransferScreenState extends State<TransferScreen> {
       final note = _noteController.text.isEmpty ? null : _noteController.text;
 
       if (_type == TransferType.internal) {
-        await _service.chuyenGiuaCacVi(
-          fromWalletId: _sourceWalletId!,
-          toWalletId: _destWalletId!,
+        await _transactionService.createTransfer(
+          sourceWalletId: _sourceWalletId!,
+          destWalletId: _destWalletId!,
           amount: amount,
           note: note,
+          date: DateTime.now().millisecondsSinceEpoch,
         );
       } else {
-        await _service.napVaoViGiaDinh(
-          personalWalletId: _sourceWalletId!,
-          familyWalletId: _destWalletId!,
+        await _transactionService.createTransfer(
+          sourceWalletId: _sourceWalletId!,
+          destWalletId: _destWalletId!,
           amount: amount,
           note: note,
+          date: DateTime.now().millisecondsSinceEpoch,
         );
       }
 

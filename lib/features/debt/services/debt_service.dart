@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/features/debt/models/debt.dart';
 import 'package:vintage_ledger/features/debt/models/debt_payment.dart';
@@ -62,62 +63,162 @@ class DebtService {
     return await _repo.addDebt(debt);
   }
 
-  Future<void> nhanTienTra(String debtId, int amount, {String? note}) async {
-    final debt = await _repo.getDebt(debtId);
-    if (debt == null || debt.type != DebtType.lend) return;
-
+  Future<void> nhanTienTra(String debtId, int amount, {
+    required String walletId,
+    String? note,
+  }) async {
+    final firestore = FirebaseFirestore.instance;
+    final accountId = sl.appState.currentAccountId;
+    final userId = sl.appState.currentUserId ?? '';
     final now = DateTime.now();
-    final payment = DebtPayment(
-      id: '',
-      debtId: debtId,
-      amount: amount,
-      date: now,
-      note: note,
-      createdBy: sl.appState.currentUserId ?? '',
-      createdAt: now,
-    );
 
-    await _repo.addPayment(debtId, payment);
+    await firestore.runTransaction((txn) async {
+      // 1. Read debt document
+      final debtRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('debts_v2')
+          .doc(debtId);
+      final debtSnap = await txn.get(debtRef);
+      if (!debtSnap.exists) throw Exception('Debt not found');
+      final debtData = debtSnap.data()!;
+      if (debtData['type'] != 'lend') throw Exception('Not a lend debt');
+      final paidAmount = debtData['paid_amount'] as int? ?? 0;
+      final totalAmount = debtData['total_amount'] as int? ?? 0;
 
-    final newPaidAmount = debt.paidAmount + amount;
-    final updates = <String, dynamic>{
-      'paid_amount': newPaidAmount,
-    };
+      // 2. Read wallet balance
+      final walletRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('wallets')
+          .doc(walletId);
+      final walletSnap = await txn.get(walletRef);
+      if (!walletSnap.exists) throw Exception('Wallet not found');
+      final walletBalance = walletSnap.data()!['balance'] as int? ?? 0;
 
-    if (newPaidAmount >= debt.totalAmount) {
-      updates['status'] = DebtStatus.completed.name;
-    }
+      // 3. Create income transaction
+      final txnRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('transactions')
+          .doc();
+      txn.set(txnRef, {
+        'wallet_id': walletId,
+        'category_id': '',
+        'type': 'income',
+        'amount': amount,
+        'note': note ?? 'Nhận trả nợ',
+        'date': now.millisecondsSinceEpoch,
+        'created_by': userId,
+        'debt_id': debtId,
+        'created_at': FieldValue.serverTimestamp(),
+        'updated_at': FieldValue.serverTimestamp(),
+      });
 
-    await _repo.updateDebt(debtId, updates);
+      // 4. Add to wallet balance
+      txn.update(walletRef, {'balance': walletBalance + amount});
+
+      // 5. Create payment in debt's subcollection
+      final paymentRef = debtRef.collection('payments').doc();
+      txn.set(paymentRef, {
+        'debt_id': debtId,
+        'amount': amount,
+        'date': now.millisecondsSinceEpoch,
+        'note': note,
+        'created_by': userId,
+        'created_at': now.millisecondsSinceEpoch,
+      });
+
+      // 6. Update debt paid_amount and status if completed
+      final newPaidAmount = paidAmount + amount;
+      final updates = <String, dynamic>{
+        'paid_amount': newPaidAmount,
+        'updated_at': now.millisecondsSinceEpoch,
+      };
+      if (newPaidAmount >= totalAmount) {
+        updates['status'] = 'completed';
+      }
+      txn.update(debtRef, updates);
+    });
   }
 
-  Future<void> traNop(String debtId, int amount, {String? note}) async {
-    final debt = await _repo.getDebt(debtId);
-    if (debt == null || debt.type != DebtType.borrow) return;
-
+  Future<void> traNop(String debtId, int amount, {
+    required String walletId,
+    String? note,
+  }) async {
+    final firestore = FirebaseFirestore.instance;
+    final accountId = sl.appState.currentAccountId;
+    final userId = sl.appState.currentUserId ?? '';
     final now = DateTime.now();
-    final payment = DebtPayment(
-      id: '',
-      debtId: debtId,
-      amount: amount,
-      date: now,
-      note: note,
-      createdBy: sl.appState.currentUserId ?? '',
-      createdAt: now,
-    );
 
-    await _repo.addPayment(debtId, payment);
+    await firestore.runTransaction((txn) async {
+      // 1. Read debt document
+      final debtRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('debts_v2')
+          .doc(debtId);
+      final debtSnap = await txn.get(debtRef);
+      if (!debtSnap.exists) throw Exception('Debt not found');
+      final debtData = debtSnap.data()!;
+      if (debtData['type'] != 'borrow') throw Exception('Not a borrow debt');
+      final paidAmount = debtData['paid_amount'] as int? ?? 0;
+      final totalAmount = debtData['total_amount'] as int? ?? 0;
 
-    final newPaidAmount = debt.paidAmount + amount;
-    final updates = <String, dynamic>{
-      'paid_amount': newPaidAmount,
-    };
+      // 2. Read wallet balance
+      final walletRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('wallets')
+          .doc(walletId);
+      final walletSnap = await txn.get(walletRef);
+      if (!walletSnap.exists) throw Exception('Wallet not found');
+      final walletBalance = walletSnap.data()!['balance'] as int? ?? 0;
 
-    if (newPaidAmount >= debt.totalAmount) {
-      updates['status'] = DebtStatus.completed.name;
-    }
+      // 3. Create expense transaction
+      final txnRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('transactions')
+          .doc();
+      txn.set(txnRef, {
+        'wallet_id': walletId,
+        'category_id': '',
+        'type': 'expense',
+        'amount': amount,
+        'note': note ?? 'Trả nợ',
+        'date': now.millisecondsSinceEpoch,
+        'created_by': userId,
+        'debt_id': debtId,
+        'created_at': FieldValue.serverTimestamp(),
+        'updated_at': FieldValue.serverTimestamp(),
+      });
 
-    await _repo.updateDebt(debtId, updates);
+      // 4. Deduct wallet balance
+      txn.update(walletRef, {'balance': walletBalance - amount});
+
+      // 5. Create payment in debt's subcollection
+      final paymentRef = debtRef.collection('payments').doc();
+      txn.set(paymentRef, {
+        'debt_id': debtId,
+        'amount': amount,
+        'date': now.millisecondsSinceEpoch,
+        'note': note,
+        'created_by': userId,
+        'created_at': now.millisecondsSinceEpoch,
+      });
+
+      // 6. Update debt paid_amount and status if completed
+      final newPaidAmount = paidAmount + amount;
+      final updates = <String, dynamic>{
+        'paid_amount': newPaidAmount,
+        'updated_at': now.millisecondsSinceEpoch,
+      };
+      if (newPaidAmount >= totalAmount) {
+        updates['status'] = 'completed';
+      }
+      txn.update(debtRef, updates);
+    });
   }
 
   // ── Queries ──

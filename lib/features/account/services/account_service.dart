@@ -7,6 +7,14 @@ import 'package:vintage_ledger/core/constants/seed_categories.dart';
 class AccountService {
   final _firestore = FirebaseFirestore.instance;
 
+  /// All subcollections under an account document that must be deleted on cleanup.
+  static const _allSubcollections = [
+    'wallets', 'transactions', 'categories', 'activities',
+    'budgets', 'debts_v2', 'goals_v2', 'auto_saving_rules',
+    'transfers_v2', 'transfer_shortcuts', 'recurring_rules',
+    'notification_events',
+  ];
+
   CollectionReference get _accounts => _firestore.collection('accounts');
   CollectionReference get _users => _firestore.collection('users');
   CollectionReference get _pendingInvites => _firestore.collection('pending_invites');
@@ -181,7 +189,7 @@ class AccountService {
 
   /// Delete an account and all its subcollections
   Future<void> deleteAccount(String accountId) async {
-    for (final sub in ['wallets', 'transactions', 'categories', 'budgets', 'activities', 'notification_events']) {
+    for (final sub in _allSubcollections) {
       final docs = await _accounts.doc(accountId).collection(sub).get();
       if (docs.docs.isEmpty) continue;
       final batch = _firestore.batch();
@@ -303,13 +311,15 @@ class AccountService {
     final accountId = data['account_id'] as String;
     final userId = data['to_user_id'] as String;
 
-    await _accounts.doc(accountId).update({
+    final batch = _firestore.batch();
+    batch.update(_accounts.doc(accountId), {
       'member_ids': FieldValue.arrayUnion([userId]),
     });
-    await _users.doc(userId).update({
+    batch.update(_users.doc(userId), {
       'account_ids': FieldValue.arrayUnion([accountId]),
     });
-    await _pendingInvites.doc(inviteId).update({'status': 'accepted'});
+    batch.update(_pendingInvites.doc(inviteId), {'status': 'accepted'});
+    await batch.commit();
 
     logActivity(accountId: accountId, userId: userId, action: 'join', description: 'đã tham gia');
   }
@@ -369,7 +379,7 @@ class AccountService {
       });
     }
 
-    for (final sub in ['wallets', 'transactions', 'categories', 'activities']) {
+    for (final sub in _allSubcollections) {
       final docs = await _accounts.doc(accountId).collection(sub).get();
       if (docs.docs.isEmpty) continue;
       final batch = _firestore.batch();

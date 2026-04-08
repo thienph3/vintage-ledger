@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
+import 'package:vintage_ledger/common/widgets/dropdown_field.dart';
+import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/debt/models/debt.dart';
 import 'package:vintage_ledger/features/debt/services/debt_service.dart';
+import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class DebtPaymentScreen extends StatefulWidget {
@@ -22,6 +26,26 @@ class _DebtPaymentScreenState extends State<DebtPaymentScreen> {
   final _noteController = TextEditingController();
   Debt? _selectedDebt;
   bool _isLoading = false;
+  List<Wallet> _wallets = [];
+  String? _selectedWalletId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWallets();
+  }
+
+  Future<void> _loadWallets() async {
+    final wallets = await sl.walletService.getWallets();
+    if (mounted) {
+      setState(() {
+        _wallets = wallets;
+        if (wallets.isNotEmpty) {
+          _selectedWalletId = wallets.first.id;
+        }
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -121,10 +145,22 @@ class _DebtPaymentScreenState extends State<DebtPaymentScreen> {
   }
 
   Widget _buildPaymentForm() {
+    final walletName = _wallets.where((w) => w.id == _selectedWalletId).firstOrNull?.name;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(S.of(context, 'paymentAmount'), style: AppTextStyles.titleSmall),
+        const SizedBox(height: AppSpacing.md),
+        DropdownField<String>(
+          label: 'Ví',
+          value: walletName,
+          prefixIcon: Icons.account_balance_wallet,
+          items: _wallets
+              .map((w) => SelectionItem(value: w.id!, label: w.name))
+              .toList(),
+          selected: _selectedWalletId,
+          onChanged: (v) => setState(() => _selectedWalletId = v),
+        ),
         const SizedBox(height: AppSpacing.md),
         TextField(
           controller: _amountController,
@@ -163,7 +199,7 @@ class _DebtPaymentScreenState extends State<DebtPaymentScreen> {
   }
 
   Future<void> _recordPayment() async {
-    if (_selectedDebt == null) return;
+    if (_selectedDebt == null || _selectedWalletId == null) return;
 
     final amountText = _amountController.text;
     if (amountText.isEmpty) {
@@ -188,12 +224,14 @@ class _DebtPaymentScreenState extends State<DebtPaymentScreen> {
         await _service.nhanTienTra(
           _selectedDebt!.id,
           amount,
+          walletId: _selectedWalletId!,
           note: _noteController.text.isEmpty ? null : _noteController.text,
         );
       } else {
         await _service.traNop(
           _selectedDebt!.id,
           amount,
+          walletId: _selectedWalletId!,
           note: _noteController.text.isEmpty ? null : _noteController.text,
         );
       }

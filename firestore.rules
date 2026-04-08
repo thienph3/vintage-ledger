@@ -71,14 +71,7 @@ service cloud.firestore {
         allow delete: if isMember(accountId);
 
         match /goals/{goalId} {
-          allow read: if isMember(accountId);
-          allow create: if isMember(accountId) &&
-            request.resource.data.name is string &&
-            request.resource.data.name.size() > 0 &&
-            request.resource.data.target_amount is int &&
-            request.resource.data.target_amount > 0;
-          allow update: if isMember(accountId);
-          allow delete: if isMember(accountId);
+          allow read, write: if false;
         }
       }
 
@@ -87,11 +80,15 @@ service cloud.firestore {
         allow create: if isMember(accountId) &&
           request.resource.data.amount is int &&
           request.resource.data.amount > 0 &&
-          request.resource.data.type in ['income', 'expense', 'transfer_out', 'transfer_in'];
+          request.resource.data.type in ['income', 'expense', 'transfer_out', 'transfer_in'] &&
+          request.resource.data.wallet_id is string &&
+          request.resource.data.wallet_id.size() > 0;
         allow update: if isMember(accountId) &&
           request.resource.data.amount is int &&
           request.resource.data.amount > 0 &&
-          request.resource.data.type in ['income', 'expense', 'transfer_out', 'transfer_in'];
+          request.resource.data.type in ['income', 'expense', 'transfer_out', 'transfer_in'] &&
+          request.resource.data.wallet_id is string &&
+          request.resource.data.wallet_id.size() > 0;
         allow delete: if isMember(accountId);
 
         match /reactions/{userId} {
@@ -122,23 +119,10 @@ service cloud.firestore {
       }
 
       match /debts/{debtId} {
-        allow read: if isMember(accountId);
-        allow create: if isMember(accountId) &&
-          request.resource.data.type in ['lend', 'borrow'] &&
-          request.resource.data.total_amount is int &&
-          request.resource.data.total_amount > 0 &&
-          request.resource.data.party_name is string &&
-          request.resource.data.party_name.size() > 0;
-        allow update: if isMember(accountId);
-        allow delete: if isMember(accountId);
+        allow read, write: if false;
 
         match /payments/{paymentId} {
-          allow read: if isMember(accountId);
-          allow create: if isMember(accountId) &&
-            request.resource.data.amount is int &&
-            request.resource.data.amount > 0;
-          allow update: if isMember(accountId);
-          allow delete: if isMember(accountId);
+          allow read, write: if false;
         }
       }
 
@@ -150,7 +134,8 @@ service cloud.firestore {
           request.resource.data.total_amount is int &&
           request.resource.data.total_amount > 0 &&
           request.resource.data.party_name is string &&
-          request.resource.data.party_name.size() > 0;
+          request.resource.data.party_name.size() > 0 &&
+          request.resource.data.created_by == request.auth.uid;
         allow update: if isMember(accountId);
         allow delete: if isMember(accountId);
 
@@ -170,7 +155,8 @@ service cloud.firestore {
           request.resource.data.name is string &&
           request.resource.data.name.size() > 0 &&
           request.resource.data.target_amount is int &&
-          request.resource.data.target_amount > 0;
+          request.resource.data.target_amount > 0 &&
+          request.resource.data.created_by == request.auth.uid;
         allow update: if isMember(accountId);
         allow delete: if isMember(accountId);
 
@@ -194,20 +180,14 @@ service cloud.firestore {
       }
 
       match /transfers_v2/{transferId} {
-        allow read: if isMember(accountId);
-        allow create: if isMember(accountId) &&
-          request.resource.data.amount is int &&
-          request.resource.data.amount > 0 &&
-          request.resource.data.type in ['internal', 'funding', 'cross_account'];
-        allow update: if isMember(accountId);
-        allow delete: if isMember(accountId);
+        allow read, write: if false;
       }
 
       match /transfer_shortcuts/{shortcutId} {
         allow read: if isMember(accountId);
         allow create: if isMember(accountId) &&
-          request.resource.data.label is string &&
-          request.resource.data.label.size() > 0;
+          request.resource.data.name is string &&
+          request.resource.data.name.size() > 0;
         allow update: if isMember(accountId);
         allow delete: if isMember(accountId);
       }
