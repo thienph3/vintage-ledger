@@ -38,7 +38,7 @@ class TransactionFeedItem extends StatelessWidget {
     final actor = FeedHelper.resolveName(txn.transaction.createdBy, S.of(context, 'youActor'));
     final t = txn.transaction;
 
-    final story = TransactionStory.format(
+    final parts = TransactionStory.formatStructured(
       actorName: actor,
       categoryName: categoryName,
       amount: t.amount,
@@ -49,6 +49,9 @@ class TransactionFeedItem extends StatelessWidget {
       toWalletName: t.toWalletName ?? walletNames[t.toWalletId],
       toAccountName: t.toAccountName,
     );
+    final story = parts.actorName != null
+        ? '${parts.actorName}${parts.rest}'
+        : parts.rest;
     final time = timeFormatter != null
         ? timeFormatter!(t.date)
         : DateFormatter.short(t.date);
@@ -60,6 +63,8 @@ class TransactionFeedItem extends StatelessWidget {
           text: story,
           time: time,
           photoUrl: FeedHelper.resolvePhoto(t.createdBy),
+          boldPrefix: parts.actorName,
+          textAfterPrefix: parts.rest,
           onTap: () async {
             final Widget target = t.type.isTransfer
                 ? TransferFormScreen(existing: txn)

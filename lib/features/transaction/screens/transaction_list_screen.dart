@@ -253,6 +253,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     final locale = Localizations.localeOf(context).languageCode;
     final totalExpense = txns.where(_countsAsExpense).fold<int>(0, (s, t) => s + t.transaction.amount);
     final totalIncome = txns.where(_countsAsIncome).fold<int>(0, (s, t) => s + t.transaction.amount);
+    final totalNet = totalIncome - totalExpense;
 
     return AppScaffold(
       title: S.of(context, 'transactionLedger'),
@@ -273,6 +274,13 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
               children: [
                 _buildSummaryChip(S.of(context, 'income'), totalIncome, AppColors.income, locale),
                 _buildSummaryChip(S.of(context, 'expense'), totalExpense, AppColors.expense, locale),
+                _buildSummaryChip(
+                  S.of(context, 'net'),
+                  totalNet.abs(),
+                  _netColor(totalNet),
+                  locale,
+                  prefix: totalNet > 0 ? '+' : totalNet < 0 ? '-' : '',
+                ),
               ],
             ),
           ),
@@ -440,13 +448,19 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
 
   // ── Summary ──
 
-  Widget _buildSummaryChip(String label, int amount, Color color, String locale) {
+  Color _netColor(int net) {
+    if (net > 0) return AppColors.income;
+    if (net < 0) return AppColors.expense;
+    return AppColors.textSecondary;
+  }
+
+  Widget _buildSummaryChip(String label, int amount, Color color, String locale, {String prefix = ''}) {
     return Column(
       children: [
         Text(label, style: AppTextStyles.caption),
         const SizedBox(height: AppSpacing.xs),
         Text(
-          AmountFormatter.formatCompactCurrency(amount, locale),
+          '$prefix${AmountFormatter.formatCompactCurrency(amount, locale)}',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,

@@ -11,6 +11,8 @@ class FeedItem extends StatelessWidget {
   final String? photoUrl;
   final VoidCallback? onTap;
   final bool isSystemMessage;
+  final String? boldPrefix;
+  final String? textAfterPrefix;
 
   const FeedItem({
     super.key,
@@ -20,6 +22,8 @@ class FeedItem extends StatelessWidget {
     this.photoUrl,
     this.onTap,
     this.isSystemMessage = false,
+    this.boldPrefix,
+    this.textAfterPrefix,
   });
 
   @override
@@ -60,7 +64,22 @@ class FeedItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(text, style: AppTextStyles.body),
+                  boldPrefix != null
+                      ? RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: boldPrefix,
+                                style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              TextSpan(
+                                text: textAfterPrefix ?? '',
+                                style: AppTextStyles.body,
+                              ),
+                            ],
+                          ),
+                        )
+                      : Text(text, style: AppTextStyles.body),
                   const SizedBox(height: AppSpacing.xs),
                   Text(time, style: AppTextStyles.caption),
                 ],
