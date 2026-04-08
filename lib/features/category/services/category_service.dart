@@ -5,25 +5,12 @@ import 'package:vintage_ledger/features/category/repositories/category_repositor
 class CategoryService {
   final CategoryRepository _repo = CategoryRepository();
 
-  List<Category>? _cache;
-
   Stream<List<Category>> watchCategories() => _repo.watchCategories();
 
   Stream<List<Category>> watchByType(String type) => _repo.watchByType(type);
 
   Future<List<Category>> getCategories() async {
-    if (_cache != null) return _cache!;
-    // Try local cache first for instant load
-    try {
-      _cache = await _repo.getAll(useCache: true);
-      if (_cache!.isNotEmpty) {
-        // Background refresh from server
-        _repo.getAll().then((fresh) => _cache = fresh);
-        return _cache!;
-      }
-    } catch (_) {}
-    _cache = await _repo.getAll();
-    return _cache!;
+    return await _repo.getAll();
   }
 
   Future<List<Category>> getCategoriesByType(String type) async {
@@ -38,18 +25,14 @@ class CategoryService {
 
   Future<String> createCategory(String name, {TransactionType? type, int? icon}) async {
     if (name.trim().isEmpty) throw Exception("Category name cannot be empty");
-    final id = await _repo.add(Category(name: name, type: type, icon: icon));
-    _cache = null;
-    return id;
+    return await _repo.add(Category(name: name, type: type, icon: icon));
   }
 
   Future<void> updateCategory(String id, String name, {TransactionType? type, int? icon}) async {
     await _repo.update(id, {'name': name, 'type': type?.value, 'icon': icon});
-    _cache = null;
   }
 
   Future<void> deleteCategory(String id) async {
     await _repo.delete(id);
-    _cache = null;
   }
 }

@@ -33,6 +33,7 @@ class WalletDetailScreen extends StatefulWidget {
 class _WalletDetailScreenState extends State<WalletDetailScreen> {
   late String _walletName;
   Map<String, String> _categoryNames = {};
+  Map<String, String> _walletNameMap = {};
   bool _loading = true;
   bool _balanceVisible = true;
 
@@ -44,10 +45,12 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
   }
 
   Future<void> _loadCategories() async {
-    final cats = sl.cache.categories;
+    final cats = await sl.categoryService.getCategories();
+    final wallets = await sl.walletService.getWallets();
     if (!mounted) return;
     setState(() {
       _categoryNames = {for (var c in cats) if (c.id != null) c.id!: c.name};
+      _walletNameMap = {for (var w in wallets) if (w.id != null) w.id!: w.name};
       _loading = false;
     });
   }
@@ -163,7 +166,7 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                 txn: txn,
                 categoryName: _categoryNames[txn.transaction.categoryId] ?? S.of(context, 'other'),
                 onChanged: _loadCategories,
-                walletNames: sl.cache.walletNameMap,
+                walletNames: _walletNameMap,
               )),
               ],
             );

@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
-import 'package:vintage_ledger/core/cache/cache_service.dart';
 import 'package:vintage_ledger/core/debug/read_counter.dart';
 import 'package:vintage_ledger/features/account/models/account.dart';
 import 'package:vintage_ledger/core/constants/seed_categories.dart';
@@ -107,31 +106,10 @@ class AccountService {
     return results;
   }
 
-  final Map<String, Account> _accountCache = {};
-
   Future<Account?> getAccount(String accountId) async {
-    // Check unified cache first
-    final cacheKey = CacheService.accountKey(accountId);
-    final cached = sl.cacheService.get<Account>(cacheKey);
-    if (cached != null) return cached;
-    
-    // Check legacy cache
-    if (_accountCache.containsKey(accountId)) {
-      final account = _accountCache[accountId]!;
-      sl.cacheService.set(cacheKey, account); // Migrate to unified cache
-      return account;
-    }
-    
     final doc = await _accounts.doc(accountId).get();
     if (!doc.exists) return null;
-    
-    final account = Account.fromMap(doc.id, doc.data() as Map<String, dynamic>);
-    
-    // Store in both caches for backward compatibility
-    _accountCache[accountId] = account;
-    sl.cacheService.set(cacheKey, account);
-    
-    return account;
+    return Account.fromMap(doc.id, doc.data() as Map<String, dynamic>);
   }
 
   Future<String> getOrCreatePersonalAccountId(
@@ -230,11 +208,6 @@ class AccountService {
   Future<List<Map<String, dynamic>>> getMemberProfiles(List<String> memberIds) async {
     if (memberIds.isEmpty) return [];
     
-    // Check cache first
-    final cacheKey = CacheService.memberProfilesKey(memberIds.join(','));
-    final cached = sl.cacheService.get<List<Map<String, dynamic>>>(cacheKey);
-    if (cached != null) return cached;
-    
     // Batch read optimization: 1 read instead of N reads
     final userRefs = memberIds.map((id) => _users.doc(id)).toList();
     final docs = await Future.wait(userRefs.map((ref) => ref.get()));
@@ -252,14 +225,9 @@ class AccountService {
           'photo_url': data['photo_url'] ?? '',
         };
         results.add(profile);
-        
-        // Cache individual profiles too
-        sl.cacheService.set(CacheService.userProfileKey(memberIds[i]), profile);
       }
     }
     
-    // Cache the full result
-    sl.cacheService.set(cacheKey, results);
     return results;
   }
 

@@ -234,9 +234,10 @@ class TransactionService {
 
       // Update txn docs
       // Resolve names for display
-      final srcWalletName = (oldSrcSnap.data()?['name'] as String?) ?? sl.cache.walletNameMap[sourceWalletId] ?? '';
-      final dstWalletName = (oldDstSnap.data()?['name'] as String?) ?? sl.cache.walletNameMap[destWalletId] ?? '';
-      final srcAccountName = isCrossAccount ? (sl.cache.currentAccount?.name ?? '') : null;
+      final srcWalletName = (oldSrcSnap.data()?['name'] as String?) ?? '';
+      final dstWalletName = (oldDstSnap.data()?['name'] as String?) ?? '';
+      final srcAccount = await sl.accountService.getAccount(sl.appState.currentAccountId);
+      final srcAccountName = isCrossAccount ? (srcAccount?.name ?? '') : null;
       final dstAccountName = isCrossAccount ? (txnOutSnap.data()?['to_account_name'] as String? ?? '') : null;
 
       txn.update(txnOutRef, {
@@ -365,8 +366,12 @@ class TransactionService {
       final dstRef = sl.walletService.repo.collection.doc(destWalletId);
       final txnOutRef = _repo.collection.doc();
       final txnInRef = _repo.collection.doc();
-      final srcName = sl.cache.walletNameMap[sourceWalletId] ?? '';
-      final dstName = sl.cache.walletNameMap[destWalletId] ?? '';
+
+      // Resolve wallet names from Firestore
+      final srcWalletDoc = await sl.walletService.repo.collection.doc(sourceWalletId).get();
+      final dstWalletDoc = await sl.walletService.repo.collection.doc(destWalletId).get();
+      final srcName = (srcWalletDoc.data()?['name'] as String?) ?? '';
+      final dstName = (dstWalletDoc.data()?['name'] as String?) ?? '';
 
       final outData = {
         'wallet_id': sourceWalletId, 'category_id': '', 'type': 'transfer_out',

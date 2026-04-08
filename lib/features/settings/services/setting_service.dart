@@ -4,38 +4,31 @@ import 'package:vintage_ledger/core/service_locator.dart';
 class SettingService {
   final _firestore = FirebaseFirestore.instance;
 
-  Map<String, dynamic>? _cache;
-
   DocumentReference get _userSettings {
     final userId = sl.appState.currentUserId;
     if (userId == null) throw Exception('Not logged in');
     return _firestore.collection('users').doc(userId).collection('settings').doc('prefs');
   }
 
-  /// Load settings doc once, cache in-memory
-  Future<Map<String, dynamic>> _ensureCache() async {
-    if (_cache != null) return _cache!;
+  /// Load settings from Firestore each time
+  Future<Map<String, dynamic>> _loadSettings() async {
     try {
       final doc = await _userSettings.get();
-      _cache = (doc.exists ? doc.data() as Map<String, dynamic>? : null) ?? {};
+      return (doc.exists ? doc.data() as Map<String, dynamic>? : null) ?? {};
     } catch (_) {
-      _cache = {};
+      return {};
     }
-    return _cache!;
   }
-
-  /// Clear cache (call on logout / account switch)
-  void clearCache() => _cache = null;
 
   // ── Read ──
 
   Future<String> getLocale() async {
-    final data = await _ensureCache();
+    final data = await _loadSettings();
     return data['locale']?.toString() ?? 'vi';
   }
 
   Future<String> getDefaultCurrency() async {
-    final data = await _ensureCache();
+    final data = await _loadSettings();
     return data['default_currency']?.toString() ?? 'VND';
   }
 
@@ -44,7 +37,7 @@ class SettingService {
   Future<String?> getLastWalletId() => getSetting('last_wallet_id');
 
   Future<String?> getSetting(String key) async {
-    final data = await _ensureCache();
+    final data = await _loadSettings();
     return data[key]?.toString();
   }
 
@@ -61,17 +54,13 @@ class SettingService {
   Future<void> setSetting(String key, String value) => _write({key: value});
 
   Future<void> _write(Map<String, dynamic> data) async {
-    // Update cache immediately
-    _cache ??= {};
-    _cache!.addAll(data);
-    // Persist to Firestore
     await _userSettings.set(data, SetOptions(merge: true));
   }
 
   // ── Streak ──
 
   Future<int> recordDailyUsage() async {
-    final data = await _ensureCache();
+    final data = await _loadSettings();
     final today = _dateKey(DateTime.now());
     final yesterday = _dateKey(DateTime.now().subtract(const Duration(days: 1)));
 
@@ -95,7 +84,7 @@ class SettingService {
   }
 
   Future<int> getStreak() async {
-    final data = await _ensureCache();
+    final data = await _loadSettings();
     return int.tryParse(data['streak_count']?.toString() ?? '') ?? 0;
   }
 

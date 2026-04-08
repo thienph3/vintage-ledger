@@ -73,10 +73,17 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
   // ── Data loading ──
 
   void _initFromCache() {
-    _categories = sl.cache.categories;
-    _categoryNameMap = sl.cache.categoryNameMap;
-    _defaultWalletId = sl.cache.lastWalletId;
-    _members = sl.cache.memberProfiles.cast<Map<String, dynamic>>();
+    _loadInitialData();
+  }
+
+  Future<void> _loadInitialData() async {
+    _categories = await sl.categoryService.getCategories();
+    _categoryNameMap = {for (var c in _categories) if (c.id != null) c.id!: c.name};
+    _defaultWalletId = await sl.settingService.getLastWalletId();
+    final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
+    if (account != null && account.memberIds.length > 1) {
+      _members = (await sl.accountService.getMemberProfiles(account.memberIds)).cast<Map<String, dynamic>>();
+    }
     _loadWalletsAndRange();
   }
 
@@ -85,6 +92,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     try {
       if (widget.walletId == null) {
         _wallets = await sl.walletService.getWallets();
+        _walletNameMap = {for (var w in _wallets) if (w.id != null) w.id!: w.name};
         if (_defaultWalletId != null && !_wallets.any((w) => w.id == _defaultWalletId)) {
           _defaultWalletId = _wallets.firstOrNull?.id;
         }
@@ -217,7 +225,7 @@ class _TransactionListScreenState extends State<TransactionListScreen> {
     }).toList();
   }
 
-  Map<String, String> get _walletNameMap => sl.cache.walletNameMap;
+  Map<String, String> _walletNameMap = {};
 
   bool _countsAsExpense(TransactionWithItems t) {
     final type = t.transaction.type;

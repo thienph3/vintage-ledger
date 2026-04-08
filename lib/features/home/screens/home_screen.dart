@@ -30,6 +30,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String? _defaultWalletId;
+  Map<String, String> _categoryNames = {};
+  Map<String, String> _walletNameMap = {};
+  String? _accountName;
 
   late final DateTime _todayStart;
   late final DateTime _todayEnd;
@@ -40,16 +43,33 @@ class _HomeScreenState extends State<HomeScreen> {
     final now = DateTime.now();
     _todayStart = DateTime(now.year, now.month, now.day);
     _todayEnd = _todayStart.add(const Duration(days: 1)).subtract(const Duration(milliseconds: 1));
-    _defaultWalletId = sl.cache.lastWalletId;
+    _loadInitialData();
     sl.settingService.recordDailyUsage();
   }
 
-  Map<String, String> get _categoryNames => sl.cache.categoryNameMap;
-  String? get _accountName => sl.cache.currentAccount?.name;
+  Future<void> _loadInitialData() async {
+    final lastWalletId = await sl.settingService.getLastWalletId();
+    final categories = await sl.categoryService.getCategories();
+    final wallets = await sl.walletService.getWallets();
+    final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
+    if (!mounted) return;
+    setState(() {
+      _defaultWalletId = lastWalletId;
+      _categoryNames = {for (var c in categories) if (c.id != null) c.id!: c.name};
+      _walletNameMap = {for (var w in wallets) if (w.id != null) w.id!: w.name};
+      _accountName = account?.name;
+    });
+  }
 
   Future<void> _refresh() async {
-    sl.cache.setCategories(await sl.categoryService.getCategories());
-    if (mounted) setState(() {});
+    final categories = await sl.categoryService.getCategories();
+    final wallets = await sl.walletService.getWallets();
+    if (mounted) {
+      setState(() {
+        _categoryNames = {for (var c in categories) if (c.id != null) c.id!: c.name};
+        _walletNameMap = {for (var w in wallets) if (w.id != null) w.id!: w.name};
+      });
+    }
   }
 
   Stream<List<TransactionWithItems>> get _todayStream =>
@@ -196,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
             categoryName: _categoryNames[t.transaction.categoryId] ?? S.of(context, 'other'),
             onChanged: _refresh,
             timeFormatter: DateFormatter.time,
-            walletNames: sl.cache.walletNameMap,
+            walletNames: _walletNameMap,
           )),
         ],
       ),

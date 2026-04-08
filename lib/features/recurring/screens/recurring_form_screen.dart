@@ -70,7 +70,8 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
   }
 
   Future<void> _loadData() async {
-    final cats = sl.cache.categories.where((c) => c.type?.value == _type.value).toList();
+    final allCats = await sl.categoryService.getCategories();
+    final cats = allCats.where((c) => c.type?.value == _type.value).toList();
     final wallets = await sl.walletService.getWallets();
     setState(() {
       _categories = cats;

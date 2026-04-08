@@ -119,7 +119,8 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Future<void> _loadCategories() async {
-    final list = sl.cache.categories.where((c) => c.type?.value == _type.value).toList();
+    final allCategories = await sl.categoryService.getCategories();
+    final list = allCategories.where((c) => c.type?.value == _type.value).toList();
     setState(() {
       _categories = list;
       if (_categoryId != null && !_categories.any((c) => c.id == _categoryId)) {
@@ -132,7 +133,7 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
 
   Future<void> _loadWallets() async {
     final list = await sl.walletService.getWallets();
-    final lastWalletId = sl.cache.lastWalletId;
+    final lastWalletId = await sl.settingService.getLastWalletId();
     setState(() {
       _wallets = list;
       if (_walletId == null && lastWalletId != null && list.any((w) => w.id == lastWalletId)) {
@@ -158,9 +159,10 @@ class _TransactionFormScreenState extends State<TransactionFormScreen> {
   }
 
   Future<void> _loadMembers() async {
-    final account = sl.cache.currentAccount;
+    final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
     if (account != null && account.memberIds.length > 1) {
-      setState(() => _members = sl.cache.memberProfiles.cast<Map<String, dynamic>>());
+      final profiles = await sl.accountService.getMemberProfiles(account.memberIds);
+      if (mounted) setState(() => _members = profiles.cast<Map<String, dynamic>>());
     }
   }
 

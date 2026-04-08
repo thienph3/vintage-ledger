@@ -8,46 +8,28 @@ class BudgetService {
   final BudgetRepository _repo = BudgetRepository();
   final TransactionRepository _txnRepo = TransactionRepository();
 
-  List<Budget>? _cache;
-
   Stream<List<Budget>> watchBudgets() => _repo.watchBudgets();
 
   Future<List<Budget>> getBudgets() async {
-    if (_cache != null) return _cache!;
-    try {
-      _cache = await _repo.getAll(useCache: true);
-      if (_cache!.isNotEmpty) {
-        _repo.getAll().then((fresh) => _cache = fresh);
-        return _cache!;
-      }
-    } catch (_) {}
-    _cache = await _repo.getAll();
-    return _cache!;
+    return await _repo.getAll();
   }
-
-  void _invalidateCache() => _cache = null;
 
   Future<String> createBudget(String categoryId, int amountLimit) async {
     if (amountLimit <= 0) throw Exception("Budget limit must be > 0");
     final existing = await _repo.getByCategoryId(categoryId);
     if (existing != null) {
       await _repo.update(existing.id!, {'amount_limit': amountLimit});
-      _invalidateCache();
       return existing.id!;
     }
-    final id = await _repo.add(Budget(categoryId: categoryId, amountLimit: amountLimit));
-    _invalidateCache();
-    return id;
+    return await _repo.add(Budget(categoryId: categoryId, amountLimit: amountLimit));
   }
 
   Future<void> updateBudget(String id, int amountLimit) async {
     await _repo.update(id, {'amount_limit': amountLimit});
-    _invalidateCache();
   }
 
   Future<void> deleteBudget(String id) async {
     await _repo.delete(id);
-    _invalidateCache();
   }
 
   /// #1: Query expense transactions directly, not via getDashboard

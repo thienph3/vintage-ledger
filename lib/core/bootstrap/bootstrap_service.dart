@@ -184,9 +184,7 @@ class BootstrapService {
 
   Future<Map<String, String?>> _runSettings() async {
     final locale = await sl.settingService.getLocale();
-    final lastWalletId = await sl.settingService.getLastWalletId();
-    sl.cache.lastWalletId = lastWalletId;
-    return {'locale': locale, 'lastWalletId': lastWalletId};
+    return {'locale': locale};
   }
 
   // ── Data ──
@@ -195,25 +193,10 @@ class BootstrapService {
     final accountId = sl.appState.currentAccountId;
     if (accountId.isEmpty) return;
 
-    final results = await Future.wait([
-      sl.categoryService.getCategories(),
-      sl.accountService.getAccount(accountId),
-      sl.walletService.getWallets(),
-    ]);
-
-    final categories = results[0] as List;
-    sl.cache.setCategories(categories.cast());
-
-    final wallets = results[2] as List;
-    sl.cache.setWallets(wallets.cast());
-
-    final account = results[1];
+    final account = await sl.accountService.getAccount(accountId);
     if (account != null) {
-      sl.cache.currentAccount = account as dynamic;
-      final memberIds = (account as dynamic).memberIds as List<String>;
+      final memberIds = account.memberIds;
       if (memberIds.length > 1) {
-        final profiles = await sl.accountService.getMemberProfiles(memberIds);
-        sl.cache.memberProfiles = profiles.map((p) => Map<String, dynamic>.from(p)).toList();
         await FeedHelper.preloadNames(memberIds);
       }
     }

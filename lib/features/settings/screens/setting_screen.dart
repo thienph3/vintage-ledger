@@ -15,7 +15,6 @@ import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 import 'package:vintage_ledger/features/feed/feed_helper.dart';
 import 'package:vintage_ledger/core/debug/read_counter.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
-import 'package:vintage_ledger/features/account/screens/account_picker_screen.dart';
 import 'package:vintage_ledger/features/splash/splash_bootstrap_screen.dart';
 import 'package:vintage_ledger/core/bootstrap/bootstrap_models.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_list_screen.dart';
@@ -43,6 +42,8 @@ class _SettingScreenState extends State<SettingScreen> {
   int _reminderHour = 20;
   int _debugTapCount = 0;
   bool _showDebug = false;
+  dynamic _currentAccount;
+  List<Map<String, dynamic>> _memberProfiles = [];
 
   @override
   void initState() {
@@ -54,10 +55,18 @@ class _SettingScreenState extends State<SettingScreen> {
     final locale = await sl.settingService.getLocale();
     final reminderEnabled = await sl.settingService.getSetting('reminder_enabled');
     final reminderHour = await sl.settingService.getSetting('reminder_hour');
+    final account = await sl.accountService.getAccount(sl.appState.currentAccountId);
+    List<Map<String, dynamic>> members = [];
+    if (account != null && account.memberIds.length > 1) {
+      members = await sl.accountService.getMemberProfiles(account.memberIds);
+    }
+    if (!mounted) return;
     setState(() {
       _currentLocale = locale;
       _reminderEnabled = reminderEnabled == 'true';
       _reminderHour = int.tryParse(reminderHour ?? '20') ?? 20;
+      _currentAccount = account;
+      _memberProfiles = members.map((p) => Map<String, dynamic>.from(p)).toList();
     });
   }
 
@@ -86,9 +95,7 @@ class _SettingScreenState extends State<SettingScreen> {
   void _resetAndBootstrap(LoginIntent intent) {
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
-    sl.cache.clear();
     FeedHelper.clearCache();
-    sl.settingService.clearCache();
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
@@ -144,9 +151,7 @@ class _SettingScreenState extends State<SettingScreen> {
     final anonAccountId = sl.appState.currentAccountId;
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
-    sl.cache.clear();
     FeedHelper.clearCache();
-    sl.settingService.clearCache();
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
@@ -159,9 +164,7 @@ class _SettingScreenState extends State<SettingScreen> {
     await sl.notificationService.removeToken();
     sl.appState.currentUserId = null;
     sl.appState.currentAccountId = '';
-    sl.cache.clear();
     FeedHelper.clearCache();
-    sl.settingService.clearCache();
     await sl.authService.logout();
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
@@ -203,7 +206,7 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Future<void> _leaveOrDeleteFamily() async {
-    final account = sl.cache.currentAccount;
+    final account = _currentAccount;
     if (account == null) return;
     final isOwner = account.ownerId == sl.appState.currentUserId;
     final confirm = await showDeleteConfirmation(
@@ -263,15 +266,15 @@ class _SettingScreenState extends State<SettingScreen> {
           const SizedBox(height: AppSpacing.lg),
 
           // ── Family (only when on family account) ──
-          if (sl.cache.currentAccount?.isFamily == true) ...[
+          if (_currentAccount?.isFamily == true) ...[
             _sectionLabel(S.of(context, 'members')),
-            _tile(Icons.people_outline, '${S.of(context, 'members')} (${sl.cache.memberProfiles.length})',
-              onTap: () => context.pushScreen(FamilyDetailScreen(account: sl.cache.currentAccount!)),
+            _tile(Icons.people_outline, '${S.of(context, 'members')} (${_memberProfiles.length})',
+              onTap: () => context.pushScreen(FamilyDetailScreen(account: _currentAccount!)),
             ),
             _tile(Icons.person_add_outlined, S.of(context, 'inviteMember'), onTap: _inviteByEmail),
             _tile(
               Icons.exit_to_app,
-              sl.cache.currentAccount!.ownerId == sl.appState.currentUserId
+              _currentAccount!.ownerId == sl.appState.currentUserId
                   ? S.of(context, 'deleteFamily')
                   : S.of(context, 'leaveFamily'),
               color: AppColors.expense,
