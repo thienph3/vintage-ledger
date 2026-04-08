@@ -24,4 +24,7 @@ const Map<String, String> transferVi = {
   'fundingDefault': 'Ví gia đình (mặc định)',
   'fundingPersonal': 'Ví cá nhân',
   'fundingAutoTransfer': 'Sẽ tự chuyển {amount} từ {wallet}',
+  'fundingTitle': 'Nạp tiền gia đình',
+  'personalWallet': 'Ví cá nhân',
+  'familyWallet': 'Ví gia đình',
 };

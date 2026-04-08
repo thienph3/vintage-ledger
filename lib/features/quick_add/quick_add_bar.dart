@@ -18,7 +18,7 @@ import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_history.dart';
 import 'package:vintage_ledger/features/quick_add/models/quick_add_entry.dart';
 import 'package:vintage_ledger/common/widgets/amount_history.dart';
-import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
+import 'package:vintage_ledger/features/transaction/screens/income_expense_form_screen.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -192,7 +192,7 @@ class _QuickAddBarState extends State<QuickAddBar> {
     _ctrl.clear();
     _focusNode.unfocus();
 
-    context.pushScreen(TransactionFormScreen(
+    context.pushScreen(IncomeExpenseFormScreen(
       walletId: widget.walletId,
       prefill: prefill,
     )).then((result) {

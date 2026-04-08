@@ -8,7 +8,8 @@ import 'package:vintage_ledger/common/widgets/swipe_list_item.dart';
 import 'package:vintage_ledger/features/feed/feed_helper.dart';
 import 'package:vintage_ledger/features/feed/widgets/feed_item.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
-import 'package:vintage_ledger/features/transaction/screens/transaction_form_screen.dart';
+import 'package:vintage_ledger/features/transaction/screens/income_expense_form_screen.dart';
+import 'package:vintage_ledger/features/transfer/screens/transfer_form_screen.dart';
 import 'package:vintage_ledger/features/transaction/widgets/reaction_bar.dart';
 import 'package:vintage_ledger/features/transaction/widgets/reaction_picker.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
@@ -60,10 +61,10 @@ class TransactionFeedItem extends StatelessWidget {
           time: time,
           photoUrl: FeedHelper.resolvePhoto(t.createdBy),
           onTap: () async {
-            final result = await context.pushScreen(TransactionFormScreen(
-              walletId: t.walletId,
-              existing: txn,
-            ));
+            final Widget target = t.type.isTransfer
+                ? TransferFormScreen(existing: txn)
+                : IncomeExpenseFormScreen(walletId: t.walletId, existing: txn);
+            final result = await context.pushScreen(target);
             if (result == true) onChanged?.call();
           },
         ),

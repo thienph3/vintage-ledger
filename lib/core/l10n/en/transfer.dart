@@ -24,4 +24,7 @@ const Map<String, String> transferEn = {
   'fundingDefault': 'Family wallet (default)',
   'fundingPersonal': 'Personal wallet',
   'fundingAutoTransfer': 'Will auto-transfer {amount} from {wallet}',
+  'fundingTitle': 'Family Funding',
+  'personalWallet': 'Personal wallet',
+  'familyWallet': 'Family wallet',
 };
