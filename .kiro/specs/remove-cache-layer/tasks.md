@@ -76,7 +76,7 @@ Loại bỏ toàn bộ lớp cache tùy chỉnh (CacheService, AppCache, service
     - **Property 3: Category name map construction equivalence**
     - **Validates: Requirements 3.6**
 
-- [-] 9. Final checkpoint — Đảm bảo tất cả tests pass
+- [x] 9. Final checkpoint — Đảm bảo tất cả tests pass
   - Chạy `flutter test` để đảm bảo tất cả test pass
   - Chạy `flutter analyze` để đảm bảo không có warnings/errors
   - Hỏi user nếu có vấn đề
