@@ -20,6 +20,7 @@ import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
 import 'package:vintage_ledger/common/widgets/income_expense_summary_row.dart';
+import 'package:vintage_ledger/common/widgets/expandable_fab.dart';
 import 'package:vintage_ledger/features/transaction/widgets/transaction_feed_item.dart';
 import 'package:vintage_ledger/features/transaction/screens/transaction_list_screen.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
@@ -113,65 +114,47 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
 
   Widget? _buildFab() {
     if (widget.wallet.type == WalletType.saving) {
-      return Positioned(
-        right: 16,
-        bottom: 80,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            FloatingActionButton.small(
-              heroTag: 'addGoal',
-              onPressed: () async {
-                await context.pushScreen(const GoalFormScreen());
-                _loadCategories();
-              },
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              child: const Icon(Icons.flag),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            FloatingActionButton.extended(
-              heroTag: 'contribute',
-              onPressed: () => context.pushScreen(const GoalContributionScreen()),
-              icon: const Icon(Icons.savings),
-              label: Text(S.of(context, 'contributeGoal')),
-              backgroundColor: AppColors.income,
-              foregroundColor: Colors.white,
-            ),
-          ],
-        ),
+      return ExpandableFab(
+        bottomOffset: 80,
+        actions: [
+          ExpandableFabAction(
+            icon: Icons.flag,
+            label: S.of(context, 'addGoal'),
+            color: AppColors.primary,
+            onTap: () async {
+              await context.pushScreen(const GoalFormScreen());
+              _loadCategories();
+            },
+          ),
+          ExpandableFabAction(
+            icon: Icons.savings,
+            label: S.of(context, 'contributeGoal'),
+            color: AppColors.income,
+            onTap: () => context.pushScreen(const GoalContributionScreen()),
+          ),
+        ],
       );
     }
     if (widget.wallet.type == WalletType.debt) {
-      return Positioned(
-        right: 16,
-        bottom: 80,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            FloatingActionButton.small(
-              heroTag: 'addDebt',
-              onPressed: () async {
-                await context.pushScreen(const DebtFormScreen());
-                _loadCategories();
-              },
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-              child: const Icon(Icons.person_add),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            FloatingActionButton.extended(
-              heroTag: 'payDebt',
-              onPressed: () => context.pushScreen(const DebtPaymentScreen()),
-              icon: const Icon(Icons.payment),
-              label: Text(S.of(context, 'payDebt')),
-              backgroundColor: AppColors.expense,
-              foregroundColor: Colors.white,
-            ),
-          ],
-        ),
+      return ExpandableFab(
+        bottomOffset: 80,
+        actions: [
+          ExpandableFabAction(
+            icon: Icons.person_add,
+            label: S.of(context, 'addDebt'),
+            color: AppColors.primary,
+            onTap: () async {
+              await context.pushScreen(const DebtFormScreen());
+              _loadCategories();
+            },
+          ),
+          ExpandableFabAction(
+            icon: Icons.payment,
+            label: S.of(context, 'payDebt'),
+            color: AppColors.expense,
+            onTap: () => context.pushScreen(const DebtPaymentScreen()),
+          ),
+        ],
       );
     }
     return null;
