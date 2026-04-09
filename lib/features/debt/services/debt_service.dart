@@ -280,6 +280,7 @@ class DebtService {
     DateTime? dueDate,
     double? interestRate,
     String? description,
+    String? walletId,
   }) async {
     final updates = <String, dynamic>{};
     if (partyName != null) updates['party_name'] = partyName;
@@ -288,6 +289,7 @@ class DebtService {
     if (dueDate != null) updates['due_date'] = dueDate.millisecondsSinceEpoch;
     if (interestRate != null) updates['interest_rate'] = interestRate;
     if (description != null) updates['description'] = description;
+    if (walletId != null) updates['wallet_id'] = walletId;
 
     if (updates.isNotEmpty) {
       await _repo.updateDebt(id, updates);

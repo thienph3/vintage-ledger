@@ -313,6 +313,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
           dueDate: _dueDate,
           interestRate: interestRate,
           description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+          walletId: _walletId,
         );
       }
 
