@@ -110,7 +110,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
                 prefixIcon: Icons.account_balance_wallet_outlined,
                 items: _wallets.map((w) => SelectionItem(
                   value: w.id!,
-                  label: '${w.emoji} ${w.name}',
+                  label: '${w.type.emoji} ${w.name}',
                 )).toList(),
                 selected: _walletId,
                 onChanged: (v) => setState(() => _walletId = v),
