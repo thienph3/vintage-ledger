@@ -33,13 +33,18 @@ class _BudgetDetailScreenState extends State<BudgetDetailScreen> {
   }
 
   Future<void> _load() async {
-    final txns = await sl.budgetService.getBudgetTransactions(
-      widget.status.budget.categoryId,
-      widget.status.periodStart,
-      widget.status.periodEnd,
-    );
-    if (!mounted) return;
-    setState(() { _transactions = txns; _loading = false; });
+    try {
+      final txns = await sl.budgetService.getBudgetTransactions(
+        widget.status.budget.categoryId,
+        widget.status.periodStart,
+        widget.status.periodEnd,
+      );
+      if (!mounted) return;
+      setState(() { _transactions = txns; _loading = false; });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
   }
 
   @override

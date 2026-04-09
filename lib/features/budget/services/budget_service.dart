@@ -39,24 +39,43 @@ class BudgetService {
     final budgets = await _repo.getAll();
     if (budgets.isEmpty) return [];
 
+    final now = anchor ?? DateTime.now();
     final categories = await sl.categoryService.getCategories();
     final catMap = {for (var c in categories) if (c.id != null) c.id!: c};
 
-    final results = <BudgetStatus>[];
-    for (final b in budgets) {
-      final range = _periodRange(b.period, anchor ?? DateTime.now());
-      final spent = await _getSpentForCategory(b.categoryId, range.$1, range.$2);
+    // Determine the widest date range needed (all budgets share same anchor)
+    // Use monthly range as the widest, weekly fits within it
+    final monthStart = DateTime(now.year, now.month, 1);
+    final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59);
+
+    // Single query: all expenses in the widest range
+    final allTxns = await _txnRepo.getAll(queryBuilder: (ref) => ref
+        .where('type', isEqualTo: 'expense')
+        .where('date', isGreaterThanOrEqualTo: monthStart.millisecondsSinceEpoch)
+        .where('date', isLessThanOrEqualTo: monthEnd.millisecondsSinceEpoch));
+
+    return budgets.map((b) {
+      final range = _periodRange(b.period, now);
+      final startMs = range.$1.millisecondsSinceEpoch;
+      final endMs = range.$2.millisecondsSinceEpoch;
+
+      // Filter in-memory for this budget's category and period
+      final spent = allTxns
+          .where((t) => t.transaction.categoryId == b.categoryId
+              && t.transaction.date >= startMs
+              && t.transaction.date <= endMs)
+          .fold<int>(0, (s, t) => s + t.transaction.amount);
+
       final cat = catMap[b.categoryId];
-      results.add(BudgetStatus(
+      return BudgetStatus(
         budget: b,
         categoryName: cat?.name ?? '?',
         categoryIcon: cat?.icon,
         spent: spent,
         periodStart: range.$1,
         periodEnd: range.$2,
-      ));
-    }
-    return results;
+      );
+    }).toList();
   }
 
   /// Check a single budget for current period
@@ -86,14 +105,15 @@ class BudgetService {
         .where('category_id', isEqualTo: categoryId)
         .where('type', isEqualTo: 'expense')
         .where('date', isGreaterThanOrEqualTo: periodStart.millisecondsSinceEpoch)
-        .where('date', isLessThanOrEqualTo: periodEnd.millisecondsSinceEpoch)
-        .orderBy('date', descending: true));
+        .where('date', isLessThanOrEqualTo: periodEnd.millisecondsSinceEpoch));
 
-    return txns.map((t) => (
+    final results = txns.map((t) => (
       note: t.transaction.note ?? '',
       amount: t.transaction.amount,
       date: t.transaction.date,
     )).toList();
+    results.sort((a, b) => b.date.compareTo(a.date));
+    return results;
   }
 
   Future<int> _getSpentForCategory(String categoryId, DateTime start, DateTime end) async {

@@ -75,23 +75,26 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
         return Positioned(
           right: fabRight,
           bottom: MediaQuery.of(context).size.height - pos.dy + AppSpacing.sm,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              for (int i = 0; i < actions.length; i++) ...[
-                ScaleTransition(
-                  scale: _expandAnimation,
-                  child: _buildActionButton(
-                    label: _labelFor(context, actions[i]),
-                    icon: _iconFor(actions[i]),
-                    color: _colorFor(actions[i]),
-                    onTap: () => _onTap(actions[i]),
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                for (int i = 0; i < actions.length; i++) ...[
+                  ScaleTransition(
+                    scale: _expandAnimation,
+                    child: _buildActionButton(
+                      label: _labelFor(context, actions[i]),
+                      icon: _iconFor(actions[i]),
+                      color: _colorFor(actions[i]),
+                      onTap: () => _onTap(actions[i]),
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
               ],
-            ],
+            ),
           ),
         );
       },

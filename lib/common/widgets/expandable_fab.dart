@@ -77,18 +77,21 @@ class _ExpandableFabState extends State<ExpandableFab> with SingleTickerProvider
         return Positioned(
           right: fabRight,
           bottom: MediaQuery.of(context).size.height - pos.dy + AppSpacing.sm,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              for (final action in widget.actions) ...[
-                ScaleTransition(
-                  scale: _expandAnimation,
-                  child: _buildActionButton(action),
-                ),
-                const SizedBox(height: AppSpacing.sm),
+          child: Material(
+            type: MaterialType.transparency,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                for (final action in widget.actions) ...[
+                  ScaleTransition(
+                    scale: _expandAnimation,
+                    child: _buildActionButton(action),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                ],
               ],
-            ],
+            ),
           ),
         );
       },
