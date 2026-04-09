@@ -247,6 +247,32 @@ class GoalService {
     return await _repo.getContributions(goalId);
   }
 
+  /// Delete a contribution and revert the goal's current_amount
+  Future<void> deleteContribution(String goalId, GoalContribution contribution) async {
+    final firestore = FirebaseFirestore.instance;
+    final accountId = sl.appState.currentAccountId;
+
+    await firestore.runTransaction((txn) async {
+      final goalRef = firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('goals_v2')
+          .doc(goalId);
+      final goalSnap = await txn.get(goalRef);
+      if (!goalSnap.exists) throw Exception('Không tìm thấy mục tiêu');
+      final currentAmount = goalSnap.data()!['current_amount'] as int? ?? 0;
+
+      // Revert: subtract the contribution amount (negative for withdrawals)
+      final newAmount = (currentAmount - contribution.amount).clamp(0, double.maxFinite).toInt();
+
+      txn.update(goalRef, {
+        'current_amount': newAmount,
+        'updated_at': DateTime.now().millisecondsSinceEpoch,
+      });
+      txn.delete(goalRef.collection('contributions').doc(contribution.id));
+    });
+  }
+
   Stream<List<GoalContribution>> watchContributions(String goalId) {
     return _repo.watchContributions(goalId);
   }

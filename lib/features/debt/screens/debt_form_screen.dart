@@ -7,6 +7,10 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/debt/models/debt.dart';
 import 'package:vintage_ledger/features/debt/services/debt_service.dart';
 import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
+import 'package:vintage_ledger/common/widgets/dropdown_field.dart';
+import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
+import 'package:vintage_ledger/features/wallet/models/wallet.dart';
+import 'package:vintage_ledger/core/service_locator.dart';
 
 class DebtFormScreen extends StatefulWidget {
   final Debt? debt;
@@ -29,6 +33,8 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
   final _descriptionController = TextEditingController();
   DateTime? _dueDate;
   bool _isLoading = false;
+  List<Wallet> _wallets = [];
+  String? _walletId;
 
   @override
   void initState() {
@@ -41,7 +47,9 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
       _interestRateController.text = widget.debt!.interestRate?.toString() ?? '';
       _descriptionController.text = widget.debt!.description ?? '';
       _dueDate = widget.debt!.dueDate;
+      _walletId = widget.debt!.walletId;
     }
+    _loadWallets();
   }
 
   @override
@@ -52,6 +60,15 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
     _interestRateController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadWallets() async {
+    final wallets = await sl.walletService.getWallets();
+    if (!mounted) return;
+    setState(() {
+      _wallets = wallets.where((w) => w.type == WalletType.debt).toList();
+      _walletId ??= _wallets.firstOrNull?.id;
+    });
   }
 
   @override
@@ -85,6 +102,20 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
               controller: _amountController,
               label: S.of(context, 'debtAmount'),
             ),
+            if (_wallets.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.md),
+              DropdownField<String>(
+                label: S.of(context, 'wallet'),
+                value: _wallets.where((w) => w.id == _walletId).firstOrNull?.name,
+                prefixIcon: Icons.account_balance_wallet_outlined,
+                items: _wallets.map((w) => SelectionItem(
+                  value: w.id!,
+                  label: '${w.emoji} ${w.name}',
+                )).toList(),
+                selected: _walletId,
+                onChanged: (v) => setState(() => _walletId = v),
+              ),
+            ],
             const SizedBox(height: AppSpacing.md),
             _buildDateField(),
             const SizedBox(height: AppSpacing.md),
@@ -257,6 +288,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
             partyName: _partyNameController.text,
             amount: amount,
             contact: _contactController.text.isEmpty ? null : _contactController.text,
+            walletId: _walletId,
             dueDate: _dueDate,
             interestRate: interestRate,
             description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
@@ -266,6 +298,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
             partyName: _partyNameController.text,
             amount: amount,
             contact: _contactController.text.isEmpty ? null : _contactController.text,
+            walletId: _walletId,
             dueDate: _dueDate,
             interestRate: interestRate,
             description: _descriptionController.text.isEmpty ? null : _descriptionController.text,

@@ -12,6 +12,8 @@ import 'package:vintage_ledger/features/goal/models/auto_saving_rule.dart';
 import 'package:vintage_ledger/features/goal/services/goal_service.dart';
 import 'package:vintage_ledger/features/goal/screens/goal_form_screen.dart';
 import 'package:vintage_ledger/features/goal/screens/goal_contribution_screen.dart';
+import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
+import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class GoalDetailScreen extends StatefulWidget {
@@ -310,7 +312,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             }
 
             return Column(
-              children: contributions.map((c) => _buildContributionItem(c)).toList(),
+              children: contributions.map((c) => _buildContributionItem(c, goal.id)).toList(),
             );
           },
         ),
@@ -318,37 +320,65 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildContributionItem(GoalContribution contribution) {
+  Widget _buildContributionItem(GoalContribution contribution, String goalId) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-      child: LedgerCard(
-        child: Row(
-          children: [
-            Icon(
-              contribution.isContribution ? Icons.add_circle : Icons.remove_circle,
-              color: contribution.isContribution ? AppColors.income : AppColors.expense,
-              size: 20,
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    AmountFormatter.formatCurrency(contribution.absoluteAmount, 'vi'),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: contribution.isContribution ? AppColors.income : AppColors.expense,
-                    ),
-                  ),
-                  if (contribution.note != null)
-                    Text(contribution.note!, style: AppTextStyles.caption),
-                ],
+      child: Dismissible(
+        key: Key(contribution.id),
+        direction: DismissDirection.endToStart,
+        background: Container(
+          alignment: Alignment.centerRight,
+          padding: const EdgeInsets.only(right: AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: AppColors.expense.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
+          ),
+          child: const Icon(Icons.delete_outline, color: AppColors.expense),
+        ),
+        confirmDismiss: (_) => showDeleteConfirmation(
+          context,
+          titleKey: 'delete',
+          contentKey: 'deleteTransactionConfirm',
+        ),
+        onDismissed: (_) async {
+          try {
+            await _service.deleteContribution(goalId, contribution);
+            if (mounted) setState(() {});
+          } catch (e) {
+            if (mounted) {
+              showAppSnackBar(context, '${S.of(context, 'error')}: $e', backgroundColor: AppColors.expense);
+            }
+          }
+        },
+        child: LedgerCard(
+          child: Row(
+            children: [
+              Icon(
+                contribution.isContribution ? Icons.add_circle : Icons.remove_circle,
+                color: contribution.isContribution ? AppColors.income : AppColors.expense,
+                size: 20,
               ),
-            ),
-            Text(_formatDate(contribution.date), style: AppTextStyles.caption),
-          ],
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      AmountFormatter.formatCurrency(contribution.absoluteAmount, 'vi'),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: contribution.isContribution ? AppColors.income : AppColors.expense,
+                      ),
+                    ),
+                    if (contribution.note != null)
+                      Text(contribution.note!, style: AppTextStyles.caption),
+                  ],
+                ),
+              ),
+              Text(_formatDate(contribution.date), style: AppTextStyles.caption),
+            ],
+          ),
         ),
       ),
     );

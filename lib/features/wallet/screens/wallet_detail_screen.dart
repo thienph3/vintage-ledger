@@ -7,6 +7,8 @@ import 'package:vintage_ledger/features/goal/models/goal.dart';
 import 'package:vintage_ledger/features/goal/services/goal_service.dart';
 import 'package:vintage_ledger/features/debt/models/debt.dart';
 import 'package:vintage_ledger/features/debt/services/debt_service.dart';
+import 'package:vintage_ledger/features/debt/screens/debt_detail_screen.dart';
+import 'package:vintage_ledger/features/debt/screens/debt_form_screen.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
@@ -23,6 +25,8 @@ import 'package:vintage_ledger/features/transaction/screens/transaction_list_scr
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/goal/screens/goal_contribution_screen.dart';
+import 'package:vintage_ledger/features/goal/screens/goal_detail_screen.dart';
+import 'package:vintage_ledger/features/goal/screens/goal_form_screen.dart';
 import 'package:vintage_ledger/features/debt/screens/debt_payment_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -112,12 +116,30 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
       return Positioned(
         right: 16,
         bottom: 80,
-        child: FloatingActionButton.extended(
-          onPressed: () => context.pushScreen(const GoalContributionScreen()),
-          icon: const Icon(Icons.savings),
-          label: Text(S.of(context, 'contributeGoal')),
-          backgroundColor: AppColors.income,
-          foregroundColor: Colors.white,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            FloatingActionButton.small(
+              heroTag: 'addGoal',
+              onPressed: () async {
+                await context.pushScreen(const GoalFormScreen());
+                _loadCategories();
+              },
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.flag),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            FloatingActionButton.extended(
+              heroTag: 'contribute',
+              onPressed: () => context.pushScreen(const GoalContributionScreen()),
+              icon: const Icon(Icons.savings),
+              label: Text(S.of(context, 'contributeGoal')),
+              backgroundColor: AppColors.income,
+              foregroundColor: Colors.white,
+            ),
+          ],
         ),
       );
     }
@@ -125,12 +147,30 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
       return Positioned(
         right: 16,
         bottom: 80,
-        child: FloatingActionButton.extended(
-          onPressed: () => context.pushScreen(const DebtPaymentScreen()),
-          icon: const Icon(Icons.payment),
-          label: Text(S.of(context, 'payDebt')),
-          backgroundColor: AppColors.expense,
-          foregroundColor: Colors.white,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            FloatingActionButton.small(
+              heroTag: 'addDebt',
+              onPressed: () async {
+                await context.pushScreen(const DebtFormScreen());
+                _loadCategories();
+              },
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.person_add),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            FloatingActionButton.extended(
+              heroTag: 'payDebt',
+              onPressed: () => context.pushScreen(const DebtPaymentScreen()),
+              icon: const Icon(Icons.payment),
+              label: Text(S.of(context, 'payDebt')),
+              backgroundColor: AppColors.expense,
+              foregroundColor: Colors.white,
+            ),
+          ],
         ),
       );
     }
@@ -335,7 +375,12 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
             const SizedBox(height: AppSpacing.sm),
             ...goals.map((goal) => Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Container(
+              child: GestureDetector(
+                onTap: () async {
+                  await context.pushScreen(GoalDetailScreen(goalId: goal.id));
+                  _loadCategories();
+                },
+                child: Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
@@ -369,8 +414,11 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                       AmountFormatter.formatCompactCurrency(goal.currentAmount, locale),
                       style: AppTextStyles.bodyBold.copyWith(color: AppColors.income),
                     ),
+                    const SizedBox(width: AppSpacing.xs),
+                    const Icon(Icons.chevron_right, size: 16, color: AppColors.textSecondary),
                   ],
                 ),
+              ),
               ),
             )),
             const SizedBox(height: AppSpacing.lg),
@@ -400,7 +448,12 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
             const SizedBox(height: AppSpacing.sm),
             ...debts.map((debt) => Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Container(
+              child: GestureDetector(
+                onTap: () async {
+                  await context.pushScreen(DebtDetailScreen(debtId: debt.id));
+                  _loadCategories();
+                },
+                child: Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: AppColors.surface,
@@ -439,8 +492,11 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                       AmountFormatter.formatCompactCurrency(debt.remainingAmount, locale),
                       style: AppTextStyles.bodyBold.copyWith(color: AppColors.expense),
                     ),
+                    const SizedBox(width: AppSpacing.xs),
+                    const Icon(Icons.chevron_right, size: 16, color: AppColors.textSecondary),
                   ],
                 ),
+              ),
               ),
             )),
             const SizedBox(height: AppSpacing.lg),

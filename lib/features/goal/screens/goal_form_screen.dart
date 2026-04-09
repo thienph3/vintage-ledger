@@ -48,9 +48,9 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
   Future<void> _loadWallets() async {
     final wallets = await _walletService.getWallets();
     setState(() {
-      _wallets = wallets;
-      if (_selectedWalletId == null && wallets.isNotEmpty) {
-        _selectedWalletId = wallets.first.id;
+      _wallets = wallets.where((w) => w.type == WalletType.saving).toList();
+      if (_selectedWalletId == null && _wallets.isNotEmpty) {
+        _selectedWalletId = _wallets.first.id;
       }
     });
   }
