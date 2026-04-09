@@ -11,6 +11,7 @@ import 'package:vintage_ledger/features/goal/models/goal_contribution.dart';
 import 'package:vintage_ledger/features/goal/models/auto_saving_rule.dart';
 import 'package:vintage_ledger/features/goal/services/goal_service.dart';
 import 'package:vintage_ledger/features/goal/screens/goal_form_screen.dart';
+import 'package:vintage_ledger/features/goal/screens/goal_contribution_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class GoalDetailScreen extends StatefulWidget {
@@ -24,15 +25,6 @@ class GoalDetailScreen extends StatefulWidget {
 
 class _GoalDetailScreenState extends State<GoalDetailScreen> {
   final _service = GoalService();
-  final _amountController = TextEditingController();
-  final _noteController = TextEditingController();
-
-  @override
-  void dispose() {
-    _amountController.dispose();
-    _noteController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,18 +47,37 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               onPressed: () => _navigateToEdit(goal),
             ),
           ],
-          body: ListView(
-            padding: const EdgeInsets.all(AppSpacing.md),
+          body: Stack(
             children: [
-              _buildGoalInfo(goal),
-              const SizedBox(height: AppSpacing.lg),
-              _buildProgressCard(goal),
-              const SizedBox(height: AppSpacing.lg),
-              _buildAutoSavingCard(goal),
-              const SizedBox(height: AppSpacing.lg),
-              if (!goal.isCompleted) _buildContributionSection(goal),
-              if (!goal.isCompleted) const SizedBox(height: AppSpacing.lg),
-              _buildContributionHistory(goal),
+              ListView(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                children: [
+                  _buildGoalInfo(goal),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildProgressCard(goal),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildAutoSavingCard(goal),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildContributionHistory(goal),
+                  const SizedBox(height: 80),
+                ],
+              ),
+              if (!goal.isCompleted)
+                Positioned(
+                  right: AppSpacing.md,
+                  bottom: AppSpacing.md,
+                  child: FloatingActionButton.extended(
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const GoalContributionScreen()),
+                      );
+                      if (mounted) setState(() {});
+                    },
+                    icon: const Icon(Icons.savings),
+                    label: Text(S.of(context, 'contribute')),
+                  ),
+                ),
             ],
           ),
         );
@@ -276,44 +287,6 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
     );
   }
 
-  Widget _buildContributionSection(Goal goal) {
-    return LedgerCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(S.of(context, 'contributeToGoal'), style: AppTextStyles.titleSmall),
-          const SizedBox(height: AppSpacing.md),
-          TextField(
-            controller: _amountController,
-            decoration: InputDecoration(
-              labelText: S.of(context, 'contributionAmount'),
-              hintText: S.of(context, 'enterAmount'),
-              prefixIcon: Icon(Icons.attach_money),
-            ),
-            keyboardType: TextInputType.number,
-          ),
-          const SizedBox(height: AppSpacing.md),
-          TextField(
-            controller: _noteController,
-            decoration: InputDecoration(
-              labelText: '${S.of(context, 'note')} (tùy chọn)',
-              hintText: S.of(context, 'noteHint'),
-              prefixIcon: Icon(Icons.note),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => _contribute(goal),
-              child: Text(S.of(context, 'contribute')),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildContributionHistory(Goal goal) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -383,48 +356,6 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
 
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year}';
-  }
-
-  Future<void> _contribute(Goal goal) async {
-    final amountText = _amountController.text;
-    if (amountText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context, 'enterAmount'))),
-      );
-      return;
-    }
-
-    final amount = int.tryParse(amountText);
-    if (amount == null || amount <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(S.of(context, 'amountMustBePositive'))),
-      );
-      return;
-    }
-
-    try {
-      await _service.napVaoMucTieu(
-        goal.id,
-        amount,
-        note: _noteController.text.isEmpty ? null : _noteController.text,
-      );
-
-      _amountController.clear();
-      _noteController.clear();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context, 'contributionRecorded'))),
-        );
-        setState(() {});
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${S.of(context, 'error')}: $e')),
-        );
-      }
-    }
   }
 
   Future<void> _showAutoSavingDialog(Goal goal) async {

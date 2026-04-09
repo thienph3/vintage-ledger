@@ -28,6 +28,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
   final _nameCtrl = TextEditingController();
   final _initialBalanceCtrl = TextEditingController();
   String _currency = Currency.defaultCurrency.code;
+  WalletType _walletType = WalletType.normal;
 
   bool get isEdit => widget.wallet != null;
 
@@ -38,6 +39,7 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
       _nameCtrl.text = widget.wallet!.name;
       _initialBalanceCtrl.text = widget.wallet!.initialBalance.toString();
       _currency = widget.wallet!.currency;
+      _walletType = widget.wallet!.type;
     } else {
       _initialBalanceCtrl.text = '0';
     }
@@ -62,9 +64,10 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
           widget.wallet!.id!, name,
           currency: _currency,
           initialBalance: initialBalance != widget.wallet!.initialBalance ? initialBalance : null,
+          type: _walletType,
         );
       } else {
-        await sl.walletService.createWallet(name, initialBalance, currency: _currency);
+        await sl.walletService.createWallet(name, initialBalance, currency: _currency, type: _walletType);
       }
       if (!mounted) return;
       if (initialBalance > 0) AmountHistory.record(initialBalance);
@@ -89,6 +92,16 @@ class _WalletFormScreenState extends State<WalletFormScreen> {
                 controller: _nameCtrl,
                 decoration: InputDecoration(labelText: S.of(context, 'walletName')),
                 validator: (v) => v == null || v.trim().isEmpty ? S.of(context, 'walletNameRequired') : null,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              DropdownButtonFormField<WalletType>(
+                initialValue: _walletType,
+                decoration: InputDecoration(labelText: S.of(context, 'walletType')),
+                items: WalletType.values.map((t) => DropdownMenuItem(
+                  value: t,
+                  child: Text('${t.emoji}  ${t.displayName}', style: AppTextStyles.body),
+                )).toList(),
+                onChanged: (v) => setState(() => _walletType = v ?? _walletType),
               ),
               const SizedBox(height: AppSpacing.md),
               DropdownButtonFormField<String>(

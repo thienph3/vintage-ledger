@@ -12,6 +12,7 @@ class CategoryRepository extends FirestoreRepository<Category> {
     name: data['name'] ?? '',
     type: data['type'] != null ? TransactionType.fromString(data['type']) : null,
     icon: data['icon'],
+    isSystem: data['is_system'] == true,
   );
 
   @override
@@ -19,6 +20,7 @@ class CategoryRepository extends FirestoreRepository<Category> {
     'name': item.name,
     'type': item.type?.value,
     'icon': item.icon,
+    if (item.isSystem) 'is_system': true,
   };
 
   Stream<List<Category>> watchCategories() => watchAll(
@@ -32,4 +34,33 @@ class CategoryRepository extends FirestoreRepository<Category> {
   Future<List<Category>> getByType(String type) => getAll(
     queryBuilder: (ref) => ref.where('type', isEqualTo: type).orderBy('name'),
   );
+
+  Future<Category?> getBySystemKey(String key) async {
+    final snap = await collection
+        .where('system_key', isEqualTo: key)
+        .limit(1)
+        .get();
+    if (snap.docs.isEmpty) return null;
+    final doc = snap.docs.first;
+    return fromFirestore(doc.id, doc.data());
+  }
+
+  Future<String> addSystem({
+    required String name,
+    required TransactionType type,
+    required int icon,
+    required String systemKey,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final doc = await collection.add({
+      'name': name,
+      'type': type.value,
+      'icon': icon,
+      'is_system': true,
+      'system_key': systemKey,
+      'created_at': now,
+      'updated_at': now,
+    });
+    return doc.id;
+  }
 }

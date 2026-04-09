@@ -42,4 +42,6 @@ const Map<String, String> goalEn = {
   'noAutoSaving': 'Not set up',
   'inProgress': 'In progress',
   'progress': 'Progress',
+  'availableBalanceLabel': 'Available balance',
+  'amountExceedsAvailable': 'Amount exceeds available balance',
 };

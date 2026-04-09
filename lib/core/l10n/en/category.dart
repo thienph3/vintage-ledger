@@ -12,4 +12,5 @@ const Map<String, String> categoryEn = {
   'noCategoriesFound': 'No categories found',
   'manageCategories': 'Categories',
   'uncategorized': 'Uncategorized',
+  'systemCategories': 'System',
 };

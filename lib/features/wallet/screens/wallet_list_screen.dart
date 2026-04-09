@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:vintage_ledger/core/l10n/s.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
+import 'package:vintage_ledger/features/goal/services/goal_service.dart';
 import 'package:vintage_ledger/common/widgets/app_scaffold.dart';
 import 'package:vintage_ledger/common/widgets/shimmer_placeholder.dart';
 import 'package:vintage_ledger/common/widgets/empty_state.dart';
@@ -13,6 +14,7 @@ import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 import 'package:vintage_ledger/core/theme/app_colors.dart';
 import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
+import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
 import 'wallet_form_screen.dart';
@@ -27,6 +29,7 @@ class WalletListScreen extends StatefulWidget {
 
 class _WalletListScreenState extends State<WalletListScreen> {
   String? _defaultWalletId;
+  final _goalService = GoalService();
 
   @override
   void initState() {
@@ -91,23 +94,7 @@ class _WalletListScreenState extends State<WalletListScreen> {
                           onLongPress: () => _setDefault(w),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md2),
-                            child: Row(
-                              children: [
-                                Stack(
-                                  children: [
-                                    const Icon(Icons.account_balance_wallet, size: 28, color: AppColors.primary),
-                                    if (_isDefault(w, wallets))
-                                      const Positioned(
-                                        right: -2, bottom: -2,
-                                        child: Icon(Icons.star, size: 14, color: AppColors.accent),
-                                      ),
-                                  ],
-                                ),
-                                const SizedBox(width: AppSpacing.md),
-                                Expanded(child: Text(w.name, style: AppTextStyles.bodyBold)),
-                                AmountText.fromBalance(balance: w.balance, currency: w.currency),
-                              ],
-                            ),
+                            child: _buildWalletItem(w, wallets),
                           ),
                         ),
                       ),
@@ -125,6 +112,92 @@ class _WalletListScreenState extends State<WalletListScreen> {
                 );
         },
       ),
+    );
+  }
+
+  Widget _buildWalletIcon(Wallet w, List<Wallet> wallets) {
+    return Stack(
+      children: [
+        const Icon(Icons.account_balance_wallet, size: 28, color: AppColors.primary),
+        if (_isDefault(w, wallets))
+          const Positioned(
+            right: -2, bottom: -2,
+            child: Icon(Icons.star, size: 14, color: AppColors.accent),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildWalletItem(Wallet w, List<Wallet> wallets) {
+    // Debt wallet: show remaining debt in red
+    if (w.type == WalletType.debt) {
+      final remaining = w.balance < 0 ? w.balance.abs() : 0;
+      final locale = Localizations.localeOf(context).languageCode;
+      return Row(
+        children: [
+          _buildWalletIcon(w, wallets),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(w.name, style: AppTextStyles.bodyBold),
+                const SizedBox(height: 2),
+                Text(
+                  '${S.of(context, 'remainingDebt')}: ${AmountFormatter.formatCompactCurrency(remaining, locale, currencyCode: w.currency)}',
+                  style: AppTextStyles.caption.copyWith(color: AppColors.expense),
+                ),
+              ],
+            ),
+          ),
+          AmountText.fromBalance(balance: w.balance, currency: w.currency),
+        ],
+      );
+    }
+
+    // Normal/saving wallet: check for earmarked goals
+    if (w.id == null) {
+      return Row(
+        children: [
+          _buildWalletIcon(w, wallets),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(child: Text(w.name, style: AppTextStyles.bodyBold)),
+          AmountText.fromBalance(balance: w.balance, currency: w.currency),
+        ],
+      );
+    }
+
+    return StreamBuilder<int>(
+      stream: _goalService.watchEarmarkedAmount(w.id!),
+      initialData: 0,
+      builder: (context, earmarkSnap) {
+        final earmarked = earmarkSnap.data ?? 0;
+        final hasGoals = earmarked > 0;
+        final locale = Localizations.localeOf(context).languageCode;
+
+        return Row(
+          children: [
+            _buildWalletIcon(w, wallets),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(w.name, style: AppTextStyles.bodyBold),
+                  if (hasGoals) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      '${S.of(context, 'availableBalance')}: ${AmountFormatter.formatCompactCurrency(w.balance - earmarked, locale, currencyCode: w.currency)}',
+                      style: AppTextStyles.caption.copyWith(color: AppColors.income),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            AmountText.fromBalance(balance: w.balance, currency: w.currency),
+          ],
+        );
+      },
     );
   }
 }

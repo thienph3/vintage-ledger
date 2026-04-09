@@ -21,4 +21,8 @@ const Map<String, String> recurringEn = {
   'reminderMsg2': 'Ghi lại chi tiêu chỉ mất 5 giây 👇',
   'reminderMsg3': 'Đừng quên ghi chép hôm nay nhé!',
   'reminderMsg4': 'Một ngày nữa trôi qua — ghi chép chưa?',
+  'billReminderTitle': 'Khoản đến hạn',
+  'billReminderPay': 'Thanh toán',
+  'billReminderDismiss': 'Bỏ qua',
+  'billPaid': 'Đã thanh toán ✓',
 };

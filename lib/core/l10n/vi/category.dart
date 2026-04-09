@@ -12,4 +12,5 @@ const Map<String, String> categoryVi = {
   'noCategoriesFound': 'Chưa có danh mục nào',
   'manageCategories': 'Danh mục',
   'uncategorized': 'Chưa phân loại',
+  'systemCategories': 'Hệ thống',
 };

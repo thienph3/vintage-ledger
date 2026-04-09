@@ -22,6 +22,7 @@ import 'package:vintage_ledger/features/category/screens/category_list_screen.da
 import 'package:vintage_ledger/features/recurring/screens/recurring_list_screen.dart';
 import 'package:vintage_ledger/features/debt/screens/debt_list_screen.dart' as debt_v2;
 import 'package:vintage_ledger/features/goal/screens/goal_list_screen.dart';
+import 'package:vintage_ledger/features/budget/screens/budget_list_screen.dart';
 import 'package:vintage_ledger/features/account/screens/family_detail_screen.dart';
 import 'package:vintage_ledger/common/widgets/delete_confirmation.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
@@ -263,6 +264,7 @@ class _SettingScreenState extends State<SettingScreen> {
           _tile(Icons.repeat, S.of(context, 'recurringRules'), onTap: () => context.pushScreen(const RecurringListScreen())),
           _tile(Icons.flag_outlined, 'Mục tiêu', onTap: () => context.pushScreen(const GoalListScreen())),
           _tile(Icons.trending_up, 'Nợ', onTap: () => context.pushScreen(const debt_v2.DebtListScreen())),
+          _tile(Icons.pie_chart_outline, S.of(context, 'budgets'), onTap: () => context.pushScreen(const BudgetListScreen())),
           const SizedBox(height: AppSpacing.lg),
 
           // ── Family (only when on family account) ──

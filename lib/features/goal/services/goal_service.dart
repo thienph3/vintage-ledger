@@ -35,6 +35,8 @@ class GoalService {
   }
 
   Future<void> napVaoMucTieu(String goalId, int amount, {String? note}) async {
+    if (amount <= 0) throw Exception('Số tiền phải lớn hơn 0');
+
     final firestore = FirebaseFirestore.instance;
     final accountId = sl.appState.currentAccountId;
     final userId = sl.appState.currentUserId ?? '';
@@ -48,44 +50,30 @@ class GoalService {
           .collection('goals_v2')
           .doc(goalId);
       final goalSnap = await txn.get(goalRef);
-      if (!goalSnap.exists) throw Exception('Goal not found');
+      if (!goalSnap.exists) throw Exception('Không tìm thấy mục tiêu');
       final goalData = goalSnap.data()!;
-      if (goalData['status'] != 'active') throw Exception('Goal is not active');
+      if (goalData['status'] != 'active') throw Exception('Mục tiêu không ở trạng thái hoạt động');
       final fundingWalletId = goalData['funding_wallet_id'] as String;
       final currentAmount = goalData['current_amount'] as int? ?? 0;
       final targetAmount = goalData['target_amount'] as int? ?? 0;
 
-      // 2. Read wallet balance
+      // 2. Read wallet balance to compute available balance
       final walletRef = firestore
           .collection('accounts')
           .doc(accountId)
           .collection('wallets')
           .doc(fundingWalletId);
       final walletSnap = await txn.get(walletRef);
-      if (!walletSnap.exists) throw Exception('Wallet not found');
+      if (!walletSnap.exists) throw Exception('Không tìm thấy ví');
       final walletBalance = walletSnap.data()!['balance'] as int? ?? 0;
 
-      // 3. Create expense transaction
-      final txnRef = firestore
-          .collection('accounts')
-          .doc(accountId)
-          .collection('transactions')
-          .doc();
-      txn.set(txnRef, {
-        'wallet_id': fundingWalletId,
-        'category_id': '',
-        'type': 'expense',
-        'amount': amount,
-        'note': note ?? 'Nạp vào mục tiêu',
-        'date': now.millisecondsSinceEpoch,
-        'created_by': userId,
-        'goal_id': goalId,
-        'created_at': FieldValue.serverTimestamp(),
-        'updated_at': FieldValue.serverTimestamp(),
-      });
+      // 3. Compute earmarked amount for this wallet (sum of all active goals' currentAmount)
+      final goalsSnap = await _repo.getActiveGoalsByWallet(fundingWalletId);
+      final earmarkedAmount = goalsSnap.fold<int>(0, (total, g) => total + g.currentAmount);
+      final availableBalance = walletBalance - earmarkedAmount;
 
-      // 4. Deduct wallet balance
-      txn.update(walletRef, {'balance': walletBalance - amount});
+      // 4. Validate amount <= availableBalance
+      if (amount > availableBalance) throw Exception('Số tiền vượt quá số dư khả dụng');
 
       // 5. Create contribution in goal's subcollection
       final contribRef = goalRef.collection('contributions').doc();
@@ -98,7 +86,7 @@ class GoalService {
         'created_at': now.millisecondsSinceEpoch,
       });
 
-      // 6. Update goal current_amount and status if completed
+      // 6. Update goal current_amount and auto-complete if target reached
       final newCurrentAmount = currentAmount + amount;
       final updates = <String, dynamic>{
         'current_amount': newCurrentAmount,
@@ -112,6 +100,8 @@ class GoalService {
   }
 
   Future<void> rutTuMucTieu(String goalId, int amount, {String? note}) async {
+    if (amount <= 0) throw Exception('Số tiền phải lớn hơn 0');
+
     final firestore = FirebaseFirestore.instance;
     final accountId = sl.appState.currentAccountId;
     final userId = sl.appState.currentUserId ?? '';
@@ -125,45 +115,14 @@ class GoalService {
           .collection('goals_v2')
           .doc(goalId);
       final goalSnap = await txn.get(goalRef);
-      if (!goalSnap.exists) throw Exception('Goal not found');
+      if (!goalSnap.exists) throw Exception('Không tìm thấy mục tiêu');
       final goalData = goalSnap.data()!;
-      final fundingWalletId = goalData['funding_wallet_id'] as String;
       final currentAmount = goalData['current_amount'] as int? ?? 0;
-      final targetAmount = goalData['target_amount'] as int? ?? 0;
 
-      // 2. Read wallet balance
-      final walletRef = firestore
-          .collection('accounts')
-          .doc(accountId)
-          .collection('wallets')
-          .doc(fundingWalletId);
-      final walletSnap = await txn.get(walletRef);
-      if (!walletSnap.exists) throw Exception('Wallet not found');
-      final walletBalance = walletSnap.data()!['balance'] as int? ?? 0;
+      // 2. Validate amount <= currentAmount
+      if (amount > currentAmount) throw Exception('Số tiền rút vượt quá số tiền đã nạp');
 
-      // 3. Create income transaction
-      final txnRef = firestore
-          .collection('accounts')
-          .doc(accountId)
-          .collection('transactions')
-          .doc();
-      txn.set(txnRef, {
-        'wallet_id': fundingWalletId,
-        'category_id': '',
-        'type': 'income',
-        'amount': amount,
-        'note': note ?? 'Rút từ mục tiêu',
-        'date': now.millisecondsSinceEpoch,
-        'created_by': userId,
-        'goal_id': goalId,
-        'created_at': FieldValue.serverTimestamp(),
-        'updated_at': FieldValue.serverTimestamp(),
-      });
-
-      // 4. Add to wallet balance
-      txn.update(walletRef, {'balance': walletBalance + amount});
-
-      // 5. Create contribution with negative amount
+      // 3. Create contribution with negative amount
       final contribRef = goalRef.collection('contributions').doc();
       txn.set(contribRef, {
         'goal_id': goalId,
@@ -174,8 +133,8 @@ class GoalService {
         'created_at': now.millisecondsSinceEpoch,
       });
 
-      // 6. Update goal current_amount (clamp to 0)
-      final newCurrentAmount = (currentAmount - amount).clamp(0, targetAmount);
+      // 4. Update goal current_amount
+      final newCurrentAmount = currentAmount - amount;
       txn.update(goalRef, {
         'current_amount': newCurrentAmount,
         'updated_at': now.millisecondsSinceEpoch,
@@ -241,6 +200,29 @@ class GoalService {
 
   // ── Queries ──
 
+  /// Tính tổng earmarked amount cho một ví (tổng currentAmount của goals active liên kết)
+  Future<int> getEarmarkedAmount(String walletId) async {
+    final goals = await _repo.getActiveGoalsByWallet(walletId);
+    return goals.fold<int>(0, (total, g) => total + g.currentAmount);
+  }
+
+  /// Stream earmarked amount cho một ví (realtime)
+  Stream<int> watchEarmarkedAmount(String walletId) {
+    return _repo.watchActiveGoalsByWallet(walletId).map(
+      (goals) => goals.fold<int>(0, (total, g) => total + g.currentAmount),
+    );
+  }
+
+  /// Lấy danh sách goal active theo walletId
+  Future<List<Goal>> getGoalsByWallet(String walletId) async {
+    return await _repo.getActiveGoalsByWallet(walletId);
+  }
+
+  /// Stream goal active theo walletId
+  Stream<List<Goal>> watchGoalsByWallet(String walletId) {
+    return _repo.watchActiveGoalsByWallet(walletId);
+  }
+
   Future<List<Goal>> getActiveGoals() async {
     return await _repo.getActiveGoals();
   }
@@ -305,7 +287,10 @@ class GoalService {
   }
 
   Future<void> cancelGoal(String id) async {
-    await _repo.updateGoal(id, {'status': GoalStatus.cancelled.name});
+    await _repo.updateGoal(id, {
+      'current_amount': 0,
+      'status': GoalStatus.cancelled.name,
+    });
   }
 
   Future<void> deleteGoal(String id) async {

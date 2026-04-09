@@ -18,8 +18,12 @@ import 'package:vintage_ledger/features/category/screens/category_form_screen.da
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/recurring/models/recurring_rule.dart';
 import 'package:vintage_ledger/features/recurring/services/recurring_service.dart';
+import 'package:vintage_ledger/features/debt/models/debt.dart';
+import 'package:vintage_ledger/features/goal/models/goal.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
+
+enum _LinkType { none, debt, goal }
 
 class RecurringFormScreen extends StatefulWidget {
   final RecurringRule? existing;
@@ -39,11 +43,16 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
 
   List<Category> _categories = [];
   List<Wallet> _wallets = [];
+  List<Debt> _activeDebts = [];
+  List<Goal> _activeGoals = [];
 
   String? _walletId;
   String? _categoryId;
   TransactionType _type = TransactionType.expense;
   Frequency _frequency = Frequency.monthly;
+  _LinkType _linkType = _LinkType.none;
+  String? _linkedDebtId;
+  String? _linkedGoalId;
 
   @override
   void initState() {
@@ -56,6 +65,13 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
       _walletId = r.walletId;
       _frequency = r.frequency;
       _noteCtrl.text = r.note ?? '';
+      _linkedDebtId = r.linkedDebtId;
+      _linkedGoalId = r.linkedGoalId;
+      if (_linkedDebtId != null) {
+        _linkType = _LinkType.debt;
+      } else if (_linkedGoalId != null) {
+        _linkType = _LinkType.goal;
+      }
     } else {
       _amountCtrl.text = '0';
     }
@@ -73,9 +89,15 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
     final allCats = await sl.categoryService.getCategories();
     final cats = allCats.where((c) => c.type?.value == _type.value).toList();
     final wallets = await sl.walletService.getWallets();
+    final debts = (await sl.debtService.getTienVayMuon())
+        .where((d) => d.status == DebtStatus.active)
+        .toList();
+    final goals = await sl.goalService.getActiveGoals();
     setState(() {
       _categories = cats;
       _wallets = wallets;
+      _activeDebts = debts;
+      _activeGoals = goals;
       _categoryId ??= cats.isNotEmpty ? cats.first.id : null;
       _walletId ??= wallets.isNotEmpty ? wallets.first.id : null;
     });
@@ -98,6 +120,9 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
       return;
     }
 
+    final linkedDebtId = _linkType == _LinkType.debt ? _linkedDebtId : null;
+    final linkedGoalId = _linkType == _LinkType.goal ? _linkedGoalId : null;
+
     final now = DateTime.now();
     final nextRun = widget.isEdit
         ? widget.existing!.nextRunAt
@@ -111,7 +136,15 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
       frequency: _frequency,
       note: _noteCtrl.text.isEmpty ? null : _noteCtrl.text,
       nextRunAt: nextRun,
+      linkedDebtId: linkedDebtId,
+      linkedGoalId: linkedGoalId,
     );
+
+    final validationError = rule.validateLinkedEntity();
+    if (validationError != null) {
+      showAppSnackBar(context, validationError, backgroundColor: AppColors.error);
+      return;
+    }
 
     try {
       if (widget.isEdit) {
@@ -154,6 +187,16 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
             const SizedBox(height: AppSpacing.md),
             _buildFrequencySelector(),
             const SizedBox(height: AppSpacing.md),
+            _buildLinkTypeSelector(),
+            if (_linkType == _LinkType.debt) ...[
+              const SizedBox(height: AppSpacing.md),
+              _buildDebtDropdown(),
+            ],
+            if (_linkType == _LinkType.goal) ...[
+              const SizedBox(height: AppSpacing.md),
+              _buildGoalDropdown(),
+            ],
+            const SizedBox(height: AppSpacing.md),
             TextFormField(
               controller: _noteCtrl, maxLines: 2,
               decoration: InputDecoration(
@@ -195,6 +238,61 @@ class _RecurringFormScreenState extends State<RecurringFormScreen> {
       items: options.entries.map((e) => SelectionItem(value: e.key, label: e.value)).toList(),
       selected: _frequency,
       onChanged: (v) { if (v != null) setState(() => _frequency = v); },
+    );
+  }
+
+  Widget _buildLinkTypeSelector() {
+    final options = {
+      _LinkType.none: S.of(context, 'linkNone'),
+      _LinkType.debt: S.of(context, 'linkDebt'),
+      _LinkType.goal: S.of(context, 'linkGoal'),
+    };
+    return DropdownField<_LinkType>(
+      label: S.of(context, 'linkWith'),
+      value: options[_linkType],
+      prefixIcon: Icons.link,
+      items: options.entries.map((e) => SelectionItem(value: e.key, label: e.value)).toList(),
+      selected: _linkType,
+      onChanged: (v) {
+        if (v == null) return;
+        setState(() {
+          _linkType = v;
+          if (v != _LinkType.debt) _linkedDebtId = null;
+          if (v != _LinkType.goal) _linkedGoalId = null;
+        });
+      },
+    );
+  }
+
+  Widget _buildDebtDropdown() {
+    final debtName = _activeDebts.where((d) => d.id == _linkedDebtId).firstOrNull?.displayTitle;
+    return DropdownField<String>(
+      label: S.of(context, 'selectDebt'),
+      value: debtName,
+      prefixIcon: Icons.receipt_long,
+      items: _activeDebts.map((d) => SelectionItem(
+        value: d.id,
+        label: d.displayTitle,
+        icon: Icons.receipt_long,
+      )).toList(),
+      selected: _linkedDebtId,
+      onChanged: (v) => setState(() => _linkedDebtId = v),
+    );
+  }
+
+  Widget _buildGoalDropdown() {
+    final goalName = _activeGoals.where((g) => g.id == _linkedGoalId).firstOrNull?.displayTitle;
+    return DropdownField<String>(
+      label: S.of(context, 'selectGoal'),
+      value: goalName,
+      prefixIcon: Icons.flag,
+      items: _activeGoals.map((g) => SelectionItem(
+        value: g.id,
+        label: g.displayTitle,
+        icon: Icons.flag,
+      )).toList(),
+      selected: _linkedGoalId,
+      onChanged: (v) => setState(() => _linkedGoalId = v),
     );
   }
 }

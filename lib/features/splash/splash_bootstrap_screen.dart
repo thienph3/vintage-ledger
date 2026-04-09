@@ -114,9 +114,12 @@ class _SplashBootstrapScreenState extends State<SplashBootstrapScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.menu_book_rounded, size: 64, color: AppColors.primary),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset('assets/icon/app_icon.png', width: 64, height: 64),
+              ),
               const SizedBox(height: AppSpacing.md),
-              Text('Vintage Ledger', style: AppTextStyles.title),
+              Text('WeSpend', style: AppTextStyles.title),
               const SizedBox(height: AppSpacing.xl),
               ClipRRect(
                 borderRadius: BorderRadius.circular(4),

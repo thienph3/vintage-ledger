@@ -7,6 +7,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/goal/models/goal.dart';
 import 'package:vintage_ledger/features/goal/services/goal_service.dart';
+import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class GoalContributionScreen extends StatefulWidget {
@@ -18,16 +19,60 @@ class GoalContributionScreen extends StatefulWidget {
 
 class _GoalContributionScreenState extends State<GoalContributionScreen> {
   final _service = GoalService();
+  final _walletService = WalletService();
   final _amountController = TextEditingController();
   final _noteController = TextEditingController();
   Goal? _selectedGoal;
   bool _isLoading = false;
+  int? _availableBalance;
+  bool _isLoadingBalance = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _amountController.addListener(_onAmountChanged);
+  }
 
   @override
   void dispose() {
+    _amountController.removeListener(_onAmountChanged);
     _amountController.dispose();
     _noteController.dispose();
     super.dispose();
+  }
+
+  void _onAmountChanged() {
+    setState(() {});
+  }
+
+  Future<void> _fetchAvailableBalance(Goal goal) async {
+    setState(() => _isLoadingBalance = true);
+    try {
+      final wallet = await _walletService.getWallet(goal.fundingWalletId);
+      if (wallet == null) {
+        setState(() {
+          _availableBalance = null;
+          _isLoadingBalance = false;
+        });
+        return;
+      }
+      final earmarked = await _service.getEarmarkedAmount(goal.fundingWalletId);
+      setState(() {
+        _availableBalance = wallet.balance - earmarked;
+        _isLoadingBalance = false;
+      });
+    } catch (_) {
+      setState(() {
+        _availableBalance = null;
+        _isLoadingBalance = false;
+      });
+    }
+  }
+
+  bool get _amountExceedsAvailable {
+    if (_availableBalance == null) return false;
+    final amount = int.tryParse(_amountController.text) ?? 0;
+    return amount > _availableBalance!;
   }
 
   @override
@@ -81,7 +126,10 @@ class _GoalContributionScreenState extends State<GoalContributionScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: GestureDetector(
-        onTap: () => setState(() => _selectedGoal = goal),
+        onTap: () {
+          setState(() => _selectedGoal = goal);
+          _fetchAvailableBalance(goal);
+        },
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
@@ -121,6 +169,39 @@ class _GoalContributionScreenState extends State<GoalContributionScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Available balance display
+        if (_isLoadingBalance)
+          const Padding(
+            padding: EdgeInsets.only(bottom: AppSpacing.md),
+            child: SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2)),
+          )
+        else if (_availableBalance != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: Container(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppSpacing.borderRadiusSm),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.account_balance_wallet, size: 18, color: AppColors.textSecondary),
+                  const SizedBox(width: AppSpacing.sm),
+                  Text(
+                    '${S.of(context, 'availableBalanceLabel')}: ',
+                    style: AppTextStyles.caption,
+                  ),
+                  Text(
+                    AmountFormatter.formatCurrency(_availableBalance!, 'vi'),
+                    style: AppTextStyles.bodyBold.copyWith(
+                      color: _availableBalance! > 0 ? AppColors.income : AppColors.expense,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         Text(S.of(context, 'contributionAmount'), style: AppTextStyles.titleSmall),
         const SizedBox(height: AppSpacing.md),
         TextField(
@@ -129,6 +210,7 @@ class _GoalContributionScreenState extends State<GoalContributionScreen> {
             labelText: S.of(context, 'amount'),
             hintText: S.of(context, 'enterAmount'),
             prefixIcon: const Icon(Icons.attach_money),
+            errorText: _amountExceedsAvailable ? S.of(context, 'amountExceedsAvailable') : null,
           ),
           keyboardType: TextInputType.number,
         ),
@@ -145,7 +227,7 @@ class _GoalContributionScreenState extends State<GoalContributionScreen> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: _isLoading ? null : _contribute,
+            onPressed: (_isLoading || _amountExceedsAvailable) ? null : _contribute,
             child: _isLoading
                 ? const SizedBox(
                     height: 20,

@@ -23,6 +23,9 @@ import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/utils/date_formatter.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
+import 'package:vintage_ledger/features/recurring/models/recurring_rule.dart';
+import 'package:vintage_ledger/features/recurring/widgets/bill_reminder_widget.dart';
+import 'package:vintage_ledger/common/widgets/app_snackbar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -131,7 +134,11 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       const NetworkStatusBanner(),
                       Expanded(
-                        child: StreamBuilder<List<TransactionWithItems>>(
+                        child: StreamBuilder<List<RecurringRule>>(
+                          stream: sl.billReminderService.watchDueReminders(),
+                          builder: (context, reminderSnap) {
+                            final dueReminders = reminderSnap.data ?? [];
+                            return StreamBuilder<List<TransactionWithItems>>(
                                 stream: _todayStream,
                                 builder: (context, txnSnap) {
                                   final todayTxns = txnSnap.data ?? [];
@@ -140,6 +147,16 @@ class _HomeScreenState extends State<HomeScreen> {
                                     child: ListView(
                                       padding: const EdgeInsets.all(AppSpacing.md),
                                       children: [
+                                        if (dueReminders.isNotEmpty) ...[
+                                          BillReminderWidget(
+                                            dueReminders: dueReminders,
+                                            categoryNames: _categoryNames,
+                                            walletNames: _walletNameMap,
+                                            onPay: (rule) => _handlePay(context, rule),
+                                            onDismiss: (rule) => _handleDismiss(context, rule),
+                                          ),
+                                          const SizedBox(height: AppSpacing.md),
+                                        ],
                                         _buildTodayTotal(todayTxns),
                                         const SizedBox(height: AppSpacing.lg),
                                         _buildFeed(todayTxns),
@@ -147,7 +164,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   );
                                 },
-                              ),
+                              );
+                          },
+                        ),
                       ),
                       if (wallets.isNotEmpty)
                         QuickAddBar(
@@ -184,6 +203,37 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  Future<void> _handlePay(BuildContext ctx, RecurringRule rule) async {
+    try {
+      final result = await sl.billReminderService.payBill(rule);
+      if (!ctx.mounted) return;
+      showAppSnackBar(
+        ctx,
+        S.of(ctx, 'billPaid'),
+        action: SnackBarAction(
+          label: S.of(ctx, 'undo'),
+          onPressed: () async {
+            try {
+              await sl.billReminderService.undoPayment(result);
+            } catch (_) {}
+          },
+        ),
+      );
+    } catch (e) {
+      if (!ctx.mounted) return;
+      showAppSnackBar(ctx, S.of(ctx, 'genericError'));
+    }
+  }
+
+  Future<void> _handleDismiss(BuildContext ctx, RecurringRule rule) async {
+    try {
+      await sl.billReminderService.dismissBill(rule);
+    } catch (e) {
+      if (!ctx.mounted) return;
+      showAppSnackBar(ctx, S.of(ctx, 'genericError'));
+    }
   }
 
   Widget _buildTodayTotal(List<TransactionWithItems> todayTxns) {

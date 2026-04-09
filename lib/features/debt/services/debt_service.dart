@@ -72,6 +72,10 @@ class DebtService {
     final userId = sl.appState.currentUserId ?? '';
     final now = DateTime.now();
 
+    // Resolve system category
+    final sysCat = await sl.categoryService.ensureSystemCategory('debt_payment');
+    final categoryId = sysCat.id ?? '';
+
     await firestore.runTransaction((txn) async {
       // 1. Read debt document
       final debtRef = firestore
@@ -104,7 +108,7 @@ class DebtService {
           .doc();
       txn.set(txnRef, {
         'wallet_id': walletId,
-        'category_id': '',
+        'category_id': categoryId,
         'type': 'income',
         'amount': amount,
         'note': note ?? 'Nhận trả nợ',
@@ -151,6 +155,10 @@ class DebtService {
     final userId = sl.appState.currentUserId ?? '';
     final now = DateTime.now();
 
+    // Resolve system category
+    final sysCat = await sl.categoryService.ensureSystemCategory('debt_payment');
+    final categoryId = sysCat.id ?? '';
+
     await firestore.runTransaction((txn) async {
       // 1. Read debt document
       final debtRef = firestore
@@ -183,7 +191,7 @@ class DebtService {
           .doc();
       txn.set(txnRef, {
         'wallet_id': walletId,
-        'category_id': '',
+        'category_id': categoryId,
         'type': 'expense',
         'amount': amount,
         'note': note ?? 'Trả nợ',

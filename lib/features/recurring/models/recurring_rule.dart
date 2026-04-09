@@ -28,6 +28,8 @@ class RecurringRule {
   final String? note;
   final int nextRunAt;
   final bool enabled;
+  final String? linkedDebtId;
+  final String? linkedGoalId;
 
   RecurringRule({
     this.id,
@@ -39,6 +41,8 @@ class RecurringRule {
     this.note,
     required this.nextRunAt,
     this.enabled = true,
+    this.linkedDebtId,
+    this.linkedGoalId,
   });
 
   Map<String, dynamic> toMap() => {
@@ -50,6 +54,8 @@ class RecurringRule {
     'note': note,
     'next_run_at': nextRunAt,
     'enabled': enabled,
+    'linked_debt_id': linkedDebtId,
+    'linked_goal_id': linkedGoalId,
   };
 
   factory RecurringRule.fromMap(String id, Map<String, dynamic> map) => RecurringRule(
@@ -62,5 +68,16 @@ class RecurringRule {
     note: map['note'],
     nextRunAt: map['next_run_at'] ?? 0,
     enabled: map['enabled'] ?? true,
+    linkedDebtId: map['linked_debt_id'],
+    linkedGoalId: map['linked_goal_id'],
   );
+
+  /// Returns an error message if both linkedDebtId and linkedGoalId are non-null.
+  /// Returns null if validation passes.
+  String? validateLinkedEntity() {
+    if (linkedDebtId != null && linkedGoalId != null) {
+      return 'Không thể liên kết cả khoản nợ và mục tiêu cùng lúc. Vui lòng chọn một trong hai.';
+    }
+    return null;
+  }
 }

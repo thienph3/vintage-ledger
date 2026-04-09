@@ -61,14 +61,20 @@ class _FundingFormScreenState extends State<FundingFormScreen> {
     final userId = sl.appState.currentUserId;
     if (userId == null) return;
 
-    // Load personal wallets (current account)
-    final personalWallets = await sl.walletService.getWallets();
+    final accounts = await sl.accountService.getAccountsForUser(userId);
+
+    // Load personal wallets by explicit account ID (not current context)
+    List<Wallet> personalWallets = [];
+    for (final a in accounts) {
+      if (a.isPersonal) {
+        personalWallets = await sl.walletService.getWalletsForAccount(a.id);
+        break;
+      }
+    }
 
     // Find family account and load its wallets
-    final accounts = await sl.accountService.getAccountsForUser(userId);
     String? familyAccountId;
     List<Wallet> familyWallets = [];
-
     for (final a in accounts) {
       if (a.isFamily) {
         familyAccountId = a.id;

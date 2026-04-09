@@ -429,13 +429,18 @@ class AccountService {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     for (final seed in kSeedCategories) {
-      batch.set(catCol.doc(), {
+      final data = <String, dynamic>{
         'name': seed.name,
         'type': seed.type.value,
         'icon': seed.iconCodePoint,
         'created_at': now,
         'updated_at': now,
-      });
+      };
+      if (seed.isSystem) {
+        data['is_system'] = true;
+        data['system_key'] = seed.systemKey;
+      }
+      batch.set(catCol.doc(), data);
     }
     await batch.commit();
   }

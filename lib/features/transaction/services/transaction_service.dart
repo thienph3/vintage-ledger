@@ -360,6 +360,11 @@ class TransactionService {
     final firestore = _repo.firestore;
     final now = FieldValue.serverTimestamp();
 
+    // Resolve system category
+    final systemKey = isCrossAccount ? 'funding' : 'transfer';
+    final sysCat = await sl.categoryService.ensureSystemCategory(systemKey);
+    final categoryId = sysCat.id ?? '';
+
     if (!isCrossAccount) {
       // Same-account transfer: 2 linked txns (out + in)
       final srcRef = sl.walletService.repo.collection.doc(sourceWalletId);
@@ -374,7 +379,7 @@ class TransactionService {
       final dstName = (dstWalletDoc.data()?['name'] as String?) ?? '';
 
       final outData = {
-        'wallet_id': sourceWalletId, 'category_id': '', 'type': 'transfer_out',
+        'wallet_id': sourceWalletId, 'category_id': categoryId, 'type': 'transfer_out',
         'amount': amount, 'note': note, 'date': date,
         'created_by': sl.appState.currentUserId,
         'to_wallet_id': destWalletId, 'to_wallet_name': dstName,
@@ -382,7 +387,7 @@ class TransactionService {
         'created_at': now, 'updated_at': now,
       };
       final inData = {
-        'wallet_id': destWalletId, 'category_id': '', 'type': 'transfer_in',
+        'wallet_id': destWalletId, 'category_id': categoryId, 'type': 'transfer_in',
         'amount': amount, 'note': note, 'date': date,
         'created_by': sl.appState.currentUserId,
         'to_wallet_id': sourceWalletId, 'to_wallet_name': srcName,
@@ -428,7 +433,7 @@ class TransactionService {
       final dstBalance = dstSnap.data()?['balance'] as int? ?? 0;
 
       txn.set(txnARef, {
-        'wallet_id': sourceWalletId, 'category_id': '', 'type': 'transfer_out',
+        'wallet_id': sourceWalletId, 'category_id': categoryId, 'type': 'transfer_out',
         'amount': amount, 'note': note, 'date': date,
         'created_by': sl.appState.currentUserId,
         'to_wallet_id': destWalletId, 'to_account_id': destAccountId,
@@ -437,7 +442,7 @@ class TransactionService {
         'created_at': now, 'updated_at': now,
       });
       txn.set(txnBRef, {
-        'wallet_id': destWalletId, 'category_id': '', 'type': 'transfer_in',
+        'wallet_id': destWalletId, 'category_id': categoryId, 'type': 'transfer_in',
         'amount': amount, 'note': note, 'date': date,
         'created_by': sl.appState.currentUserId,
         'to_wallet_id': sourceWalletId, 'to_account_id': sourceAccountId,

@@ -70,6 +70,22 @@ class GoalRepository {
         .map((snap) => snap.docs.map((d) => Goal.fromMap(d.id, d.data())).toList());
   }
 
+  Future<List<Goal>> getActiveGoalsByWallet(String walletId) async {
+    final snap = await _goals
+        .where('funding_wallet_id', isEqualTo: walletId)
+        .where('status', isEqualTo: GoalStatus.active.name)
+        .get();
+    return snap.docs.map((d) => Goal.fromMap(d.id, d.data())).toList();
+  }
+
+  Stream<List<Goal>> watchActiveGoalsByWallet(String walletId) {
+    return _goals
+        .where('funding_wallet_id', isEqualTo: walletId)
+        .where('status', isEqualTo: GoalStatus.active.name)
+        .snapshots()
+        .map((snap) => snap.docs.map((d) => Goal.fromMap(d.id, d.data())).toList());
+  }
+
   Future<Goal?> getGoal(String id) async {
     final doc = await _goals.doc(id).get();
     if (!doc.exists) return null;

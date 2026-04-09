@@ -27,6 +27,7 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
   bool _isExpanded = false;
   late AnimationController _controller;
   late Animation<double> _expandAnimation;
+  OverlayEntry? _scrimEntry;
 
   @override
   void initState() {
@@ -43,16 +44,36 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
 
   @override
   void dispose() {
+    _removeScrim();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _insertScrim() {
+    _removeScrim();
+    _scrimEntry = OverlayEntry(
+      builder: (_) => GestureDetector(
+        onTap: _close,
+        child: Container(color: Colors.black.withValues(alpha: 0.3)),
+      ),
+    );
+    Overlay.of(context).insert(_scrimEntry!);
+  }
+
+  void _removeScrim() {
+    _scrimEntry?.remove();
+    _scrimEntry?.dispose();
+    _scrimEntry = null;
   }
 
   void _toggle() {
     setState(() {
       _isExpanded = !_isExpanded;
       if (_isExpanded) {
+        _insertScrim();
         _controller.forward();
       } else {
+        _removeScrim();
         _controller.reverse();
       }
     });
@@ -60,6 +81,7 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
 
   void _close() {
     if (_isExpanded) {
+      _removeScrim();
       setState(() {
         _isExpanded = false;
         _controller.reverse();
@@ -137,50 +159,37 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
     final actions = QuickActionsVisibility.resolve(widget.actionsInput);
     if (actions.isEmpty) return const SizedBox.shrink();
 
-    return Stack(
-      children: [
-        if (_isExpanded)
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: _close,
-              child: Container(
-                color: Colors.black.withValues(alpha: 0.3),
-              ),
-            ),
-          ),
-        Positioned(
-          right: 16,
-          bottom: widget.bottomOffset,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (_isExpanded) ...[
-                for (int i = 0; i < actions.length; i++) ...[
-                  ScaleTransition(
-                    scale: _expandAnimation,
-                    child: _buildActionButton(
-                      label: _labelFor(context, actions[i]),
-                      icon: _iconFor(actions[i]),
-                      color: _colorFor(actions[i]),
-                      onTap: () => _onTap(actions[i]),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                ],
-              ],
-              FloatingActionButton(
-                onPressed: _toggle,
-                child: AnimatedRotation(
-                  turns: _isExpanded ? 0.125 : 0,
-                  duration: const Duration(milliseconds: 200),
-                  child: Icon(_isExpanded ? Icons.close : Icons.add),
+    return Positioned(
+      right: 16,
+      bottom: widget.bottomOffset,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (_isExpanded) ...[
+            for (int i = 0; i < actions.length; i++) ...[
+              ScaleTransition(
+                scale: _expandAnimation,
+                child: _buildActionButton(
+                  label: _labelFor(context, actions[i]),
+                  icon: _iconFor(actions[i]),
+                  color: _colorFor(actions[i]),
+                  onTap: () => _onTap(actions[i]),
                 ),
               ),
+              const SizedBox(height: AppSpacing.sm),
             ],
+          ],
+          FloatingActionButton(
+            onPressed: _toggle,
+            child: AnimatedRotation(
+              turns: _isExpanded ? 0.125 : 0,
+              duration: const Duration(milliseconds: 200),
+              child: Icon(_isExpanded ? Icons.close : Icons.add),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

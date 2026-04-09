@@ -43,10 +43,13 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
   }
 
   List<Category> get _expenseCategories =>
-      _items.where((c) => c.type == TransactionType.expense).toList();
+      _items.where((c) => c.type == TransactionType.expense && !c.isSystem).toList();
 
   List<Category> get _incomeCategories =>
-      _items.where((c) => c.type == TransactionType.income).toList();
+      _items.where((c) => c.type == TransactionType.income && !c.isSystem).toList();
+
+  List<Category> get _systemCategories =>
+      _items.where((c) => c.isSystem).toList();
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +86,17 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
                     ..._incomeCategories.map(_buildCategoryTile),
                   ],
 
+                  // System section
+                  if (_systemCategories.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.lg),
+                    _buildSectionHeader(
+                      S.of(context, 'systemCategories'),
+                      Icons.lock_outline,
+                      AppColors.textSecondary,
+                    ),
+                    ..._systemCategories.map(_buildCategoryTile),
+                  ],
+
                   const SizedBox(height: AppSpacing.lg),
                   SizedBox(
                     width: double.infinity,
@@ -117,6 +131,29 @@ class _CategoryListScreenState extends State<CategoryListScreen> {
   }
 
   Widget _buildCategoryTile(Category c) {
+    if (c.isSystem) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: InkWell(
+          onTap: () async {
+            await context.pushScreen(CategoryFormScreen(category: c));
+            _load();
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md2),
+            child: Row(
+              children: [
+                Icon(getCategoryIcon(c.icon), size: 28, color: AppColors.primary),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(child: Text(c.name, style: AppTextStyles.bodyBold)),
+                Icon(Icons.lock_outline, size: 16, color: AppColors.textSecondary),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: SwipeListItem(

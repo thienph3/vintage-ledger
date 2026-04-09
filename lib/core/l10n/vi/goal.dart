@@ -42,4 +42,6 @@ const Map<String, String> goalVi = {
   'noAutoSaving': 'Chưa thiết lập',
   'inProgress': 'Đang thực hiện',
   'progress': 'Tiến độ',
+  'availableBalanceLabel': 'Số dư khả dụng',
+  'amountExceedsAvailable': 'Số tiền vượt quá số dư khả dụng',
 };

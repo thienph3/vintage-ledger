@@ -6,10 +6,12 @@ class SeedCategory {
   final TransactionType type;
   final int iconIndex;
   final List<String> keywords;
+  final String? systemKey;
 
-  const SeedCategory(this.name, this.type, this.iconIndex, this.keywords);
+  const SeedCategory(this.name, this.type, this.iconIndex, this.keywords, {this.systemKey});
 
   int get iconCodePoint => kCategoryIcons[iconIndex].codePoint;
+  bool get isSystem => systemKey != null;
 }
 
 /// Single source of truth for default categories + quick add keywords.
@@ -40,4 +42,14 @@ const kSeedCategories = [
   SeedCategory('Đầu tư', TransactionType.income, 12,
       ['đầu tư', 'invest', 'investment']),
   SeedCategory('Khác', TransactionType.income, 9, []),
+
+  // System (auto-assigned, cannot be deleted)
+  SeedCategory('Nạp tiền', TransactionType.income, 10,
+      ['nạp', 'funding'], systemKey: 'funding'),
+  SeedCategory('Tiết kiệm', TransactionType.expense, 11,
+      ['tiết kiệm', 'saving'], systemKey: 'goal_contribution'),
+  SeedCategory('Trả nợ', TransactionType.expense, 8,
+      ['trả nợ', 'debt'], systemKey: 'debt_payment'),
+  SeedCategory('Chuyển tiền', TransactionType.expense, 1,
+      ['chuyển', 'transfer'], systemKey: 'transfer'),
 ];
