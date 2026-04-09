@@ -92,7 +92,7 @@ class _BudgetDetailScreenState extends State<BudgetDetailScreen> {
                                 style: AppTextStyles.body,
                               ),
                               Text(
-                                DateFormatter.fullDate(DateTime.fromMillisecondsSinceEpoch(t.date)),
+                                DateFormatter.fullDate(t.date),
                                 style: AppTextStyles.caption,
                               ),
                             ],
