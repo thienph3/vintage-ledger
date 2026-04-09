@@ -14,61 +14,58 @@ class BudgetService {
     return await _repo.getAll();
   }
 
-  Future<String> createBudget(String categoryId, int amountLimit) async {
+  Future<String> createBudget(String categoryId, int amountLimit, {BudgetPeriod period = BudgetPeriod.monthly}) async {
     if (amountLimit <= 0) throw Exception("Budget limit must be > 0");
     final existing = await _repo.getByCategoryId(categoryId);
     if (existing != null) {
-      await _repo.update(existing.id!, {'amount_limit': amountLimit});
+      await _repo.update(existing.id!, {'amount_limit': amountLimit, 'period': period.name});
       return existing.id!;
     }
-    return await _repo.add(Budget(categoryId: categoryId, amountLimit: amountLimit));
+    return await _repo.add(Budget(categoryId: categoryId, amountLimit: amountLimit, period: period));
   }
 
-  Future<void> updateBudget(String id, int amountLimit) async {
-    await _repo.update(id, {'amount_limit': amountLimit});
+  Future<void> updateBudget(String id, int amountLimit, {BudgetPeriod? period}) async {
+    final updates = <String, dynamic>{'amount_limit': amountLimit};
+    if (period != null) updates['period'] = period.name;
+    await _repo.update(id, updates);
   }
 
   Future<void> deleteBudget(String id) async {
     await _repo.delete(id);
   }
 
-  /// #1: Query expense transactions directly, not via getDashboard
-  Future<List<BudgetStatus>> getBudgetStatuses() async {
+  /// Get budget statuses for a specific period anchor date
+  Future<List<BudgetStatus>> getBudgetStatuses({DateTime? anchor}) async {
     final budgets = await _repo.getAll();
     if (budgets.isEmpty) return [];
 
-    final spentMap = await _getMonthlyExpenseByCategory();
     final categories = await sl.categoryService.getCategories();
-    final catMap = {for (var c in categories) c.id!: c};
+    final catMap = {for (var c in categories) if (c.id != null) c.id!: c};
 
-    return budgets.map((b) {
+    final results = <BudgetStatus>[];
+    for (final b in budgets) {
+      final range = _periodRange(b.period, anchor ?? DateTime.now());
+      final spent = await _getSpentForCategory(b.categoryId, range.$1, range.$2);
       final cat = catMap[b.categoryId];
-      return BudgetStatus(
+      results.add(BudgetStatus(
         budget: b,
         categoryName: cat?.name ?? '?',
         categoryIcon: cat?.icon,
-        spent: spentMap[b.categoryId] ?? 0,
-      );
-    }).toList();
+        spent: spent,
+        periodStart: range.$1,
+        periodEnd: range.$2,
+      ));
+    }
+    return results;
   }
 
-  /// #2: Query only transactions for 1 category in current month
+  /// Check a single budget for current period
   Future<BudgetStatus?> checkBudget(String categoryId) async {
     final budget = await _repo.getByCategoryId(categoryId);
     if (budget == null) return null;
 
-    final now = DateTime.now();
-    final monthStart = DateTime(now.year, now.month, 1).millisecondsSinceEpoch;
-    final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59).millisecondsSinceEpoch;
-
-    // Query only this category's expense transactions
-    final txns = await _txnRepo.getAll(queryBuilder: (ref) => ref
-        .where('category_id', isEqualTo: categoryId)
-        .where('type', isEqualTo: 'expense')
-        .where('date', isGreaterThanOrEqualTo: monthStart)
-        .where('date', isLessThanOrEqualTo: monthEnd));
-
-    final spent = txns.fold<int>(0, (s, t) => s + t.transaction.amount);
+    final range = _periodRange(budget.period, DateTime.now());
+    final spent = await _getSpentForCategory(categoryId, range.$1, range.$2);
     final cat = await sl.categoryService.getCategory(categoryId);
 
     return BudgetStatus(
@@ -76,25 +73,69 @@ class BudgetService {
       categoryName: cat?.name ?? '?',
       categoryIcon: cat?.icon,
       spent: spent,
+      periodStart: range.$1,
+      periodEnd: range.$2,
     );
   }
 
-  /// Query all expense transactions this month, group by categoryId
-  Future<Map<String, int>> _getMonthlyExpenseByCategory() async {
-    final now = DateTime.now();
-    final monthStart = DateTime(now.year, now.month, 1).millisecondsSinceEpoch;
-    final monthEnd = DateTime(now.year, now.month + 1, 0, 23, 59, 59).millisecondsSinceEpoch;
-
+  /// Get transactions for a budget in a specific period (for detail screen)
+  Future<List<({String note, int amount, int date})>> getBudgetTransactions(
+    String categoryId, DateTime periodStart, DateTime periodEnd,
+  ) async {
     final txns = await _txnRepo.getAll(queryBuilder: (ref) => ref
+        .where('category_id', isEqualTo: categoryId)
         .where('type', isEqualTo: 'expense')
-        .where('date', isGreaterThanOrEqualTo: monthStart)
-        .where('date', isLessThanOrEqualTo: monthEnd));
+        .where('date', isGreaterThanOrEqualTo: periodStart.millisecondsSinceEpoch)
+        .where('date', isLessThanOrEqualTo: periodEnd.millisecondsSinceEpoch)
+        .orderBy('date', descending: true));
 
-    final map = <String, int>{};
-    for (final t in txns) {
-      final catId = t.transaction.categoryId;
-      map[catId] = (map[catId] ?? 0) + t.transaction.amount;
+    return txns.map((t) => (
+      note: t.transaction.note ?? '',
+      amount: t.transaction.amount,
+      date: t.transaction.date,
+    )).toList();
+  }
+
+  Future<int> _getSpentForCategory(String categoryId, DateTime start, DateTime end) async {
+    final txns = await _txnRepo.getAll(queryBuilder: (ref) => ref
+        .where('category_id', isEqualTo: categoryId)
+        .where('type', isEqualTo: 'expense')
+        .where('date', isGreaterThanOrEqualTo: start.millisecondsSinceEpoch)
+        .where('date', isLessThanOrEqualTo: end.millisecondsSinceEpoch));
+    return txns.fold<int>(0, (s, t) => s + t.transaction.amount);
+  }
+
+  /// Calculate period range based on budget period type
+  (DateTime, DateTime) _periodRange(BudgetPeriod period, DateTime anchor) {
+    switch (period) {
+      case BudgetPeriod.weekly:
+        final weekday = anchor.weekday; // Monday = 1
+        final start = DateTime(anchor.year, anchor.month, anchor.day - (weekday - 1));
+        final end = DateTime(start.year, start.month, start.day + 6, 23, 59, 59);
+        return (start, end);
+      case BudgetPeriod.monthly:
+        final start = DateTime(anchor.year, anchor.month, 1);
+        final end = DateTime(anchor.year, anchor.month + 1, 0, 23, 59, 59);
+        return (start, end);
     }
-    return map;
+  }
+
+  /// Navigate to previous/next period
+  DateTime previousPeriod(BudgetPeriod period, DateTime anchor) {
+    switch (period) {
+      case BudgetPeriod.weekly:
+        return anchor.subtract(const Duration(days: 7));
+      case BudgetPeriod.monthly:
+        return DateTime(anchor.year, anchor.month - 1, anchor.day);
+    }
+  }
+
+  DateTime nextPeriod(BudgetPeriod period, DateTime anchor) {
+    switch (period) {
+      case BudgetPeriod.weekly:
+        return anchor.add(const Duration(days: 7));
+      case BudgetPeriod.monthly:
+        return DateTime(anchor.year, anchor.month + 1, anchor.day);
+    }
   }
 }

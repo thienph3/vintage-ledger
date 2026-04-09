@@ -10,14 +10,17 @@ class BudgetRepository extends FirestoreRepository<Budget> {
     id: id,
     categoryId: data['category_id'] ?? '',
     amountLimit: data['amount_limit'] ?? 0,
-    period: data['period'] ?? 'monthly',
+    period: BudgetPeriod.values.firstWhere(
+      (e) => e.name == data['period'],
+      orElse: () => BudgetPeriod.monthly,
+    ),
   );
 
   @override
   Map<String, dynamic> toFirestore(Budget item) => {
     'category_id': item.categoryId,
     'amount_limit': item.amountLimit,
-    'period': item.period,
+    'period': item.period.name,
   };
 
   Stream<List<Budget>> watchBudgets() => watchAll();

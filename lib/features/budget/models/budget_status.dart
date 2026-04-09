@@ -5,12 +5,16 @@ class BudgetStatus {
   final String categoryName;
   final int? categoryIcon;
   final int spent;
+  final DateTime periodStart;
+  final DateTime periodEnd;
 
   BudgetStatus({
     required this.budget,
     required this.categoryName,
     this.categoryIcon,
     required this.spent,
+    required this.periodStart,
+    required this.periodEnd,
   });
 
   int get remaining => budget.amountLimit - spent;

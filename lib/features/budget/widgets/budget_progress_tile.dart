@@ -11,8 +11,9 @@ import 'package:vintage_ledger/features/budget/models/budget_status.dart';
 class BudgetProgressTile extends StatelessWidget {
   final BudgetStatus status;
   final VoidCallback? onTap;
+  final VoidCallback? onEdit;
 
-  const BudgetProgressTile({super.key, required this.status, this.onTap});
+  const BudgetProgressTile({super.key, required this.status, this.onTap, this.onEdit});
 
   Color get _progressColor {
     if (status.isExceeded) return AppColors.expense;
@@ -38,6 +39,14 @@ class BudgetProgressTile extends StatelessWidget {
                 Icon(getCategoryIcon(status.categoryIcon), size: 18, color: AppColors.primary),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(child: Text(status.categoryName, style: AppTextStyles.bodyBold)),
+                if (onEdit != null)
+                  GestureDetector(
+                    onTap: onEdit,
+                    child: const Padding(
+                      padding: EdgeInsets.only(right: AppSpacing.sm),
+                      child: Icon(Icons.edit_outlined, size: 16, color: AppColors.textSecondary),
+                    ),
+                  ),
                 Text('$pct%', style: AppTextStyles.caption.copyWith(color: _progressColor)),
               ],
             ),

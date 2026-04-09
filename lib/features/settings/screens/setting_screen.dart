@@ -12,6 +12,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/export/export_service.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
+import 'package:vintage_ledger/features/settings/screens/learned_keywords_screen.dart';
 import 'package:vintage_ledger/features/feed/feed_helper.dart';
 import 'package:vintage_ledger/core/debug/read_counter.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
@@ -329,10 +330,12 @@ class _SettingScreenState extends State<SettingScreen> {
             );
           }),
           if (QuickAddParser.learnedCount > 0)
-            _tile(Icons.delete_sweep_outlined, S.of(context, 'clearLearnedKeywords'),
+            _tile(Icons.label_outline, S.of(context, 'clearLearnedKeywords'),
               subtitle: '${QuickAddParser.learnedCount} ${S.of(context, 'keywords')}',
-              color: AppColors.expense,
-              onTap: () async { await QuickAddParser.clearLearned(); setState(() {}); },
+              onTap: () async {
+                await context.pushScreen(const LearnedKeywordsScreen());
+                setState(() {});
+              },
             ),
 
           // Debug (hidden — tap version 5 times to reveal)

@@ -46,6 +46,17 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
   Widget build(BuildContext context) {
     return AppScaffold(
       title: S.of(context, 'recurringRules'),
+      fab: Positioned(
+        right: 16,
+        bottom: 16,
+        child: FloatingActionButton(
+          onPressed: () async {
+            await context.pushScreen(const RecurringFormScreen());
+            _loadCategories();
+          },
+          child: const Icon(Icons.add),
+        ),
+      ),
       body: StreamBuilder<List<RecurringRule>>(
         stream: sl.recurringService.watchRules(),
         builder: (context, snap) {
@@ -62,15 +73,7 @@ class _RecurringListScreenState extends State<RecurringListScreen> {
                       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                       child: _buildRuleTile(r),
                     )),
-                    const SizedBox(height: AppSpacing.md),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () => context.pushScreen(const RecurringFormScreen()),
-                        icon: const Icon(Icons.add, size: 16),
-                        label: Text(S.of(context, 'addRecurring')),
-                      ),
-                    ),
+                    const SizedBox(height: 72),
                   ],
                 );
         },

@@ -10,6 +10,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/debt/models/debt.dart';
 import 'package:vintage_ledger/features/debt/services/debt_service.dart';
+import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
@@ -162,15 +163,7 @@ class _DebtPaymentScreenState extends State<DebtPaymentScreen> {
           onChanged: (v) => setState(() => _selectedWalletId = v),
         ),
         const SizedBox(height: AppSpacing.md),
-        TextField(
-          controller: _amountController,
-          decoration: InputDecoration(
-            labelText: S.of(context, 'amount'),
-            hintText: S.of(context, 'enterAmount'),
-            prefixIcon: const Icon(Icons.attach_money),
-          ),
-          keyboardType: TextInputType.number,
-        ),
+        AmountInputField(controller: _amountController),
         const SizedBox(height: AppSpacing.md),
         TextField(
           controller: _noteController,

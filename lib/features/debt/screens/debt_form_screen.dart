@@ -6,6 +6,7 @@ import 'package:vintage_ledger/core/theme/app_spacing.dart';
 import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/debt/models/debt.dart';
 import 'package:vintage_ledger/features/debt/services/debt_service.dart';
+import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 
 class DebtFormScreen extends StatefulWidget {
   final Debt? debt;
@@ -80,17 +81,9 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: AppSpacing.md),
-            _buildTextField(
+            AmountInputField(
               controller: _amountController,
               label: S.of(context, 'debtAmount'),
-              hint: S.of(context, 'enterAmount'),
-              icon: Icons.attach_money,
-              keyboardType: TextInputType.number,
-              validator: (v) {
-                if (v?.isEmpty ?? true) return S.of(context, 'enterAmount');
-                if (int.tryParse(v!) == null) return S.of(context, 'amountMustBePositive');
-                return null;
-              },
             ),
             const SizedBox(height: AppSpacing.md),
             _buildDateField(),

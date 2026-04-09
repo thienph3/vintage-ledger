@@ -28,6 +28,8 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
   late AnimationController _controller;
   late Animation<double> _expandAnimation;
   OverlayEntry? _scrimEntry;
+  OverlayEntry? _actionsEntry;
+  final _fabKey = GlobalKey();
 
   @override
   void initState() {
@@ -44,23 +46,65 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
 
   @override
   void dispose() {
-    _removeScrim();
+    _removeOverlays();
     _controller.dispose();
     super.dispose();
   }
 
-  void _insertScrim() {
-    _removeScrim();
+  void _insertOverlays() {
+    _removeOverlays();
+    final overlay = Overlay.of(context, rootOverlay: true);
+
+    // Scrim
     _scrimEntry = OverlayEntry(
       builder: (_) => GestureDetector(
         onTap: _close,
         child: Container(color: Colors.black.withValues(alpha: 0.3)),
       ),
     );
-    Overlay.of(context).insert(_scrimEntry!);
+
+    // Action buttons positioned above the FAB
+    _actionsEntry = OverlayEntry(
+      builder: (_) {
+        final actions = QuickActionsVisibility.resolve(widget.actionsInput);
+        final box = _fabKey.currentContext?.findRenderObject() as RenderBox?;
+        if (box == null) return const SizedBox.shrink();
+        final pos = box.localToGlobal(Offset.zero);
+        final fabRight = MediaQuery.of(context).size.width - pos.dx - box.size.width;
+
+        return Positioned(
+          right: fabRight,
+          bottom: MediaQuery.of(context).size.height - pos.dy + AppSpacing.sm,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              for (int i = 0; i < actions.length; i++) ...[
+                ScaleTransition(
+                  scale: _expandAnimation,
+                  child: _buildActionButton(
+                    label: _labelFor(context, actions[i]),
+                    icon: _iconFor(actions[i]),
+                    color: _colorFor(actions[i]),
+                    onTap: () => _onTap(actions[i]),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+
+    overlay.insert(_scrimEntry!);
+    overlay.insert(_actionsEntry!);
   }
 
-  void _removeScrim() {
+  void _removeOverlays() {
+    _actionsEntry?.remove();
+    _actionsEntry?.dispose();
+    _actionsEntry = null;
     _scrimEntry?.remove();
     _scrimEntry?.dispose();
     _scrimEntry = null;
@@ -70,10 +114,10 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
     setState(() {
       _isExpanded = !_isExpanded;
       if (_isExpanded) {
-        _insertScrim();
+        _insertOverlays();
         _controller.forward();
       } else {
-        _removeScrim();
+        _removeOverlays();
         _controller.reverse();
       }
     });
@@ -81,7 +125,7 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
 
   void _close() {
     if (_isExpanded) {
-      _removeScrim();
+      _removeOverlays();
       setState(() {
         _isExpanded = false;
         _controller.reverse();
@@ -132,25 +176,13 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
     _close();
     switch (type) {
       case QuickActionType.funding:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const FundingFormScreen()),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const FundingFormScreen()));
       case QuickActionType.transfer:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const TransferFormScreen()),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const TransferFormScreen()));
       case QuickActionType.goalContribution:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const GoalContributionScreen()),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const GoalContributionScreen()));
       case QuickActionType.debtPayment:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const DebtPaymentScreen()),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const DebtPaymentScreen()));
     }
   }
 
@@ -162,33 +194,14 @@ class _QuickActionsFabState extends State<QuickActionsFab> with SingleTickerProv
     return Positioned(
       right: 16,
       bottom: widget.bottomOffset,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (_isExpanded) ...[
-            for (int i = 0; i < actions.length; i++) ...[
-              ScaleTransition(
-                scale: _expandAnimation,
-                child: _buildActionButton(
-                  label: _labelFor(context, actions[i]),
-                  icon: _iconFor(actions[i]),
-                  color: _colorFor(actions[i]),
-                  onTap: () => _onTap(actions[i]),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-            ],
-          ],
-          FloatingActionButton(
-            onPressed: _toggle,
-            child: AnimatedRotation(
-              turns: _isExpanded ? 0.125 : 0,
-              duration: const Duration(milliseconds: 200),
-              child: Icon(_isExpanded ? Icons.close : Icons.add),
-            ),
-          ),
-        ],
+      child: FloatingActionButton(
+        key: _fabKey,
+        onPressed: _toggle,
+        child: AnimatedRotation(
+          turns: _isExpanded ? 0.125 : 0,
+          duration: const Duration(milliseconds: 200),
+          child: Icon(_isExpanded ? Icons.close : Icons.add),
+        ),
       ),
     );
   }

@@ -60,6 +60,22 @@ class DebtRepository {
         .map((snap) => snap.docs.map((d) => Debt.fromMap(d.id, d.data())).toList());
   }
 
+  Future<List<Debt>> getActiveDebtsByWallet(String walletId) async {
+    final snap = await _debts
+        .where('wallet_id', isEqualTo: walletId)
+        .where('status', isEqualTo: DebtStatus.active.name)
+        .get();
+    return snap.docs.map((d) => Debt.fromMap(d.id, d.data())).toList();
+  }
+
+  Stream<List<Debt>> watchActiveDebtsByWallet(String walletId) {
+    return _debts
+        .where('wallet_id', isEqualTo: walletId)
+        .where('status', isEqualTo: DebtStatus.active.name)
+        .snapshots()
+        .map((snap) => snap.docs.map((d) => Debt.fromMap(d.id, d.data())).toList());
+  }
+
   Future<Debt?> getDebt(String id) async {
     final doc = await _debts.doc(id).get();
     if (!doc.exists) return null;

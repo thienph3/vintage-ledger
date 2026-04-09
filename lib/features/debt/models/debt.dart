@@ -49,6 +49,7 @@ class Debt {
   final DateTime? dueDate;
   final double? interestRate;
   final String? description;
+  final String? walletId;
   final DebtStatus status;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -64,6 +65,7 @@ class Debt {
     this.dueDate,
     this.interestRate,
     this.description,
+    this.walletId,
     required this.status,
     required this.createdAt,
     required this.updatedAt,
@@ -112,6 +114,7 @@ class Debt {
           : null,
       interestRate: data['interest_rate']?.toDouble(),
       description: data['description'],
+      walletId: data['wallet_id'],
       status: DebtStatus.values.firstWhere(
         (e) => e.name == data['status'],
         orElse: () => DebtStatus.active,
@@ -132,6 +135,7 @@ class Debt {
       if (dueDate != null) 'due_date': dueDate!.millisecondsSinceEpoch,
       if (interestRate != null) 'interest_rate': interestRate,
       if (description != null) 'description': description,
+      if (walletId != null) 'wallet_id': walletId,
       'status': status.name,
       'created_at': createdAt.millisecondsSinceEpoch,
       'updated_at': updatedAt.millisecondsSinceEpoch,
@@ -149,6 +153,7 @@ class Debt {
     DateTime? dueDate,
     double? interestRate,
     String? description,
+    String? walletId,
     DebtStatus? status,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -164,6 +169,7 @@ class Debt {
       dueDate: dueDate ?? this.dueDate,
       interestRate: interestRate ?? this.interestRate,
       description: description ?? this.description,
+      walletId: walletId ?? this.walletId,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

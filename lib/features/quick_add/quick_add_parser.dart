@@ -78,6 +78,16 @@ class QuickAddParser {
 
   static int get learnedCount => _learnedMap.length;
 
+  /// Get all learned keywords as a list of (keyword, categoryId) pairs, most recent last
+  static List<(String keyword, String categoryId)> get learnedKeywords =>
+      _learnedMap.entries.map((e) => (e.key, e.value)).toList();
+
+  /// Remove a single learned keyword
+  static Future<void> removeKeyword(String keyword) async {
+    _learnedMap.remove(keyword);
+    await _persist();
+  }
+
   // ── Debounced persist (#4) ──
 
   /// Call on app pause (WidgetsBindingObserver) to flush pending writes

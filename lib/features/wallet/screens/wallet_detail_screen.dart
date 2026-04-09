@@ -5,6 +5,8 @@ import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/goal/models/goal.dart';
 import 'package:vintage_ledger/features/goal/services/goal_service.dart';
+import 'package:vintage_ledger/features/debt/models/debt.dart';
+import 'package:vintage_ledger/features/debt/services/debt_service.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 import 'package:vintage_ledger/core/enums/transaction_type.dart';
 
@@ -21,6 +23,7 @@ import 'package:vintage_ledger/features/transaction/screens/transaction_list_scr
 import 'package:vintage_ledger/features/quick_add/quick_add_bar.dart';
 import 'package:vintage_ledger/features/wallet/screens/wallet_form_screen.dart';
 import 'package:vintage_ledger/features/goal/screens/goal_contribution_screen.dart';
+import 'package:vintage_ledger/features/debt/screens/debt_payment_screen.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 import 'package:vintage_ledger/utils/navigator_x.dart';
 
@@ -36,6 +39,7 @@ class WalletDetailScreen extends StatefulWidget {
 class _WalletDetailScreenState extends State<WalletDetailScreen> {
   late String _walletName;
   final _goalService = GoalService();
+  final _debtService = DebtService();
   Map<String, String> _categoryNames = {};
   Map<String, String> _walletNameMap = {};
   bool _loading = true;
@@ -86,6 +90,7 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                         _buildBalanceCard(),
                         const SizedBox(height: AppSpacing.lg),
                         _buildGoalSection(),
+                        _buildDebtSection(),
                         _buildFeedSection(),
                       ],
                     ),
@@ -121,7 +126,7 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
         right: 16,
         bottom: 80,
         child: FloatingActionButton.extended(
-          onPressed: _recordDebtPayment,
+          onPressed: () => context.pushScreen(const DebtPaymentScreen()),
           icon: const Icon(Icons.payment),
           label: Text(S.of(context, 'payDebt')),
           backgroundColor: AppColors.expense,
@@ -130,81 +135,6 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
       );
     }
     return null;
-  }
-
-  Future<void> _recordDebtPayment() async {
-    try {
-      final sysCat = await sl.categoryService.ensureSystemCategory('debt_payment');
-      final categoryId = sysCat.id ?? '';
-      if (!mounted) return;
-
-      final amountController = TextEditingController();
-      final noteController = TextEditingController();
-
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: Text(S.of(ctx, 'payDebt')),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: amountController,
-                decoration: InputDecoration(
-                  labelText: S.of(ctx, 'amount'),
-                  prefixIcon: const Icon(Icons.attach_money),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              TextField(
-                controller: noteController,
-                decoration: InputDecoration(
-                  labelText: S.of(ctx, 'note'),
-                  prefixIcon: const Icon(Icons.note),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text(S.of(ctx, 'cancel')),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(S.of(ctx, 'save')),
-            ),
-          ],
-        ),
-      );
-
-      if (confirmed != true || !mounted) return;
-
-      final amount = int.tryParse(amountController.text);
-      if (amount == null || amount <= 0) return;
-
-      await sl.transactionService.createTransaction(
-        walletId: widget.wallet.id!,
-        categoryId: categoryId,
-        type: TransactionType.expense,
-        amount: amount,
-        note: noteController.text.isEmpty ? null : noteController.text,
-        date: DateTime.now().millisecondsSinceEpoch,
-      );
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(S.of(context, 'paymentRecorded'))),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${S.of(context, 'error')}: $e')),
-        );
-      }
-    }
   }
 
   // ── Balance Card ──
@@ -438,6 +368,76 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
                     Text(
                       AmountFormatter.formatCompactCurrency(goal.currentAmount, locale),
                       style: AppTextStyles.bodyBold.copyWith(color: AppColors.income),
+                    ),
+                  ],
+                ),
+              ),
+            )),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+        );
+      },
+    );
+  }
+
+  // ── Debt Section (only when debt wallet has linked debts) ──
+
+  Widget _buildDebtSection() {
+    if (widget.wallet.type != WalletType.debt) return const SizedBox.shrink();
+
+    return StreamBuilder<List<Debt>>(
+      stream: _debtService.watchDebtsByWallet(widget.wallet.id!),
+      initialData: const [],
+      builder: (context, snapshot) {
+        final debts = snapshot.data ?? [];
+        if (debts.isEmpty) return const SizedBox.shrink();
+
+        final locale = Localizations.localeOf(context).languageCode;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(S.of(context, 'debts'), style: AppTextStyles.titleSmall),
+            const SizedBox(height: AppSpacing.sm),
+            ...debts.map((debt) => Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
+                  border: Border.all(color: AppColors.divider),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      debt.type == DebtType.lend ? Icons.trending_up : Icons.trending_down,
+                      color: debt.type == DebtType.lend ? AppColors.income : AppColors.expense,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(debt.partyName, style: AppTextStyles.bodyBold),
+                          const SizedBox(height: AppSpacing.xs),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: LinearProgressIndicator(
+                              value: debt.progressPercentage.clamp(0.0, 1.0),
+                              backgroundColor: AppColors.divider,
+                              valueColor: AlwaysStoppedAnimation(
+                                debt.type == DebtType.lend ? AppColors.income : AppColors.expense,
+                              ),
+                              minHeight: 4,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Text(
+                      AmountFormatter.formatCompactCurrency(debt.remainingAmount, locale),
+                      style: AppTextStyles.bodyBold.copyWith(color: AppColors.expense),
                     ),
                   ],
                 ),

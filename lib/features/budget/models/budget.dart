@@ -1,17 +1,31 @@
+enum BudgetPeriod {
+  weekly,
+  monthly;
+
+  String get l10nKey {
+    switch (this) {
+      case BudgetPeriod.weekly:
+        return 'weekly';
+      case BudgetPeriod.monthly:
+        return 'monthly';
+    }
+  }
+}
+
 class Budget {
   final String? id;
   final String categoryId;
   final int amountLimit;
-  final String period; // 'monthly'
+  final BudgetPeriod period;
 
   Budget({
     this.id,
     required this.categoryId,
     required this.amountLimit,
-    this.period = 'monthly',
+    this.period = BudgetPeriod.monthly,
   });
 
-  Budget copyWith({String? id, String? categoryId, int? amountLimit, String? period}) {
+  Budget copyWith({String? id, String? categoryId, int? amountLimit, BudgetPeriod? period}) {
     return Budget(
       id: id ?? this.id,
       categoryId: categoryId ?? this.categoryId,

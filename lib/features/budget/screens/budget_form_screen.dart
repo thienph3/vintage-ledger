@@ -29,6 +29,7 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
   final _amountCtrl = TextEditingController();
   List<Category> _categories = [];
   String? _categoryId;
+  BudgetPeriod _period = BudgetPeriod.monthly;
 
   bool get isEdit => widget.budget != null;
 
@@ -36,7 +37,10 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
   void initState() {
     super.initState();
     _categoryId = widget.budget?.categoryId ?? widget.initialCategoryId;
-    if (isEdit) _amountCtrl.text = widget.budget!.amountLimit.toString();
+    if (isEdit) {
+      _amountCtrl.text = widget.budget!.amountLimit.toString();
+      _period = widget.budget!.period;
+    }
     _loadCategories();
   }
 
@@ -61,9 +65,9 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
 
     try {
       if (isEdit) {
-        await sl.budgetService.updateBudget(widget.budget!.id!, amount);
+        await sl.budgetService.updateBudget(widget.budget!.id!, amount, period: _period);
       } else {
-        await sl.budgetService.createBudget(_categoryId!, amount);
+        await sl.budgetService.createBudget(_categoryId!, amount, period: _period);
       }
       if (!mounted) return;
       Navigator.pop(context, true);
@@ -100,6 +104,8 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
                   validator: (v) => v == null && _categoryId == null ? S.of(context, 'selectCategoryRequired') : null,
                 ),
               if (!isEdit) const SizedBox(height: AppSpacing.md),
+              _buildPeriodSelector(),
+              const SizedBox(height: AppSpacing.md),
               AmountInputField(controller: _amountCtrl),
               const SizedBox(height: AppSpacing.lg),
               FormSaveButton(isEdit: isEdit, onPressed: _save),
@@ -107,6 +113,41 @@ class _BudgetFormScreenState extends State<BudgetFormScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPeriodSelector() {
+    return Row(
+      children: BudgetPeriod.values.map((p) {
+        final selected = _period == p;
+        return Expanded(
+          child: Padding(
+            padding: EdgeInsets.only(right: p != BudgetPeriod.values.last ? AppSpacing.sm : 0),
+            child: GestureDetector(
+              onTap: () => setState(() => _period = p),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                decoration: BoxDecoration(
+                  color: selected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.surface,
+                  borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
+                  border: Border.all(
+                    color: selected ? AppColors.primary : AppColors.divider,
+                    width: selected ? 2 : 1,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    S.of(context, p.l10nKey),
+                    style: selected
+                        ? TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }

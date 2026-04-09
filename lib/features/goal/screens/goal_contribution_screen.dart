@@ -8,6 +8,7 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/goal/models/goal.dart';
 import 'package:vintage_ledger/features/goal/services/goal_service.dart';
 import 'package:vintage_ledger/features/wallet/services/wallet_service.dart';
+import 'package:vintage_ledger/common/widgets/amount_input_field.dart';
 import 'package:vintage_ledger/utils/amount_formatter.dart';
 
 class GoalContributionScreen extends StatefulWidget {
@@ -26,23 +27,32 @@ class _GoalContributionScreenState extends State<GoalContributionScreen> {
   bool _isLoading = false;
   int? _availableBalance;
   bool _isLoadingBalance = false;
+  List<Goal>? _goals;
+  bool _loadingGoals = true;
+  String? _amountError;
 
   @override
   void initState() {
     super.initState();
-    _amountController.addListener(_onAmountChanged);
+    _amountController.addListener(_validateAmount);
+    _loadGoals();
   }
 
   @override
   void dispose() {
-    _amountController.removeListener(_onAmountChanged);
+    _amountController.removeListener(_validateAmount);
     _amountController.dispose();
     _noteController.dispose();
     super.dispose();
   }
 
-  void _onAmountChanged() {
-    setState(() {});
+  Future<void> _loadGoals() async {
+    final goals = await _service.getActiveGoals();
+    if (!mounted) return;
+    setState(() {
+      _goals = goals;
+      _loadingGoals = false;
+    });
   }
 
   Future<void> _fetchAvailableBalance(Goal goal) async {
@@ -50,74 +60,70 @@ class _GoalContributionScreenState extends State<GoalContributionScreen> {
     try {
       final wallet = await _walletService.getWallet(goal.fundingWalletId);
       if (wallet == null) {
-        setState(() {
-          _availableBalance = null;
-          _isLoadingBalance = false;
-        });
+        setState(() { _availableBalance = null; _isLoadingBalance = false; });
         return;
       }
       final earmarked = await _service.getEarmarkedAmount(goal.fundingWalletId);
+      if (!mounted) return;
       setState(() {
         _availableBalance = wallet.balance - earmarked;
         _isLoadingBalance = false;
       });
     } catch (_) {
-      setState(() {
-        _availableBalance = null;
-        _isLoadingBalance = false;
-      });
+      if (!mounted) return;
+      setState(() { _availableBalance = null; _isLoadingBalance = false; });
     }
   }
 
-  bool get _amountExceedsAvailable {
-    if (_availableBalance == null) return false;
+  void _validateAmount() {
     final amount = int.tryParse(_amountController.text) ?? 0;
-    return amount > _availableBalance!;
+    final exceeds = _availableBalance != null && amount > _availableBalance!;
+    final newError = exceeds ? S.of(context, 'amountExceedsAvailable') : null;
+    if (newError != _amountError) {
+      setState(() => _amountError = newError);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
       title: S.of(context, 'contributeToGoal'),
-      body: StreamBuilder<List<Goal>>(
-        stream: _service.watchGoalsProgress(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const ShimmerPlaceholder();
-          }
+      body: _buildBody(),
+    );
+  }
 
-          final goals = snapshot.data ?? [];
-          if (goals.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(S.of(context, 'noGoals'), style: AppTextStyles.hint),
-                  const SizedBox(height: AppSpacing.md),
-                  ElevatedButton.icon(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.arrow_back),
-                    label: Text(S.of(context, 'cancel')),
-                  ),
-                ],
-              ),
-            );
-          }
+  Widget _buildBody() {
+    if (_loadingGoals) return const ShimmerPlaceholder();
 
-          return ListView(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            children: [
-              Text(S.of(context, 'goalCategory'), style: AppTextStyles.titleSmall),
-              const SizedBox(height: AppSpacing.md),
-              ...goals.map((goal) => _buildGoalOption(goal)),
-              if (_selectedGoal != null) ...[
-                const SizedBox(height: AppSpacing.lg),
-                _buildContributionForm(),
-              ],
-            ],
-          );
-        },
-      ),
+    final goals = _goals ?? [];
+    if (goals.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(S.of(context, 'noGoals'), style: AppTextStyles.hint),
+            const SizedBox(height: AppSpacing.md),
+            ElevatedButton.icon(
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.arrow_back),
+              label: Text(S.of(context, 'cancel')),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      children: [
+        Text(S.of(context, 'goalCategory'), style: AppTextStyles.titleSmall),
+        const SizedBox(height: AppSpacing.md),
+        ...goals.map((goal) => _buildGoalOption(goal)),
+        if (_selectedGoal != null) ...[
+          const SizedBox(height: AppSpacing.lg),
+          _buildContributionForm(),
+        ],
+      ],
     );
   }
 
@@ -169,7 +175,6 @@ class _GoalContributionScreenState extends State<GoalContributionScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Available balance display
         if (_isLoadingBalance)
           const Padding(
             padding: EdgeInsets.only(bottom: AppSpacing.md),
@@ -188,10 +193,7 @@ class _GoalContributionScreenState extends State<GoalContributionScreen> {
                 children: [
                   const Icon(Icons.account_balance_wallet, size: 18, color: AppColors.textSecondary),
                   const SizedBox(width: AppSpacing.sm),
-                  Text(
-                    '${S.of(context, 'availableBalanceLabel')}: ',
-                    style: AppTextStyles.caption,
-                  ),
+                  Text('${S.of(context, 'availableBalanceLabel')}: ', style: AppTextStyles.caption),
                   Text(
                     AmountFormatter.formatCurrency(_availableBalance!, 'vi'),
                     style: AppTextStyles.bodyBold.copyWith(
@@ -204,16 +206,15 @@ class _GoalContributionScreenState extends State<GoalContributionScreen> {
           ),
         Text(S.of(context, 'contributionAmount'), style: AppTextStyles.titleSmall),
         const SizedBox(height: AppSpacing.md),
-        TextField(
+        AmountInputField(
           controller: _amountController,
-          decoration: InputDecoration(
-            labelText: S.of(context, 'amount'),
-            hintText: S.of(context, 'enterAmount'),
-            prefixIcon: const Icon(Icons.attach_money),
-            errorText: _amountExceedsAvailable ? S.of(context, 'amountExceedsAvailable') : null,
-          ),
-          keyboardType: TextInputType.number,
+          label: S.of(context, 'amount'),
         ),
+        if (_amountError != null)
+          Padding(
+            padding: const EdgeInsets.only(top: AppSpacing.xs),
+            child: Text(_amountError!, style: AppTextStyles.caption.copyWith(color: AppColors.error)),
+          ),
         const SizedBox(height: AppSpacing.md),
         TextField(
           controller: _noteController,
@@ -227,13 +228,9 @@ class _GoalContributionScreenState extends State<GoalContributionScreen> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: (_isLoading || _amountExceedsAvailable) ? null : _contribute,
+            onPressed: (_isLoading || _amountError != null) ? null : _contribute,
             child: _isLoading
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
                 : Text(S.of(context, 'contribute')),
           ),
         ),

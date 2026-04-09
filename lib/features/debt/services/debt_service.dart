@@ -13,6 +13,7 @@ class DebtService {
     required String partyName,
     required int amount,
     String? contact,
+    String? walletId,
     DateTime? dueDate,
     double? interestRate,
     String? description,
@@ -29,6 +30,7 @@ class DebtService {
       dueDate: dueDate,
       interestRate: interestRate,
       description: description,
+      walletId: walletId,
       status: DebtStatus.active,
       createdAt: now,
       updatedAt: now,
@@ -40,6 +42,7 @@ class DebtService {
     required String partyName,
     required int amount,
     String? contact,
+    String? walletId,
     DateTime? dueDate,
     double? interestRate,
     String? description,
@@ -56,6 +59,7 @@ class DebtService {
       dueDate: dueDate,
       interestRate: interestRate,
       description: description,
+      walletId: walletId,
       status: DebtStatus.active,
       createdAt: now,
       updatedAt: now,
@@ -245,6 +249,14 @@ class DebtService {
 
   Stream<List<Debt>> watchActiveDebts() {
     return _repo.watchActiveDebts();
+  }
+
+  Stream<List<Debt>> watchDebtsByWallet(String walletId) {
+    return _repo.watchActiveDebtsByWallet(walletId);
+  }
+
+  Future<List<Debt>> getDebtsByWallet(String walletId) async {
+    return await _repo.getActiveDebtsByWallet(walletId);
   }
 
   Future<Debt?> getDebt(String id) async {
