@@ -394,6 +394,28 @@ class AccountService {
 
   // ── Activity feed (#6) ──
 
+  /// Set a member's nickname within a specific account
+  Future<void> setMemberNickname({
+    required String accountId,
+    required String userId,
+    required String nickname,
+  }) async {
+    await _accounts.doc(accountId).update({
+      'member_nicknames.$userId': nickname,
+    });
+  }
+
+  /// Get display name for a user in a specific account (nickname > global name)
+  Future<String> getMemberDisplayName(String accountId, String userId) async {
+    final account = await getAccount(accountId);
+    final nickname = account?.getNickname(userId);
+    if (nickname != null && nickname.isNotEmpty) return nickname;
+
+    final userDoc = await _users.doc(userId).get();
+    if (!userDoc.exists) return '';
+    return (userDoc.data() as Map<String, dynamic>)['display_name'] ?? '';
+  }
+
   Future<void> logActivity({
     required String accountId,
     required String userId,

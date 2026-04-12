@@ -4,6 +4,7 @@ class Account {
   final String name;
   final String ownerId;
   final List<String> memberIds;
+  final Map<String, String> memberNicknames;
   final int createdAt;
 
   Account({
@@ -12,15 +13,20 @@ class Account {
     required this.name,
     required this.ownerId,
     required this.memberIds,
+    this.memberNicknames = const {},
     required this.createdAt,
   });
 
   bool get isPersonal => type == 'personal';
   bool get isFamily => type == 'family';
 
+  /// Get display name for a member in this account (nickname > global name)
+  String? getNickname(String userId) => memberNicknames[userId];
+
   Account copyWith({
     String? id, String? type, String? name,
-    String? ownerId, List<String>? memberIds, int? createdAt,
+    String? ownerId, List<String>? memberIds,
+    Map<String, String>? memberNicknames, int? createdAt,
   }) {
     return Account(
       id: id ?? this.id,
@@ -28,6 +34,7 @@ class Account {
       name: name ?? this.name,
       ownerId: ownerId ?? this.ownerId,
       memberIds: memberIds ?? this.memberIds,
+      memberNicknames: memberNicknames ?? this.memberNicknames,
       createdAt: createdAt ?? this.createdAt,
     );
   }
@@ -37,6 +44,7 @@ class Account {
     'name': name,
     'owner_id': ownerId,
     'member_ids': memberIds,
+    if (memberNicknames.isNotEmpty) 'member_nicknames': memberNicknames,
     'created_at': createdAt,
   };
 
@@ -46,6 +54,7 @@ class Account {
     name: map['name'] ?? '',
     ownerId: map['owner_id'] ?? '',
     memberIds: List<String>.from(map['member_ids'] ?? []),
+    memberNicknames: Map<String, String>.from(map['member_nicknames'] ?? {}),
     createdAt: map['created_at'] ?? 0,
   );
 

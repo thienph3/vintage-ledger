@@ -115,7 +115,19 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Future<void> _editDisplayName(User user) async {
-    final ctrl = TextEditingController(text: user.displayName ?? '');
+    final isFamily = _currentAccount?.isFamily == true;
+    final currentAccountId = sl.appState.currentAccountId;
+    final userId = user.uid;
+
+    // For family accounts, use nickname; for personal, use global name
+    String currentName;
+    if (isFamily) {
+      currentName = _currentAccount?.getNickname(userId) ?? user.displayName ?? '';
+    } else {
+      currentName = user.displayName ?? '';
+    }
+
+    final ctrl = TextEditingController(text: currentName);
     final newName = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -130,10 +142,24 @@ class _SettingScreenState extends State<SettingScreen> {
         ],
       ),
     );
-    if (newName == null || newName.isEmpty || newName == user.displayName) return;
-    await user.updateDisplayName(newName);
-    await sl.accountService.updateUserProfile(userId: user.uid, email: user.email ?? '', displayName: newName);
-    if (mounted) setState(() {});
+    if (newName == null || newName.isEmpty || newName == currentName) return;
+
+    if (isFamily) {
+      // Save as nickname for this account only
+      await sl.accountService.setMemberNickname(
+        accountId: currentAccountId,
+        userId: userId,
+        nickname: newName,
+      );
+    } else {
+      // Personal account: update global display name
+      await user.updateDisplayName(newName);
+      await sl.accountService.updateUserProfile(userId: userId, email: user.email ?? '', displayName: newName);
+    }
+    if (mounted) {
+      _load();
+      setState(() {});
+    }
   }
 
   Future<void> _loginExisting() async {
