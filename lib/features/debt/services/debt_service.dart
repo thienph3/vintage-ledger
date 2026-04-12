@@ -6,6 +6,7 @@ import 'package:vintage_ledger/features/debt/repositories/debt_repository.dart';
 
 class DebtService {
   final _repo = DebtRepository();
+  final _firestore = FirebaseFirestore.instance;
 
   // ── Core Operations ──
 
@@ -67,6 +68,144 @@ class DebtService {
     return await _repo.addDebt(debt);
   }
 
+  // ── Linked Debt Operations ──
+
+  Future<String> choVayLienKet({
+    required String partyUserId,
+    required String partyAccountId,
+    required String partyName,
+    required int amount,
+    String? walletId,
+    DateTime? dueDate,
+    double? interestRate,
+    String? description,
+  }) async {
+    return _createLinkedDebt(
+      creatorType: DebtType.lend,
+      partyType: DebtType.borrow,
+      partyUserId: partyUserId,
+      partyAccountId: partyAccountId,
+      partyName: partyName,
+      amount: amount,
+      walletId: walletId,
+      dueDate: dueDate,
+      interestRate: interestRate,
+      description: description,
+    );
+  }
+
+  Future<String> vayMuonLienKet({
+    required String partyUserId,
+    required String partyAccountId,
+    required String partyName,
+    required int amount,
+    String? walletId,
+    DateTime? dueDate,
+    double? interestRate,
+    String? description,
+  }) async {
+    return _createLinkedDebt(
+      creatorType: DebtType.borrow,
+      partyType: DebtType.lend,
+      partyUserId: partyUserId,
+      partyAccountId: partyAccountId,
+      partyName: partyName,
+      amount: amount,
+      walletId: walletId,
+      dueDate: dueDate,
+      interestRate: interestRate,
+      description: description,
+    );
+  }
+
+  Future<String> _createLinkedDebt({
+    required DebtType creatorType,
+    required DebtType partyType,
+    required String partyUserId,
+    required String partyAccountId,
+    required String partyName,
+    required int amount,
+    String? walletId,
+    DateTime? dueDate,
+    double? interestRate,
+    String? description,
+  }) async {
+    final accountId = sl.appState.currentAccountId;
+    final currentUserId = sl.appState.currentUserId ?? '';
+    final now = DateTime.now();
+    final nowMs = now.millisecondsSinceEpoch;
+
+    // Pre-generate 2 doc refs in 2 account subcollections
+    final creatorDebtRef = _firestore
+        .collection('accounts')
+        .doc(accountId)
+        .collection('debts_v2')
+        .doc();
+    final partyDebtRef = _firestore
+        .collection('accounts')
+        .doc(partyAccountId)
+        .collection('debts_v2')
+        .doc();
+
+    // Get creator's display name for the party's document
+    final creatorName = await sl.accountService.getAccountNameForUser(currentUserId);
+
+    // Shared fields
+    final sharedFields = <String, dynamic>{
+      'total_amount': amount,
+      'paid_amount': 0,
+      'status': DebtStatus.active.name,
+      'created_at': nowMs,
+      'updated_at': nowMs,
+      if (dueDate != null) 'due_date': dueDate.millisecondsSinceEpoch,
+      if (interestRate != null) 'interest_rate': interestRate,
+      if (description != null) 'description': description,
+    };
+
+    // Creator's debt document
+    final creatorData = <String, dynamic>{
+      ...sharedFields,
+      'account_id': accountId,
+      'type': creatorType.name,
+      'party_name': partyName,
+      'linked_debt_id': partyDebtRef.id,
+      'linked_account_id': partyAccountId,
+      'party_user_id': partyUserId,
+      'created_by': currentUserId,
+      if (walletId != null) 'wallet_id': walletId,
+    };
+
+    // Party's debt document
+    final partyData = <String, dynamic>{
+      ...sharedFields,
+      'account_id': partyAccountId,
+      'type': partyType.name,
+      'party_name': creatorName.isNotEmpty ? creatorName : 'Người dùng',
+      'linked_debt_id': creatorDebtRef.id,
+      'linked_account_id': accountId,
+      'party_user_id': currentUserId,
+      'created_by': currentUserId,
+    };
+
+    // Firestore transaction: create both documents atomically
+    await _firestore.runTransaction((txn) async {
+      txn.set(creatorDebtRef, creatorData);
+      txn.set(partyDebtRef, partyData);
+    });
+
+    // Send notification to party (fire-and-forget)
+    sl.notificationService.notifyDebtCreated(
+      targetUserId: partyUserId,
+      creatorName: creatorName.isNotEmpty ? creatorName : 'Người dùng',
+      amount: amount,
+      debtType: creatorType.name,
+    );
+
+    return creatorDebtRef.id;
+  }
+
+  // ── Payment Operations ──
+
   Future<void> nhanTienTra(String debtId, int amount, {
     required String walletId,
     String? note,
@@ -79,6 +218,13 @@ class DebtService {
     // Resolve system category
     final sysCat = await sl.categoryService.ensureSystemCategory('debt_payment');
     final categoryId = sysCat.id ?? '';
+
+    // Track linked debt info for post-transaction notification
+    String? linkedPartyUserId;
+    String? linkedPartyName;
+    int? newPaidAmountResult;
+    int? totalAmountResult;
+    bool isCompleted = false;
 
     await firestore.runTransaction((txn) async {
       // 1. Read debt document
@@ -93,6 +239,9 @@ class DebtService {
       if (debtData['type'] != 'lend') throw Exception('Not a lend debt');
       final paidAmount = debtData['paid_amount'] as int? ?? 0;
       final totalAmount = debtData['total_amount'] as int? ?? 0;
+      final linkedDebtId = debtData['linked_debt_id'] as String?;
+      final linkedAccountId = debtData['linked_account_id'] as String?;
+      final partyUserId = debtData['party_user_id'] as String?;
 
       // 2. Read wallet balance
       final walletRef = firestore
@@ -139,15 +288,73 @@ class DebtService {
 
       // 6. Update debt paid_amount and status if completed
       final newPaidAmount = paidAmount + amount;
-      final updates = <String, dynamic>{
+      final debtUpdates = <String, dynamic>{
         'paid_amount': newPaidAmount,
         'updated_at': now.millisecondsSinceEpoch,
       };
       if (newPaidAmount >= totalAmount) {
-        updates['status'] = 'completed';
+        debtUpdates['status'] = 'completed';
       }
-      txn.update(debtRef, updates);
+      txn.update(debtRef, debtUpdates);
+
+      // 7. Sync linked debt if applicable
+      if (linkedDebtId != null && linkedAccountId != null) {
+        final linkedDebtRef = firestore
+            .collection('accounts')
+            .doc(linkedAccountId)
+            .collection('debts_v2')
+            .doc(linkedDebtId);
+        final linkedDebtSnap = await txn.get(linkedDebtRef);
+
+        if (linkedDebtSnap.exists) {
+          // Update paidAmount and status on linked debt
+          final linkedUpdates = <String, dynamic>{
+            'paid_amount': newPaidAmount,
+            'updated_at': now.millisecondsSinceEpoch,
+          };
+          if (newPaidAmount >= totalAmount) {
+            linkedUpdates['status'] = 'completed';
+          }
+          txn.update(linkedDebtRef, linkedUpdates);
+
+          // Store info for post-transaction notification
+          linkedPartyUserId = partyUserId;
+          linkedPartyName = debtData['party_name'] as String?;
+        } else {
+          // Linked debt doc doesn't exist — unlink and continue normally
+          txn.update(debtRef, {
+            'linked_debt_id': FieldValue.delete(),
+            'linked_account_id': FieldValue.delete(),
+          });
+        }
+      }
+
+      // Store results for post-transaction notification
+      newPaidAmountResult = newPaidAmount;
+      totalAmountResult = totalAmount;
+      isCompleted = newPaidAmount >= totalAmount;
     });
+
+    // 8. Send notification after transaction succeeds (fire-and-forget)
+    if (linkedPartyUserId != null) {
+      final currentUserName = await sl.accountService.getAccountNameForUser(userId);
+      final payerName = currentUserName.isNotEmpty ? currentUserName : 'Người dùng';
+
+      if (isCompleted) {
+        sl.notificationService.notifyDebtCompleted(
+          targetUserId: linkedPartyUserId!,
+          partyName: payerName,
+          totalAmount: totalAmountResult!,
+        );
+      } else {
+        sl.notificationService.notifyDebtPayment(
+          targetUserId: linkedPartyUserId!,
+          payerName: payerName,
+          amount: amount,
+          remainingAmount: totalAmountResult! - newPaidAmountResult!,
+        );
+      }
+    }
   }
 
   Future<void> traNop(String debtId, int amount, {
@@ -163,6 +370,13 @@ class DebtService {
     final sysCat = await sl.categoryService.ensureSystemCategory('debt_payment');
     final categoryId = sysCat.id ?? '';
 
+    // Track linked debt info for post-transaction notification
+    String? linkedPartyUserId;
+    String? linkedPartyName;
+    int? newPaidAmountResult;
+    int? totalAmountResult;
+    bool isCompleted = false;
+
     await firestore.runTransaction((txn) async {
       // 1. Read debt document
       final debtRef = firestore
@@ -176,6 +390,9 @@ class DebtService {
       if (debtData['type'] != 'borrow') throw Exception('Not a borrow debt');
       final paidAmount = debtData['paid_amount'] as int? ?? 0;
       final totalAmount = debtData['total_amount'] as int? ?? 0;
+      final linkedDebtId = debtData['linked_debt_id'] as String?;
+      final linkedAccountId = debtData['linked_account_id'] as String?;
+      final partyUserId = debtData['party_user_id'] as String?;
 
       // 2. Read wallet balance
       final walletRef = firestore
@@ -225,15 +442,73 @@ class DebtService {
 
       // 7. Update debt paid_amount and status if completed
       final newPaidAmount = paidAmount + amount;
-      final updates = <String, dynamic>{
+      final debtUpdates = <String, dynamic>{
         'paid_amount': newPaidAmount,
         'updated_at': now.millisecondsSinceEpoch,
       };
       if (newPaidAmount >= totalAmount) {
-        updates['status'] = 'completed';
+        debtUpdates['status'] = 'completed';
       }
-      txn.update(debtRef, updates);
+      txn.update(debtRef, debtUpdates);
+
+      // 8. Sync linked debt if applicable
+      if (linkedDebtId != null && linkedAccountId != null) {
+        final linkedDebtRef = firestore
+            .collection('accounts')
+            .doc(linkedAccountId)
+            .collection('debts_v2')
+            .doc(linkedDebtId);
+        final linkedDebtSnap = await txn.get(linkedDebtRef);
+
+        if (linkedDebtSnap.exists) {
+          // Update paidAmount and status on linked debt
+          final linkedUpdates = <String, dynamic>{
+            'paid_amount': newPaidAmount,
+            'updated_at': now.millisecondsSinceEpoch,
+          };
+          if (newPaidAmount >= totalAmount) {
+            linkedUpdates['status'] = 'completed';
+          }
+          txn.update(linkedDebtRef, linkedUpdates);
+
+          // Store info for post-transaction notification
+          linkedPartyUserId = partyUserId;
+          linkedPartyName = debtData['party_name'] as String?;
+        } else {
+          // Linked debt doc doesn't exist — unlink and continue normally
+          txn.update(debtRef, {
+            'linked_debt_id': FieldValue.delete(),
+            'linked_account_id': FieldValue.delete(),
+          });
+        }
+      }
+
+      // Store results for post-transaction notification
+      newPaidAmountResult = newPaidAmount;
+      totalAmountResult = totalAmount;
+      isCompleted = newPaidAmount >= totalAmount;
     });
+
+    // 9. Send notification after transaction succeeds (fire-and-forget)
+    if (linkedPartyUserId != null) {
+      final currentUserName = await sl.accountService.getAccountNameForUser(userId);
+      final payerName = currentUserName.isNotEmpty ? currentUserName : 'Người dùng';
+
+      if (isCompleted) {
+        sl.notificationService.notifyDebtCompleted(
+          targetUserId: linkedPartyUserId!,
+          partyName: payerName,
+          totalAmount: totalAmountResult!,
+        );
+      } else {
+        sl.notificationService.notifyDebtPayment(
+          targetUserId: linkedPartyUserId!,
+          payerName: payerName,
+          amount: amount,
+          remainingAmount: totalAmountResult! - newPaidAmountResult!,
+        );
+      }
+    }
   }
 
   // ── Queries ──
@@ -300,10 +575,146 @@ class DebtService {
   }
 
   Future<void> cancelDebt(String id) async {
-    await _repo.updateDebt(id, {'status': DebtStatus.cancelled.name});
+    final accountId = sl.appState.currentAccountId;
+    final userId = sl.appState.currentUserId ?? '';
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    // Track linked debt info for post-transaction notification
+    String? linkedPartyUserId;
+    int? totalAmount;
+
+    await _firestore.runTransaction((txn) async {
+      // 1. Read debt document
+      final debtRef = _firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('debts_v2')
+          .doc(id);
+      final debtSnap = await txn.get(debtRef);
+      if (!debtSnap.exists) throw Exception('Debt not found');
+      final debtData = debtSnap.data()!;
+      final linkedDebtId = debtData['linked_debt_id'] as String?;
+      final linkedAccountId = debtData['linked_account_id'] as String?;
+      final partyUserId = debtData['party_user_id'] as String?;
+
+      // 2. Cancel the current debt
+      txn.update(debtRef, {
+        'status': DebtStatus.cancelled.name,
+        'updated_at': now,
+      });
+
+      // 3. If linked: unlink the other side
+      if (linkedDebtId != null && linkedAccountId != null) {
+        final linkedDebtRef = _firestore
+            .collection('accounts')
+            .doc(linkedAccountId)
+            .collection('debts_v2')
+            .doc(linkedDebtId);
+        final linkedDebtSnap = await txn.get(linkedDebtRef);
+
+        if (linkedDebtSnap.exists) {
+          txn.update(linkedDebtRef, {
+            'linked_debt_id': FieldValue.delete(),
+            'linked_account_id': FieldValue.delete(),
+            'updated_at': now,
+          });
+          // Store info for post-transaction notification
+          linkedPartyUserId = partyUserId;
+          totalAmount = debtData['total_amount'] as int?;
+        }
+        // If linked debt doc doesn't exist: continue cancel normally (no error)
+      }
+    });
+
+    // 4. Send notification to partner after transaction succeeds (fire-and-forget)
+    if (linkedPartyUserId != null) {
+      final currentUserName = await sl.accountService.getAccountNameForUser(userId);
+      final cancellerName = currentUserName.isNotEmpty ? currentUserName : 'Người dùng';
+      sl.notificationService.notifyDebtCancelled(
+        targetUserId: linkedPartyUserId!,
+        cancellerName: cancellerName,
+        amount: totalAmount ?? 0,
+      );
+    }
   }
 
   Future<void> deleteDebt(String id) async {
-    await _repo.deleteDebt(id);
+    final accountId = sl.appState.currentAccountId;
+    final userId = sl.appState.currentUserId ?? '';
+    final now = DateTime.now().millisecondsSinceEpoch;
+
+    // Track linked debt info for post-transaction notification
+    String? linkedPartyUserId;
+    int? totalAmount;
+
+    await _firestore.runTransaction((txn) async {
+      // 1. Read debt document before deleting
+      final debtRef = _firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('debts_v2')
+          .doc(id);
+      final debtSnap = await txn.get(debtRef);
+      if (!debtSnap.exists) throw Exception('Debt not found');
+      final debtData = debtSnap.data()!;
+      final linkedDebtId = debtData['linked_debt_id'] as String?;
+      final linkedAccountId = debtData['linked_account_id'] as String?;
+      final partyUserId = debtData['party_user_id'] as String?;
+
+      // 2. If linked: unlink the other side
+      if (linkedDebtId != null && linkedAccountId != null) {
+        final linkedDebtRef = _firestore
+            .collection('accounts')
+            .doc(linkedAccountId)
+            .collection('debts_v2')
+            .doc(linkedDebtId);
+        final linkedDebtSnap = await txn.get(linkedDebtRef);
+
+        if (linkedDebtSnap.exists) {
+          txn.update(linkedDebtRef, {
+            'linked_debt_id': FieldValue.delete(),
+            'linked_account_id': FieldValue.delete(),
+            'updated_at': now,
+          });
+          // Store info for post-transaction notification
+          linkedPartyUserId = partyUserId;
+          totalAmount = debtData['total_amount'] as int?;
+        }
+        // If linked debt doc doesn't exist: continue delete normally (no error)
+      }
+
+      // 3. Delete the current debt document
+      txn.delete(debtRef);
+    });
+
+    // 4. Delete payments subcollection (outside transaction, best-effort)
+    try {
+      final paymentsSnap = await _firestore
+          .collection('accounts')
+          .doc(accountId)
+          .collection('debts_v2')
+          .doc(id)
+          .collection('payments')
+          .limit(500)
+          .get();
+      if (paymentsSnap.docs.isNotEmpty) {
+        final batch = _firestore.batch();
+        for (final doc in paymentsSnap.docs) {
+          batch.delete(doc.reference);
+        }
+        await batch.commit();
+      }
+    } catch (_) {}
+
+    // 5. Send notification to partner after transaction succeeds (fire-and-forget)
+    if (linkedPartyUserId != null) {
+      final currentUserName = await sl.accountService.getAccountNameForUser(userId);
+      final deleterName = currentUserName.isNotEmpty ? currentUserName : 'Người dùng';
+      sl.notificationService.notifyDebtCancelled(
+        targetUserId: linkedPartyUserId!,
+        cancellerName: deleterName,
+        amount: totalAmount ?? 0,
+      );
+    }
   }
 }

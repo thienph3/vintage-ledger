@@ -12,6 +12,8 @@ import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 
+enum PartyInputMode { freeText, emailLookup }
+
 class DebtFormScreen extends StatefulWidget {
   final Debt? debt;
 
@@ -36,6 +38,15 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
   List<Wallet> _wallets = [];
   String? _walletId;
 
+  // Linked debt state
+  PartyInputMode _partyInputMode = PartyInputMode.freeText;
+  final _emailController = TextEditingController();
+  String? _partyUserId;
+  String? _partyAccountId;
+  String? _foundPartyName;
+  bool _isSearching = false;
+  String? _emailError;
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +70,7 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
     _amountController.dispose();
     _interestRateController.dispose();
     _descriptionController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -82,13 +94,19 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
           children: [
             _buildTypeSelector(),
             const SizedBox(height: AppSpacing.lg),
-            _buildTextField(
-              controller: _partyNameController,
-              label: '${S.of(context, 'debtPerson')} ${_type == DebtType.lend ? S.of(context, 'borrow').toLowerCase() : S.of(context, 'lend').toLowerCase()}',
-              hint: S.of(context, 'partyNameRequired'),
-              icon: Icons.person,
-              validator: (v) => v?.isEmpty ?? true ? S.of(context, 'partyNameRequired') : null,
-            ),
+            _buildPartyInputModeSelector(),
+            const SizedBox(height: AppSpacing.md),
+            if (_partyInputMode == PartyInputMode.freeText) ...[
+              _buildTextField(
+                controller: _partyNameController,
+                label: '${S.of(context, 'debtPerson')} ${_type == DebtType.lend ? S.of(context, 'borrow').toLowerCase() : S.of(context, 'lend').toLowerCase()}',
+                hint: S.of(context, 'partyNameRequired'),
+                icon: Icons.person,
+                validator: (v) => v?.isEmpty ?? true ? S.of(context, 'partyNameRequired') : null,
+              ),
+            ] else ...[
+              _buildEmailSearchField(),
+            ],
             const SizedBox(height: AppSpacing.md),
             _buildTextField(
               controller: _contactController,
@@ -139,6 +157,112 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPartyInputModeSelector() {
+    return SegmentedButton<PartyInputMode>(
+      segments: const [
+        ButtonSegment(
+          value: PartyInputMode.freeText,
+          label: Text('Nhập tên'),
+          icon: Icon(Icons.edit),
+        ),
+        ButtonSegment(
+          value: PartyInputMode.emailLookup,
+          label: Text('Tìm người dùng'),
+          icon: Icon(Icons.email),
+        ),
+      ],
+      selected: {_partyInputMode},
+      onSelectionChanged: (selected) {
+        setState(() {
+          _partyInputMode = selected.first;
+          // Clear linked user info when switching modes
+          if (_partyInputMode == PartyInputMode.freeText) {
+            _emailController.clear();
+            _partyUserId = null;
+            _partyAccountId = null;
+            _foundPartyName = null;
+            _emailError = null;
+          } else {
+            _partyNameController.clear();
+          }
+        });
+      },
+      style: ButtonStyle(
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
+
+  Widget _buildEmailSearchField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email người dùng',
+                  hintText: 'Nhập email để tìm...',
+                  prefixIcon: Icon(Icons.email),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                validator: _partyInputMode == PartyInputMode.emailLookup && _partyUserId == null
+                    ? (_) => 'Vui lòng tìm và chọn người dùng'
+                    : null,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            IconButton.filled(
+              onPressed: _isSearching ? null : _searchByEmail,
+              icon: _isSearching
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(Icons.search),
+            ),
+          ],
+        ),
+        if (_emailError != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            _emailError!,
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.expense),
+          ),
+        ],
+        if (_foundPartyName != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md2),
+            decoration: BoxDecoration(
+              color: AppColors.income.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppSpacing.borderRadiusSm),
+              border: Border.all(color: AppColors.income.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle, color: AppColors.income, size: 20),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_foundPartyName!, style: AppTextStyles.bodyBold),
+                      Text(_emailController.text, style: AppTextStyles.bodySmall),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -255,6 +379,73 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
     );
   }
 
+  Future<void> _searchByEmail() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      setState(() => _emailError = 'Vui lòng nhập email');
+      return;
+    }
+
+    // Validate: reject self-lookup
+    final currentEmail = sl.authService.currentUser?.email;
+    if (currentEmail != null && email.toLowerCase() == currentEmail.toLowerCase()) {
+      setState(() {
+        _emailError = 'Không thể tạo nợ với chính mình';
+        _partyUserId = null;
+        _partyAccountId = null;
+        _foundPartyName = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _isSearching = true;
+      _emailError = null;
+      _partyUserId = null;
+      _partyAccountId = null;
+      _foundPartyName = null;
+    });
+
+    try {
+      final userId = await sl.accountService.findUserIdByEmail(email);
+      if (!mounted) return;
+
+      if (userId == null) {
+        setState(() {
+          _emailError = 'Không tìm thấy người dùng';
+          _isSearching = false;
+        });
+        return;
+      }
+
+      // Get display name and account ID
+      final displayName = await sl.accountService.getAccountNameForUser(userId);
+      final accounts = await sl.accountService.getAccountsForUser(userId);
+      if (!mounted) return;
+
+      if (accounts.isEmpty) {
+        setState(() {
+          _emailError = 'Không tìm thấy tài khoản người dùng';
+          _isSearching = false;
+        });
+        return;
+      }
+
+      setState(() {
+        _partyUserId = userId;
+        _partyAccountId = accounts.first.id;
+        _foundPartyName = displayName.isNotEmpty ? displayName : email;
+        _isSearching = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _emailError = 'Lỗi tìm kiếm: $e';
+        _isSearching = false;
+      });
+    }
+  }
+
   Future<void> _selectDate() async {
     final date = await showDatePicker(
       context: context,
@@ -283,26 +474,54 @@ class _DebtFormScreenState extends State<DebtFormScreen> {
           : double.tryParse(_interestRateController.text);
 
       if (widget.debt == null) {
-        if (_type == DebtType.lend) {
-          await _service.choVay(
-            partyName: _partyNameController.text,
-            amount: amount,
-            contact: _contactController.text.isEmpty ? null : _contactController.text,
-            walletId: _walletId,
-            dueDate: _dueDate,
-            interestRate: interestRate,
-            description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
-          );
+        final isLinked = _partyInputMode == PartyInputMode.emailLookup && _partyUserId != null;
+
+        if (isLinked) {
+          if (_type == DebtType.lend) {
+            await _service.choVayLienKet(
+              partyUserId: _partyUserId!,
+              partyAccountId: _partyAccountId!,
+              partyName: _foundPartyName!,
+              amount: amount,
+              walletId: _walletId,
+              dueDate: _dueDate,
+              interestRate: interestRate,
+              description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+            );
+          } else {
+            await _service.vayMuonLienKet(
+              partyUserId: _partyUserId!,
+              partyAccountId: _partyAccountId!,
+              partyName: _foundPartyName!,
+              amount: amount,
+              walletId: _walletId,
+              dueDate: _dueDate,
+              interestRate: interestRate,
+              description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+            );
+          }
         } else {
-          await _service.vayMuon(
-            partyName: _partyNameController.text,
-            amount: amount,
-            contact: _contactController.text.isEmpty ? null : _contactController.text,
-            walletId: _walletId,
-            dueDate: _dueDate,
-            interestRate: interestRate,
-            description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
-          );
+          if (_type == DebtType.lend) {
+            await _service.choVay(
+              partyName: _partyNameController.text,
+              amount: amount,
+              contact: _contactController.text.isEmpty ? null : _contactController.text,
+              walletId: _walletId,
+              dueDate: _dueDate,
+              interestRate: interestRate,
+              description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+            );
+          } else {
+            await _service.vayMuon(
+              partyName: _partyNameController.text,
+              amount: amount,
+              contact: _contactController.text.isEmpty ? null : _contactController.text,
+              walletId: _walletId,
+              dueDate: _dueDate,
+              interestRate: interestRate,
+              description: _descriptionController.text.isEmpty ? null : _descriptionController.text,
+            );
+          }
         }
       } else {
         await _service.updateDebt(

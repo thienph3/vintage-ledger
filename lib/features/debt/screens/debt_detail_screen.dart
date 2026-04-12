@@ -102,6 +102,10 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
               ),
             ],
           ),
+          if (debt.isLinked || debt.partyUserId != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            _buildLinkedDebtIndicator(debt),
+          ],
           if (debt.partyContact != null) ...[
             const SizedBox(height: AppSpacing.sm),
             Row(
@@ -165,6 +169,38 @@ class _DebtDetailScreenState extends State<DebtDetailScreen> {
               ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLinkedDebtIndicator(Debt debt) {
+    final isCurrentlyLinked = debt.isLinked;
+    final color = isCurrentlyLinked ? AppColors.primary : AppColors.textSecondary;
+    final label = isCurrentlyLinked ? 'Đang liên kết' : 'Đã gỡ liên kết';
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isCurrentlyLinked ? Icons.link : Icons.link_off,
+            size: 16,
+            color: color,
+          ),
+          const SizedBox(width: AppSpacing.xs),
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(color: color),
+          ),
         ],
       ),
     );

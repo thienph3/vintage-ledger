@@ -241,7 +241,7 @@ class AccountService {
 
   // ── Invite by email ──
 
-  Future<String?> _findUserIdByEmail(String email) async {
+  Future<String?> findUserIdByEmail(String email) async {
     final doc = await _userEmails.doc(email.toLowerCase()).get();
     if (!doc.exists) return null;
     return (doc.data() as Map<String, dynamic>)['user_id'] as String?;
@@ -260,7 +260,7 @@ class AccountService {
     required String accountId,
     required String email,
   }) async {
-    final targetUserId = await _findUserIdByEmail(email);
+    final targetUserId = await findUserIdByEmail(email);
     if (targetUserId == null) {
       throw Exception('userNotFoundByEmail');
     }
@@ -411,6 +411,13 @@ class AccountService {
     final nickname = account?.getNickname(userId);
     if (nickname != null && nickname.isNotEmpty) return nickname;
 
+    final userDoc = await _users.doc(userId).get();
+    if (!userDoc.exists) return '';
+    return (userDoc.data() as Map<String, dynamic>)['display_name'] ?? '';
+  }
+
+  /// Get display name for a user (from user document)
+  Future<String> getAccountNameForUser(String userId) async {
     final userDoc = await _users.doc(userId).get();
     if (!userDoc.exists) return '';
     return (userDoc.data() as Map<String, dynamic>)['display_name'] ?? '';

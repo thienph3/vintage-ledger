@@ -351,6 +351,69 @@ class NotificationService {
     return 'Giao dịch mới: $action $amount$cat';
   }
 
+  Future<void> notifyDebtCreated({
+    required String targetUserId,
+    required String creatorName,
+    required int amount,
+    required String debtType,
+  }) async {
+    final tokens = await _getTokensForUsers([targetUserId]);
+    final action = debtType == 'lend' ? 'cho bạn vay' : 'ghi nhận vay từ bạn';
+    await _sendPush(
+      tokens: tokens,
+      title: 'Khoản nợ mới',
+      body: '$creatorName đã $action ${_formatAmount(amount)}',
+      data: {'type': 'debt_created'},
+    );
+  }
+
+  Future<void> notifyDebtPayment({
+    required String targetUserId,
+    required String payerName,
+    required int amount,
+    required int remainingAmount,
+  }) async {
+    final tokens = await _getTokensForUsers([targetUserId]);
+    await _sendPush(
+      tokens: tokens,
+      title: 'Thanh toán nợ',
+      body: '$payerName đã thanh toán ${_formatAmount(amount)}. Còn lại: ${_formatAmount(remainingAmount)}',
+      data: {'type': 'debt_payment'},
+    );
+  }
+
+  Future<void> notifyDebtCompleted({
+    required String targetUserId,
+    required String partyName,
+    required int totalAmount,
+  }) async {
+    final tokens = await _getTokensForUsers([targetUserId]);
+    await _sendPush(
+      tokens: tokens,
+      title: 'Hoàn tất khoản nợ',
+      body: 'Khoản nợ ${_formatAmount(totalAmount)} với $partyName đã được thanh toán xong',
+      data: {'type': 'debt_completed'},
+    );
+  }
+
+  Future<void> notifyDebtCancelled({
+    required String targetUserId,
+    required String cancellerName,
+    required int amount,
+  }) async {
+    final tokens = await _getTokensForUsers([targetUserId]);
+    await _sendPush(
+      tokens: tokens,
+      title: 'Hủy liên kết nợ',
+      body: '$cancellerName đã hủy khoản nợ liên kết ${_formatAmount(amount)}',
+      data: {'type': 'debt_cancelled'},
+    );
+  }
+
+  String _formatAmount(int amount) {
+    return '${amount.toString().replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+(?!\d))'), (m) => '${m[1]}.')}đ';
+  }
+
   Future<void> removeToken() async {
     final userId = sl.appState.currentUserId;
     if (userId == null) return;

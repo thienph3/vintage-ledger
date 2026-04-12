@@ -53,6 +53,9 @@ class Debt {
   final DebtStatus status;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String? linkedDebtId;
+  final String? linkedAccountId;
+  final String? partyUserId;
 
   const Debt({
     required this.id,
@@ -69,6 +72,9 @@ class Debt {
     required this.status,
     required this.createdAt,
     required this.updatedAt,
+    this.linkedDebtId,
+    this.linkedAccountId,
+    this.partyUserId,
   });
 
   // Computed properties
@@ -88,6 +94,8 @@ class Debt {
     return dueDate!.difference(DateTime.now()).inDays;
   }
   
+  bool get isLinked => linkedDebtId != null;
+
   bool get isLent => type == DebtType.lend;
   bool get isBorrowed => type == DebtType.borrow;
   
@@ -121,6 +129,9 @@ class Debt {
       ),
       createdAt: DateTime.fromMillisecondsSinceEpoch(data['created_at'] ?? 0),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(data['updated_at'] ?? 0),
+      linkedDebtId: data['linked_debt_id'],
+      linkedAccountId: data['linked_account_id'],
+      partyUserId: data['party_user_id'],
     );
   }
 
@@ -139,6 +150,9 @@ class Debt {
       'status': status.name,
       'created_at': createdAt.millisecondsSinceEpoch,
       'updated_at': updatedAt.millisecondsSinceEpoch,
+      if (linkedDebtId != null) 'linked_debt_id': linkedDebtId,
+      if (linkedAccountId != null) 'linked_account_id': linkedAccountId,
+      if (partyUserId != null) 'party_user_id': partyUserId,
     };
   }
 
@@ -157,6 +171,9 @@ class Debt {
     DebtStatus? status,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? linkedDebtId,
+    String? linkedAccountId,
+    String? partyUserId,
   }) {
     return Debt(
       id: id ?? this.id,
@@ -173,6 +190,9 @@ class Debt {
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      linkedDebtId: linkedDebtId ?? this.linkedDebtId,
+      linkedAccountId: linkedAccountId ?? this.linkedAccountId,
+      partyUserId: partyUserId ?? this.partyUserId,
     );
   }
 
@@ -187,6 +207,6 @@ class Debt {
 
   @override
   String toString() {
-    return 'Debt(id: $id, type: $type, party: $partyName, amount: $totalAmount, paid: $paidAmount)';
+    return 'Debt(id: $id, type: $type, party: $partyName, amount: $totalAmount, paid: $paidAmount, isLinked: $isLinked)';
   }
 }
