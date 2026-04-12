@@ -271,72 +271,72 @@ class _WalletDetailScreenState extends State<WalletDetailScreen> {
   // ── Debt Balance Card ──
 
   Widget _buildDebtBalanceCard(Wallet wallet, String locale) {
-    final initialDebt = wallet.initialBalance.abs();
-    final currentBalance = wallet.balance;
-    // For debt wallet: initialBalance is negative, balance increases as payments are made
-    // paidAmount = initialBalance.abs() - remaining debt
-    // remaining = abs(balance) if balance is negative, or 0 if paid off
-    final remaining = currentBalance < 0 ? currentBalance.abs() : 0;
-    final paid = initialDebt - remaining;
+    // Debt wallet: aggregate from linked debts, not wallet balance
+    return StreamBuilder<List<Debt>>(
+      stream: _debtService.watchDebtsByWallet(wallet.id!),
+      initialData: const [],
+      builder: (context, snapshot) {
+        final debts = snapshot.data ?? [];
+        final totalDebt = debts.fold<int>(0, (s, d) => s + d.totalAmount);
+        final totalPaid = debts.fold<int>(0, (s, d) => s + d.paidAmount);
+        final totalRemaining = totalDebt - totalPaid;
 
-    return GestureDetector(
-      onTap: () => setState(() => _balanceVisible = !_balanceVisible),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
-          boxShadow: [AppColors.cardShadow],
-        ),
-        child: Column(
-          children: [
-            Text(S.of(context, 'initialDebt'), style: AppTextStyles.caption),
-            Text(
-              _balanceVisible
-                  ? AmountFormatter.formatCurrency(initialDebt, locale)
-                  : '••••••',
-              style: AppTextStyles.title,
+        return GestureDetector(
+          onTap: () => setState(() => _balanceVisible = !_balanceVisible),
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
+              boxShadow: [AppColors.cardShadow],
             ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
+            child: Column(
               children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(S.of(context, 'paidDebt'), style: AppTextStyles.caption),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        _balanceVisible
-                            ? AmountFormatter.formatCurrency(paid, locale)
-                            : '••••••',
-                        style: AppTextStyles.bodyBold.copyWith(
-                          color: AppColors.income,
-                        ),
-                      ),
-                    ],
-                  ),
+                Text(S.of(context, 'initialDebt'), style: AppTextStyles.caption),
+                Text(
+                  _balanceVisible
+                      ? AmountFormatter.formatCurrency(totalDebt, locale)
+                      : '••••••',
+                  style: AppTextStyles.title,
                 ),
-                Expanded(
-                  child: Column(
-                    children: [
-                      Text(S.of(context, 'remainingDebt'), style: AppTextStyles.caption),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(
-                        _balanceVisible
-                            ? AmountFormatter.formatCurrency(remaining, locale)
-                            : '••••••',
-                        style: AppTextStyles.bodyBold.copyWith(
-                          color: AppColors.expense,
-                        ),
+                const SizedBox(height: AppSpacing.md),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text(S.of(context, 'paidDebt'), style: AppTextStyles.caption),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            _balanceVisible
+                                ? AmountFormatter.formatCurrency(totalPaid, locale)
+                                : '••••••',
+                            style: AppTextStyles.bodyBold.copyWith(color: AppColors.income),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Text(S.of(context, 'remainingDebt'), style: AppTextStyles.caption),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(
+                            _balanceVisible
+                                ? AmountFormatter.formatCurrency(totalRemaining, locale)
+                                : '••••••',
+                            style: AppTextStyles.bodyBold.copyWith(color: AppColors.expense),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 

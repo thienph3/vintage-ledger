@@ -187,7 +187,10 @@ class DebtService {
       if (!walletSnap.exists) throw Exception('Wallet not found');
       final walletBalance = walletSnap.data()!['balance'] as int? ?? 0;
 
-      // 3. Create expense transaction
+      // 3. Validate sufficient balance
+      if (walletBalance < amount) throw Exception('Số dư ví không đủ');
+
+      // 4. Create expense transaction
       final txnRef = firestore
           .collection('accounts')
           .doc(accountId)
@@ -206,10 +209,10 @@ class DebtService {
         'updated_at': FieldValue.serverTimestamp(),
       });
 
-      // 4. Deduct wallet balance
+      // 5. Deduct wallet balance
       txn.update(walletRef, {'balance': walletBalance - amount});
 
-      // 5. Create payment in debt's subcollection
+      // 6. Create payment in debt's subcollection
       final paymentRef = debtRef.collection('payments').doc();
       txn.set(paymentRef, {
         'debt_id': debtId,
@@ -220,7 +223,7 @@ class DebtService {
         'created_at': now.millisecondsSinceEpoch,
       });
 
-      // 6. Update debt paid_amount and status if completed
+      // 7. Update debt paid_amount and status if completed
       final newPaidAmount = paidAmount + amount;
       final updates = <String, dynamic>{
         'paid_amount': newPaidAmount,
