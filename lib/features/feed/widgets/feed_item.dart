@@ -64,20 +64,7 @@ class FeedItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  boldPrefix != null
-                      ? Text.rich(
-                          TextSpan(
-                            style: AppTextStyles.body,
-                            children: [
-                              TextSpan(
-                                text: boldPrefix,
-                                style: AppTextStyles.bodyBold,
-                              ),
-                              TextSpan(text: textAfterPrefix ?? ''),
-                            ],
-                          ),
-                        )
-                      : Text(text, style: AppTextStyles.body),
+                  _buildStoryText(),
                   const SizedBox(height: AppSpacing.xs),
                   Text(time, style: AppTextStyles.caption),
                 ],
@@ -86,6 +73,22 @@ class FeedItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStoryText() {
+    if (boldPrefix == null) {
+      return Text(text, style: AppTextStyles.body);
+    }
+
+    // Use Wrap so bold name and rest flow inline on the same line,
+    // each as an independent Text widget with its own guaranteed style.
+    return Wrap(
+      crossAxisAlignment: WrapCrossAlignment.end,
+      children: [
+        Text(boldPrefix!, style: AppTextStyles.bodyBold),
+        Text(textAfterPrefix ?? '', style: AppTextStyles.body),
+      ],
     );
   }
 }
