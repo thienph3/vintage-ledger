@@ -71,6 +71,39 @@
       "collectionGroup": "debts_v2",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "debts_v2",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "type", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "debts_v2",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "due_date", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "debts_v2",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "wallet_id", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "debts_v2",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "created_by", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "created_at", "order": "DESCENDING" }
@@ -99,6 +132,30 @@
       "collectionGroup": "goals_v2",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "goals_v2",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "category", "order": "ASCENDING" },
+        { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "goals_v2",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "funding_wallet_id", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "goals_v2",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "created_by", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "created_at", "order": "DESCENDING" }
@@ -111,6 +168,14 @@
         { "fieldPath": "created_by", "order": "ASCENDING" },
         { "fieldPath": "category", "order": "ASCENDING" },
         { "fieldPath": "created_at", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "auto_saving_rules",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "is_active", "order": "ASCENDING" },
+        { "fieldPath": "next_run_date", "order": "ASCENDING" }
       ]
     },
     {
