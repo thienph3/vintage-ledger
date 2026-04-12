@@ -65,8 +65,8 @@ class FeedItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   boldPrefix != null
-                      ? RichText(
-                          text: TextSpan(
+                      ? Text.rich(
+                          TextSpan(
                             children: [
                               TextSpan(
                                 text: boldPrefix,
