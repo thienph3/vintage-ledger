@@ -90,6 +90,10 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
         _walletId = lastWalletId;
       }
       _walletId ??= _wallets.isNotEmpty ? _wallets.first.id : null;
+      // Default toWallet: first wallet that isn't the source
+      if (_toWalletId == null && _wallets.length >= 2) {
+        _toWalletId = _wallets.where((w) => w.id != _walletId).first.id;
+      }
     });
     _loadAllAccountWallets();
   }
@@ -250,29 +254,19 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
   Widget _buildToWalletDropdown() {
     final items = <SelectionItem<String>>[];
     String? displayName;
-    for (final aw in _allAccountWallets) {
-      for (final w in aw.wallets) {
-        if (w.id == _walletId && aw.accountId == sl.appState.currentAccountId) continue;
-        final label = _allAccountWallets.length > 1
-            ? '${aw.accountName} / ${w.name}'
-            : w.name;
-        items.add(SelectionItem(value: '${aw.accountId}:${w.id}', label: label, icon: Icons.account_balance_wallet_outlined));
-        if (w.id == _toWalletId) displayName = label;
-      }
+
+    // Internal transfer: only show wallets from current account
+    for (final w in _wallets.where((w) => w.id != _walletId)) {
+      items.add(SelectionItem(value: ':${w.id}', label: w.name, icon: Icons.account_balance_wallet_outlined));
+      if (w.id == _toWalletId) displayName = w.name;
     }
-    // Fallback: same-account wallets if cross-account not loaded yet
-    if (items.isEmpty) {
-      for (final w in _wallets.where((w) => w.id != _walletId)) {
-        items.add(SelectionItem(value: ':${w.id}', label: w.name, icon: Icons.account_balance_wallet_outlined));
-        if (w.id == _toWalletId) displayName = w.name;
-      }
-    }
+
     return DropdownField<String>(
       label: S.of(context, 'toWallet'),
       value: displayName,
       prefixIcon: Icons.account_balance_wallet_outlined,
       items: items,
-      selected: _toAccountId != null ? '$_toAccountId:$_toWalletId' : ':$_toWalletId',
+      selected: ':$_toWalletId',
       onChanged: (v) {
         if (v == null) return;
         final parts = v.split(':');
