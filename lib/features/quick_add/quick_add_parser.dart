@@ -24,8 +24,13 @@ class QuickAddResult {
 
 class QuickAddParser {
   static final _amountRegex = RegExp(
-    r'(\d+(?:[.,]\d+)?)\s*(tỷ|ty|tr|triệu|trieu|k|nghìn|nghin|m|b)?',
+    r'(\d+(?:[.,]\d+)?)\s*(tỷ|ty|triệu|trieu|nghìn|nghin|tr|k|m|b)(?=\s|$)',
     caseSensitive: false,
+  );
+
+  /// Fallback: bare number without suffix
+  static final _bareNumberRegex = RegExp(
+    r'(\d+(?:[.,]\d+)?)',
   );
 
   static const _maxLearnedEntries = 100;
@@ -139,23 +144,33 @@ class QuickAddParser {
 
   static int _parseAmount(String input) {
     final match = _amountRegex.firstMatch(input);
-    if (match == null) return 0;
+    if (match != null) {
+      final numStr = match.group(1)!.replaceAll(',', '.');
+      final num = double.tryParse(numStr) ?? 0;
+      final suffix = match.group(2)?.toLowerCase() ?? '';
 
-    final numStr = match.group(1)!.replaceAll(',', '.');
-    final num = double.tryParse(numStr) ?? 0;
-    final suffix = match.group(2)?.toLowerCase() ?? '';
+      return switch (suffix) {
+        'tỷ' || 'ty' => (num * 1000000000).toInt(),
+        'tr' || 'triệu' || 'trieu' || 'm' => (num * 1000000).toInt(),
+        'k' || 'nghìn' || 'nghin' => (num * 1000).toInt(),
+        'b' => (num * 1000000000).toInt(),
+        _ => num.toInt(),
+      };
+    }
 
-    return switch (suffix) {
-      'tỷ' || 'ty' => (num * 1000000000).toInt(),
-      'tr' || 'triệu' || 'trieu' || 'm' => (num * 1000000).toInt(),
-      'k' || 'nghìn' || 'nghin' => (num * 1000).toInt(),
-      'b' => (num * 1000000000).toInt(),
-      _ => num.toInt(),
-    };
+    // Fallback: bare number without suffix
+    final bare = _bareNumberRegex.firstMatch(input);
+    if (bare == null) return 0;
+    return double.tryParse(bare.group(1)!.replaceAll(',', '.'))?.toInt() ?? 0;
   }
 
   static String _extractKeyword(String input) {
-    return input.replaceAll(_amountRegex, '').trim();
+    // Try suffix regex first, fallback to bare number
+    var result = input.replaceAll(_amountRegex, '').trim();
+    if (result == input.trim()) {
+      result = input.replaceAll(_bareNumberRegex, '').trim();
+    }
+    return result;
   }
 
   static bool _lastFuzzy = false;
