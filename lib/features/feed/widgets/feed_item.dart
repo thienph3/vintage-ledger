@@ -81,14 +81,26 @@ class FeedItem extends StatelessWidget {
       return Text(text, style: AppTextStyles.body);
     }
 
-    // Use Wrap so bold name and rest flow inline on the same line,
-    // each as an independent Text widget with its own guaranteed style.
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.end,
-      children: [
-        Text(boldPrefix!, style: AppTextStyles.bodyBold),
-        Text(textAfterPrefix ?? '', style: AppTextStyles.body),
-      ],
+    // Render as a single flowing sentence.
+    // Member name uses primary color to stand out reliably on all devices,
+    // instead of relying on fontWeight which can be inconsistent.
+    return Text.rich(
+      TextSpan(
+        children: [
+          WidgetSpan(
+            alignment: PlaceholderAlignment.baseline,
+            baseline: TextBaseline.alphabetic,
+            child: Text(
+              boldPrefix!,
+              style: AppTextStyles.body.copyWith(color: AppColors.primary),
+            ),
+          ),
+          TextSpan(
+            text: textAfterPrefix ?? '',
+            style: AppTextStyles.body,
+          ),
+        ],
+      ),
     );
   }
 }
