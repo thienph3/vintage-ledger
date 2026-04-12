@@ -120,16 +120,18 @@ class QuickAddParser {
   // ── Parse ──
 
   static QuickAddResult parse(String input, List<Category> categories) {
-    final trimmed = input.trim().toLowerCase();
+    final trimmed = input.trim();
     if (trimmed.isEmpty) return QuickAddResult(amount: 0);
 
-    final amount = _parseAmount(trimmed);
-    final keyword = _extractKeyword(trimmed);
+    final lower = trimmed.toLowerCase();
+    final amount = _parseAmount(lower);
+    final keyword = _extractKeyword(lower);
+    final originalKeyword = _extractKeyword(trimmed);
     final match = _matchCategory(keyword, categories);
 
     return QuickAddResult(
       amount: amount,
-      keyword: keyword,
+      keyword: originalKeyword,
       matchedCategoryId: match?.categoryId,
       type: match?.type ?? TransactionType.expense,
     );

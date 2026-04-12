@@ -345,7 +345,7 @@ class _SettingScreenState extends State<SettingScreen> {
               _debugTapCount++;
               if (_debugTapCount >= 5) setState(() => _showDebug = true);
             },
-            child: Text('v1.0.0', style: AppTextStyles.caption, textAlign: TextAlign.center),
+            child: Text('v0.0.11', style: AppTextStyles.caption, textAlign: TextAlign.center),
           ),
           if (_showDebug) ...[
             const SizedBox(height: AppSpacing.sm),
