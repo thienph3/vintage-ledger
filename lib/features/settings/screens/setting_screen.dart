@@ -13,6 +13,7 @@ import 'package:vintage_ledger/core/theme/app_text_styles.dart';
 import 'package:vintage_ledger/features/export/export_service.dart';
 import 'package:vintage_ledger/features/quick_add/quick_add_parser.dart';
 import 'package:vintage_ledger/features/settings/screens/learned_keywords_screen.dart';
+import 'package:vintage_ledger/features/settings/screens/release_notes_screen.dart';
 import 'package:vintage_ledger/features/feed/feed_helper.dart';
 import 'package:vintage_ledger/core/debug/read_counter.dart';
 import 'package:vintage_ledger/features/auth/screens/login_screen.dart';
@@ -367,8 +368,14 @@ class _SettingScreenState extends State<SettingScreen> {
               },
             ),
 
-          // Debug (hidden — tap version 5 times to reveal)
+          // About
           const SizedBox(height: AppSpacing.lg),
+          _tile(Icons.new_releases_outlined, 'Có gì mới',
+            subtitle: 'v0.0.11',
+            onTap: () => context.pushScreen(const ReleaseNotesScreen()),
+          ),
+
+          // Debug (hidden — tap version 5 times to reveal)
           GestureDetector(
             onTap: () {
               _debugTapCount++;
