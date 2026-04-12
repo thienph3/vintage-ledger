@@ -154,6 +154,7 @@ class _SettingScreenState extends State<SettingScreen> {
     } else {
       // Personal account: update global display name
       await user.updateDisplayName(newName);
+      await user.reload();
       await sl.accountService.updateUserProfile(userId: userId, email: user.email ?? '', displayName: newName);
     }
     if (mounted) {
@@ -493,7 +494,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 backgroundImage: user.photoURL != null ? NetworkImage(user.photoURL!) : null,
                 child: user.photoURL == null
                     ? Text(
-                        (user.displayName ?? '?')[0].toUpperCase(),
+                        (_displayName(user))[0].toUpperCase(),
                         style: AppTextStyles.title.copyWith(color: AppColors.primary),
                       )
                     : null,
@@ -503,7 +504,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(user.displayName ?? '', style: AppTextStyles.bodyBold),
+                    Text(_displayName(user), style: AppTextStyles.bodyBold),
                     Text(user.email ?? '', style: AppTextStyles.caption),
                   ],
                 ),
@@ -609,6 +610,15 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   // ── Helpers ──
+
+  String _displayName(User user) {
+    final account = _currentAccount;
+    if (account != null && account.isFamily) {
+      final nickname = account.getNickname(user.uid);
+      if (nickname != null && nickname.isNotEmpty) return nickname;
+    }
+    return user.displayName ?? '?';
+  }
 
   Widget _sectionLabel(String text) {
     return Padding(
