@@ -20,7 +20,6 @@ class GoalRepository {
 
   Future<List<Goal>> getGoals() async {
     final snap = await _goals
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .orderBy('created_at', descending: true)
         .get();
     return snap.docs.map((d) => Goal.fromMap(d.id, d.data())).toList();
@@ -28,7 +27,6 @@ class GoalRepository {
 
   Future<List<Goal>> getActiveGoals() async {
     final snap = await _goals
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('status', isEqualTo: GoalStatus.active.name)
         .orderBy('created_at', descending: true)
         .get();
@@ -37,7 +35,6 @@ class GoalRepository {
 
   Future<List<Goal>> getGoalsByCategory(GoalCategory category) async {
     final snap = await _goals
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('category', isEqualTo: category.name)
         .orderBy('created_at', descending: true)
         .get();
@@ -46,7 +43,6 @@ class GoalRepository {
 
   Future<List<Goal>> getCompletedGoals() async {
     final snap = await _goals
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('status', isEqualTo: GoalStatus.completed.name)
         .orderBy('created_at', descending: true)
         .get();
@@ -55,7 +51,6 @@ class GoalRepository {
 
   Stream<List<Goal>> watchGoals() {
     return _goals
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .orderBy('created_at', descending: true)
         .snapshots()
         .map((snap) => snap.docs.map((d) => Goal.fromMap(d.id, d.data())).toList());
@@ -63,7 +58,6 @@ class GoalRepository {
 
   Stream<List<Goal>> watchActiveGoals() {
     return _goals
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('status', isEqualTo: GoalStatus.active.name)
         .orderBy('created_at', descending: true)
         .snapshots()
@@ -145,7 +139,6 @@ class GoalRepository {
 
   Future<List<AutoSavingRule>> getAutoSavingRules() async {
     final snap = await _autoSavingRules
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .orderBy('created_at', descending: true)
         .get();
     return snap.docs.map((d) => AutoSavingRule.fromMap(d.id, d.data())).toList();
@@ -153,7 +146,6 @@ class GoalRepository {
 
   Future<List<AutoSavingRule>> getActiveAutoSavingRules() async {
     final snap = await _autoSavingRules
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('is_active', isEqualTo: true)
         .orderBy('next_run_date')
         .get();

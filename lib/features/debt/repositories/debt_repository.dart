@@ -16,7 +16,6 @@ class DebtRepository {
 
   Future<List<Debt>> getDebts() async {
     final snap = await _debts
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .orderBy('created_at', descending: true)
         .get();
     return snap.docs.map((d) => Debt.fromMap(d.id, d.data())).toList();
@@ -24,7 +23,6 @@ class DebtRepository {
 
   Future<List<Debt>> getDebtsByType(DebtType type) async {
     final snap = await _debts
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('type', isEqualTo: type.name)
         .where('status', isEqualTo: DebtStatus.active.name)
         .orderBy('created_at', descending: true)
@@ -35,7 +33,6 @@ class DebtRepository {
   Future<List<Debt>> getOverdueDebts() async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final snap = await _debts
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('status', isEqualTo: DebtStatus.active.name)
         .where('due_date', isLessThan: now)
         .orderBy('due_date')
@@ -45,7 +42,6 @@ class DebtRepository {
 
   Stream<List<Debt>> watchDebts() {
     return _debts
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .orderBy('created_at', descending: true)
         .snapshots()
         .map((snap) => snap.docs.map((d) => Debt.fromMap(d.id, d.data())).toList());
@@ -53,7 +49,6 @@ class DebtRepository {
 
   Stream<List<Debt>> watchActiveDebts() {
     return _debts
-        .where('created_by', isEqualTo: sl.appState.currentUserId ?? '')
         .where('status', isEqualTo: DebtStatus.active.name)
         .orderBy('created_at', descending: true)
         .snapshots()
