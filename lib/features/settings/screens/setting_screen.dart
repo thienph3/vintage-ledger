@@ -282,6 +282,8 @@ class _SettingScreenState extends State<SettingScreen> {
         children: [
           // ── Profile ──
           _buildProfileCard(user, isAnonymous),
+          const SizedBox(height: AppSpacing.sm),
+          _buildAccountIndicator(),
           const SizedBox(height: AppSpacing.lg),
 
           // ── Manage ──
@@ -387,6 +389,48 @@ class _SettingScreenState extends State<SettingScreen> {
           ],
           const SizedBox(height: AppSpacing.xl),
         ],
+      ),
+    );
+  }
+
+  // ── Account indicator ──
+
+  Widget _buildAccountIndicator() {
+    final account = _currentAccount;
+    if (account == null) return const SizedBox.shrink();
+
+    final isFamily = account.isFamily == true;
+    final icon = isFamily ? Icons.people : Icons.person;
+    final label = isFamily ? account.name : S.of(context, 'personalAccount');
+    final badgeColor = isFamily ? AppColors.accent : AppColors.primary;
+
+    return GestureDetector(
+      onTap: () => Navigator.of(context, rootNavigator: true).pop(),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        decoration: BoxDecoration(
+          color: badgeColor.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 16, color: badgeColor),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Text(
+                label,
+                style: AppTextStyles.bodySmall.copyWith(color: badgeColor, fontWeight: FontWeight.w600),
+              ),
+            ),
+            if (isFamily)
+              Text(
+                '${_memberProfiles.length} ${S.of(context, 'memberCount')}',
+                style: AppTextStyles.caption.copyWith(color: badgeColor),
+              ),
+            const SizedBox(width: AppSpacing.xs),
+            Icon(Icons.swap_horiz, size: 14, color: badgeColor),
+          ],
+        ),
       ),
     );
   }
