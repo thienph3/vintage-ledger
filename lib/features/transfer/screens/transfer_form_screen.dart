@@ -16,7 +16,6 @@ import 'package:vintage_ledger/common/widgets/selection_sheet.dart';
 
 import 'package:vintage_ledger/features/transaction/models/transaction_with_items.dart';
 import 'package:vintage_ledger/features/wallet/models/wallet.dart';
-import 'package:vintage_ledger/features/wallet/models/account_wallets.dart';
 import 'package:vintage_ledger/core/service_locator.dart';
 
 class TransferFormScreen extends StatefulWidget {
@@ -37,7 +36,6 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
   final _dateCtrl = TextEditingController();
 
   List<Wallet> _wallets = [];
-  List<AccountWallets> _allAccountWallets = [];
   List<Map<String, dynamic>> _members = [];
 
   String? _walletId;
@@ -95,21 +93,6 @@ class _TransferFormScreenState extends State<TransferFormScreen> {
         _toWalletId = _wallets.where((w) => w.id != _walletId).first.id;
       }
     });
-    _loadAllAccountWallets();
-  }
-
-  Future<void> _loadAllAccountWallets() async {
-    final userId = sl.appState.currentUserId;
-    if (userId == null) return;
-    final accounts = await sl.accountService.getAccountsForUser(userId);
-    final result = <AccountWallets>[];
-    for (final a in accounts) {
-      final wallets = a.id == sl.appState.currentAccountId
-          ? _wallets
-          : await sl.walletService.getWalletsForAccount(a.id);
-      result.add(AccountWallets(accountId: a.id, accountName: a.name, wallets: wallets));
-    }
-    if (mounted) setState(() => _allAccountWallets = result);
   }
 
   Future<void> _loadMembers() async {
