@@ -67,15 +67,13 @@ class FeedItem extends StatelessWidget {
                   boldPrefix != null
                       ? Text.rich(
                           TextSpan(
+                            style: AppTextStyles.body,
                             children: [
                               TextSpan(
                                 text: boldPrefix,
-                                style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w600),
+                                style: AppTextStyles.bodyBold,
                               ),
-                              TextSpan(
-                                text: textAfterPrefix ?? '',
-                                style: AppTextStyles.body,
-                              ),
+                              TextSpan(text: textAfterPrefix ?? ''),
                             ],
                           ),
                         )

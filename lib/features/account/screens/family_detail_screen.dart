@@ -288,18 +288,20 @@ class _FamilyDetailScreenState extends State<FamilyDetailScreen> {
         : '';
     final groupedCount = a['_grouped_count'] as int? ?? 0;
 
-    String description;
+    final String restText;
     if (groupedCount > 1) {
-      description = '$memberName ${S.of(context, 'addedTransactionsToday').replaceAll('{n}', '$groupedCount')}';
+      restText = ' ${S.of(context, 'addedTransactionsToday').replaceAll('{n}', '$groupedCount')}';
     } else {
-      description = '$memberName ${a['description'] ?? ''}';
+      restText = ' ${a['description'] ?? ''}';
     }
 
     return FeedItem(
       actorName: memberName,
-      text: description,
+      text: '$memberName$restText',
       time: timeStr,
       photoUrl: memberPhoto,
+      boldPrefix: memberName,
+      textAfterPrefix: restText,
     );
   }
 
