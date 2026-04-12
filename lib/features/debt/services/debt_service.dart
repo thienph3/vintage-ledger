@@ -157,8 +157,11 @@ class DebtService {
       'status': DebtStatus.active.name,
       'created_at': nowMs,
       'updated_at': nowMs,
+      // ignore: use_null_aware_elements
       if (dueDate != null) 'due_date': dueDate.millisecondsSinceEpoch,
+      // ignore: use_null_aware_elements
       if (interestRate != null) 'interest_rate': interestRate,
+      // ignore: use_null_aware_elements
       if (description != null) 'description': description,
     };
 
@@ -172,6 +175,7 @@ class DebtService {
       'linked_account_id': partyAccountId,
       'party_user_id': partyUserId,
       'created_by': currentUserId,
+      // ignore: use_null_aware_elements
       if (walletId != null) 'wallet_id': walletId,
     };
 
