@@ -15,6 +15,19 @@ class _ReleaseNote {
 
 const _releases = [
   _ReleaseNote(
+    version: '0.1.0',
+    date: '12/04/2026',
+    changes: [
+      '🔗 Nợ liên kết: tạo khoản nợ chung giữa 2 người dùng trong app, cả hai đều thấy và theo dõi được',
+      'Tìm người dùng qua email trên form tạo nợ (toggle giữa nhập tên / tìm email)',
+      'Đồng bộ thanh toán: khi một bên trả nợ, bên kia tự động cập nhật paidAmount + status',
+      'Hủy/xóa nợ liên kết: bên kia được gỡ liên kết (chuyển thành nợ tự do) + nhận thông báo',
+      'Push notification cho tạo nợ, thanh toán, hoàn tất, hủy liên kết',
+      'Badge "Đang liên kết" / "Đã gỡ liên kết" trên màn hình chi tiết nợ',
+      'Tương thích ngược: nợ tự do (free-text) hiện có không bị ảnh hưởng',
+    ],
+  ),
+  _ReleaseNote(
     version: '0.0.11',
     date: '12/04/2026',
     changes: [

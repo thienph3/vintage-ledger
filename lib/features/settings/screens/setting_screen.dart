@@ -371,7 +371,7 @@ class _SettingScreenState extends State<SettingScreen> {
           // About
           const SizedBox(height: AppSpacing.lg),
           _tile(Icons.new_releases_outlined, 'Có gì mới',
-            subtitle: 'v0.0.11',
+            subtitle: 'v0.1.0',
             onTap: () => context.pushScreen(const ReleaseNotesScreen()),
           ),
 

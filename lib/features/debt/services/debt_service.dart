@@ -221,7 +221,6 @@ class DebtService {
 
     // Track linked debt info for post-transaction notification
     String? linkedPartyUserId;
-    String? linkedPartyName;
     int? newPaidAmountResult;
     int? totalAmountResult;
     bool isCompleted = false;
@@ -319,7 +318,6 @@ class DebtService {
 
           // Store info for post-transaction notification
           linkedPartyUserId = partyUserId;
-          linkedPartyName = debtData['party_name'] as String?;
         } else {
           // Linked debt doc doesn't exist — unlink and continue normally
           txn.update(debtRef, {
@@ -372,7 +370,6 @@ class DebtService {
 
     // Track linked debt info for post-transaction notification
     String? linkedPartyUserId;
-    String? linkedPartyName;
     int? newPaidAmountResult;
     int? totalAmountResult;
     bool isCompleted = false;
@@ -473,7 +470,6 @@ class DebtService {
 
           // Store info for post-transaction notification
           linkedPartyUserId = partyUserId;
-          linkedPartyName = debtData['party_name'] as String?;
         } else {
           // Linked debt doc doesn't exist — unlink and continue normally
           txn.update(debtRef, {
